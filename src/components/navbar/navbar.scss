@@ -1,0 +1,69 @@
+@import "../../styles/variables";
+
+.navbar {
+  background-color: $silver;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  color: $white;
+
+  .left_content {
+    font-size: 32px;
+    font-weight: 700;
+    color: $primary;
+  }
+
+  .right_content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    span {
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: $primary;
+      }
+    }
+
+    .login,
+    .register {
+      font-size: 15px;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 9999px;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .login {
+      background-color: transparent;
+      border: 2px solid $white;
+      color: $black;
+      cursor: pointer;
+
+      &:hover {
+        background-color: $primary;
+        color: $white;
+        border-color: $primary;
+      }
+    }
+
+    .register {
+      background-color: $primary;
+      color: $white;
+      border: 2px solid $primary;
+      cursor: pointer;
+
+      &:hover {
+        background-color: transparent;
+        color: $black;
+        border-color: $white;
+      }
+    }
+  }
+}
