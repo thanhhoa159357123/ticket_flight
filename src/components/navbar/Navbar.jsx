@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "./navbar.scss";
 
 const Navbar = () => {
@@ -6,6 +7,7 @@ const Navbar = () => {
     <div className="navbar">
       {/* LEFT */}
       <div className="left_content">Travelocka</div>
+
       {/* RIGHT */}
       <div className="right_content">
         <span>Chuyến bay</span>

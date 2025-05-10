@@ -70,6 +70,39 @@ const Booking = () => {
             ))}
           </div>
         </div>
+
+        <div className="search-table">
+          {/* Row 1: Labels */}
+          <div className="label">From</div>
+          <div className="label">To</div>
+          <div className="label">Departure date</div>
+          <label className="return-label">
+            <input type="checkbox" checked />
+            <span>Return Date</span>
+          </label>
+
+          {/* Row 2: Inputs */}
+          <div className="field">
+            <FlightTakeoffIcon /> H.C.M City (SGN)
+          </div>
+          <div className="field swap-wrap">
+            <AutorenewIcon className="swap-icon" />
+            <FlightLandIcon /> Hanoi (HAN)
+          </div>
+          <div className="field">
+            <CalendarMonthIcon /> 11 May 2025
+          </div>
+          <div className="field">
+            <CalendarMonthIcon /> 19 May 2025
+          </div>
+
+          {/* Row 3: Button */}
+          <div className="search-button" style={{ gridColumn: "1 / -1" }}>
+            <button className="search-btn">
+              <SearchIcon /> Search Flights
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

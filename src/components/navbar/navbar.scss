@@ -29,14 +29,13 @@
         color: $primary;
       }
     }
-
-    .login,
-    .register {
+    button {
       font-size: 15px;
       font-weight: 600;
       padding: 10px 20px;
       border-radius: 9999px;
       border: 2px solid transparent;
+      cursor: pointer;
       transition: all 0.3s ease;
     }
 
@@ -44,7 +43,6 @@
       background-color: transparent;
       border: 2px solid $white;
       color: $black;
-      cursor: pointer;
 
       &:hover {
         background-color: $primary;
@@ -57,7 +55,6 @@
       background-color: $primary;
       color: $white;
       border: 2px solid $primary;
-      cursor: pointer;
 
       &:hover {
         background-color: transparent;
