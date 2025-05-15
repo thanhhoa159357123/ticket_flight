@@ -17,6 +17,9 @@ const Navbar = () => {
         <Link to="#" className={styles.navLink}>
           Chuyến bay
         </Link>
+        <Link to="#" className={styles.navLink}>
+          Vé máy bay
+        </Link>
         <Link to="/login">
           <button className={`${styles.navButton} ${styles.login}`}>
             Đăng nhập

@@ -4,7 +4,7 @@
   justify-content: center;
   padding: 2rem 1rem;
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 
   .container {
     background-color: #fff;
@@ -138,11 +138,62 @@
       }
     }
   }
+  .removeButton {
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
 
+    &:hover {
+      background: darken(#ff4757, 10%);
+    }
+  }
+
+  .addRouteButton {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: #2ed573;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+
+      &:hover {
+        background: darken(#2ed573, 10%);
+      }
+    }
+  }
   .searchTable {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1rem;
+    align-items: center;
+
+    &.multiCity {
+      grid-template-columns: repeat(5, 1fr);
+
+      .returnLabel {
+        grid-column: 4;
+      }
+
+      .label:last-child {
+        grid-column: 5;
+      }
+    }
 
     .label {
       font-size: 1.2rem;
@@ -150,7 +201,7 @@
       color: #6c757d;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: -0.5rem;
+      margin-bottom: 0.5rem;
     }
 
     .returnLabel {
