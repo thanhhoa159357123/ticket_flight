@@ -1,15 +1,22 @@
 import React, { useState } from "react";
-import "./booking.scss";
+import styles from "./booking.module.scss";
 import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff";
 import FlightLandIcon from "@mui/icons-material/FlightLand";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import SearchIcon from "@mui/icons-material/Search";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import PersonIcon from "@mui/icons-material/Person";
+import ChildCareIcon from "@mui/icons-material/ChildCare";
+import BabyChangingStationIcon from "@mui/icons-material/BabyChangingStation";
 
 const Booking = () => {
-  const options = ["Economy", "Business Class", "First Class"];
+  const options = ["Economy", "Business", "First Class"];
   const ways = ["One way / Round trip", "Multi City"];
-  const people = ["Adult", "Children", "Infant"];
+  const people = [
+    { type: "Adult", icon: <PersonIcon /> },
+    { type: "Children", icon: <ChildCareIcon /> },
+    { type: "Infant", icon: <BabyChangingStationIcon /> }
+  ];
 
   const [selected, setSelected] = useState(options[0]);
   const [selectedWay, setSelectedWay] = useState(ways[0]);
@@ -27,79 +34,105 @@ const Booking = () => {
   };
 
   return (
-    <div className="booking">
-      <div className="container">
-        <div className="top-section">
-          <div className="top-way">
+    <div className={styles.booking}>
+      <div className={styles.container}>
+        <div className={styles.topSection}>
+          <div className={styles.topWay}>
             {ways.map((option) => (
-              <span
+              <button
                 key={option}
-                className={`way-option ${
-                  selectedWay === option ? "active" : ""
+                className={`${styles.wayOption} ${
+                  selectedWay === option ? styles.active : ""
                 }`}
                 onClick={() => setSelectedWay(option)}
               >
                 {option}
-              </span>
+              </button>
             ))}
           </div>
 
-          <div className="top-class">
+          <div className={styles.topClass}>
             {options.map((option) => (
-              <span
+              <button
                 key={option}
-                className={`option ${selected === option ? "active" : ""}`}
+                className={`${styles.option} ${
+                  selected === option ? styles.active : ""
+                }`}
                 onClick={() => setSelected(option)}
               >
                 {option}
-              </span>
+              </button>
             ))}
           </div>
 
-          <div className="passenger-inputs">
-            {people.map((type) => (
-              <div className="passenger-item" key={type}>
-                <span className="option">{type} : </span>
-                <input
-                  type="number"
-                  min="0"
-                  value={passengers[type]}
-                  onChange={(e) => handlePassengerInput(type, e.target.value)}
-                />
+          <div className={styles.passengerInputs}>
+            {people.map(({type, icon}) => (
+              <div className={styles.passengerItem} key={type}>
+                <span className={styles.passengerLabel}>
+                  {icon} {type}
+                </span>
+                <div className={styles.inputWrapper}>
+                  <button 
+                    className={styles.quantityBtn} 
+                    onClick={() => handlePassengerInput(type, passengers[type] - 1)}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min="0"
+                    value={passengers[type]}
+                    onChange={(e) => handlePassengerInput(type, e.target.value)}
+                    className={styles.passengerInput}
+                  />
+                  <button 
+                    className={styles.quantityBtn} 
+                    onClick={() => handlePassengerInput(type, passengers[type] + 1)}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="search-table">
+        <div className={styles.searchTable}>
           {/* Row 1: Labels */}
-          <div className="label">From</div>
-          <div className="label">To</div>
-          <div className="label">Departure date</div>
-          <label className="return-label">
-            <input type="checkbox" checked />
+          <div className={styles.label}>From</div>
+          <div className={styles.label}>To</div>
+          <div className={styles.label}>Departure</div>
+          <label className={styles.returnLabel}>
+            <input type="checkbox" checked className={styles.checkbox} />
             <span>Return Date</span>
           </label>
 
           {/* Row 2: Inputs */}
-          <div className="field">
-            <FlightTakeoffIcon /> H.C.M City (SGN)
+          <div className={styles.field}>
+            <FlightTakeoffIcon className={styles.icon} />
+            <span>Ho Chi Minh (SGN)</span>
           </div>
-          <div className="field swap-wrap">
-            <AutorenewIcon className="swap-icon" />
-            <FlightLandIcon /> Hanoi (HAN)
+          <div className={styles.field}>
+            <div className={styles.swapButton}>
+              <AutorenewIcon className={styles.swapIcon} />
+            </div>
+            <FlightLandIcon className={styles.icon} />
+            <span>Hanoi (HAN)</span>
           </div>
-          <div className="field">
-            <CalendarMonthIcon /> 11 May 2025
+          <div className={styles.field}>
+            <CalendarMonthIcon className={styles.icon} />
+            <span>11 May 2025</span>
           </div>
-          <div className="field">
-            <CalendarMonthIcon /> 19 May 2025
+          <div className={styles.field}>
+            <CalendarMonthIcon className={styles.icon} />
+            <span>19 May 2025</span>
           </div>
 
           {/* Row 3: Button */}
-          <div className="search-button" style={{ gridColumn: "1 / -1" }}>
-            <button className="search-btn">
-              <SearchIcon /> Search Flights
+          <div className={styles.searchButton}>
+            <button className={styles.searchBtn}>
+              <SearchIcon className={styles.searchIcon} />
+              Search Flights
             </button>
           </div>
         </div>

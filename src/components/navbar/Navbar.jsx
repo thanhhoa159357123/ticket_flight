@@ -1,20 +1,34 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import "./navbar.scss";
+import styles from "./navbar.module.scss";
 
 const Navbar = () => {
   return (
-    <div className="navbar">
+    <nav className={styles.navbar}>
       {/* LEFT */}
-      <div className="left_content">Travelocka</div>
+      <div className={styles.navbarLeftContent}>
+        <Link to="/" className={styles.logo}>
+          Travelocka
+        </Link>
+      </div>
 
       {/* RIGHT */}
-      <div className="right_content">
-        <span>Chuyến bay</span>
-        <button className="login">Đăng nhập</button>
-        <button className="register">Đăng kí</button>
+      <div className={styles.navbarRightContent}>
+        <Link to="#" className={styles.navLink}>
+          Chuyến bay
+        </Link>
+        <Link to="/login">
+          <button className={`${styles.navButton} ${styles.login}`}>
+            Đăng nhập
+          </button>
+        </Link>
+        <Link to="/register">
+          <button className={`${styles.navButton} ${styles.register}`}>
+            Đăng kí
+          </button>
+        </Link>
       </div>
-    </div>
+    </nav>
   );
 };
 

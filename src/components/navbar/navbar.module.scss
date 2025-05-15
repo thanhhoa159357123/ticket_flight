@@ -1,0 +1,99 @@
+@import "../../styles/variables";
+
+.navbar {
+  background-color: $white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 5%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 70px;
+
+  &LeftContent {
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      color: $primary;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        color: darken($primary, 10%);
+      }
+    }
+  }
+
+  &RightContent {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+
+    .navLink {
+      font-size: 16px;
+      font-weight: 600;
+      color: $black;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      position: relative;
+
+      &:hover {
+        color: $primary;
+
+        &::after {
+          width: 100%;
+        }
+      }
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: $primary;
+        transition: width 0.3s ease;
+      }
+    }
+
+    .navButton {
+      font-size: 15px;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      outline: none;
+    }
+
+    .login {
+      background-color: transparent;
+      color: $black;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+        transform: translateY(-2px);
+      }
+    }
+
+    .register {
+      background-color: $primary;
+      color: $white;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+      &:hover {
+        background-color: darken($primary, 8%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+      }
+    }
+  }
+}
