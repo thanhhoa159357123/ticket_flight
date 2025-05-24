@@ -68,32 +68,86 @@
       padding: 10px 24px;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
       border: none;
       outline: none;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 120px;
     }
 
     .login {
       background-color: transparent;
       color: $black;
-      border: 1px solid rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
       &:hover {
-        background-color: rgba(0, 0, 0, 0.05);
-        transform: translateY(-2px);
+        color: $white;
+        border-color: $primary;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+        &::before {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, $primary, darken($primary, 10%));
+        transform: translateY(100%) scale(0.8);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: -1;
+        border-radius: 6px;
       }
     }
 
     .register {
-      background-color: $primary;
+      background: linear-gradient(135deg, $primary, darken($primary, 8%));
       color: $white;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border: 1px solid transparent;
 
       &:hover {
-        background-color: darken($primary, 8%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        color: black;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+
+        &::before {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
       }
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: $white;
+        transform: translateY(-100%) scale(0.8);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: -1;
+        border-radius: 6px;
+      }
+    }
+
+    // Hiệu ứng khi click
+    .navButton:active {
+      transform: scale(0.96);
     }
   }
 }

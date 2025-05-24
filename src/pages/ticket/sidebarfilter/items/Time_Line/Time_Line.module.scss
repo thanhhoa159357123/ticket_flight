@@ -1,0 +1,151 @@
+@import "../../../../../styles/variables";
+
+.TimeLine {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+
+    &__Title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        font-size: 15px;
+        font-weight: 600;
+        color: #222;
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.2s ease;
+
+        &:hover {
+            color: $primary;
+        }
+    }
+
+    &__OptionContent {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+        overflow: hidden;
+        transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        opacity: 0;
+        max-height: 0;
+
+        .TimeOption {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+            >span {
+                font-size: 14px;
+                font-weight: 500;
+                color: #333;
+            }
+        }
+
+        .BoxTime {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+
+            .ContentBoxTime {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-radius: 8px;
+                padding: 12px 16px;
+                background-color: #fff;
+                transition: all 0.2s ease;
+                cursor: pointer;
+
+                &:hover {
+                    border-color: $primary;
+                    box-shadow: 0 2px 8px rgba(58, 134, 255, 0.1);
+                }
+
+                &.selected {
+                    background-color: $primary;
+                    border-color: $primary;
+
+                    span {
+                        color: white !important;
+                    }
+                }
+
+                span:first-child {
+                    font-size: 13px;
+                    font-weight: 500;
+                    color: #333;
+                    margin-bottom: 4px;
+                }
+
+                span:last-child {
+                    font-size: 17px;
+                    color: blue;
+                    font-weight: 700;
+                }
+            }
+        }
+
+        .TimeRangeSlider {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px;
+
+            .TimeRangeLabel {
+                display: flex;
+                justify-content: space-between;
+                font-size: 14px;
+                font-weight: 500;
+                color: #333;
+                padding: 0 4px;
+            }
+
+            .SliderContainer {
+                padding: 10px 8px;
+
+                .rc-slider {
+                    margin: 0;
+                    padding: 8px 0;
+                }
+            }
+
+            .TimeRangeTicks {
+                display: flex;
+                justify-content: space-between;
+                font-size: 13px;
+                color: #999;
+                padding: 0 4px;
+            }
+        }
+    }
+
+    .open {
+        max-height: 1000px; // Tăng giá trị này để chứa nhiều nội dung hơn
+        opacity: 1;
+        padding-top: 4px;
+        padding-bottom: 16px; // Tăng padding dưới để phù hợp với nhiều nội dung
+    }
+
+    .closed {
+        max-height: 0;
+        opacity: 0;
+    }
+
+    .arrowIcon {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        color: #666;
+        font-size: 20px;
+
+        &:hover {
+            color: $primary;
+        }
+    }
+
+    .rotate {
+        transform: rotate(180deg);
+    }
+}

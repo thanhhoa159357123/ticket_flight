@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import styles from "./booking.module.scss";
 import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff";
 import FlightLandIcon from "@mui/icons-material/FlightLand";
@@ -13,38 +14,38 @@ const SearchTable = ({
   setReturnDate,
   multiCityRoutes,
   removeMultiCityRoute,
-  addMultiCityRoute
+  addMultiCityRoute,
 }) => {
+  const [from, setFrom] = useState("Ho Chi Minh (SGN)");
+  const [to, setTo] = useState("Hanoi (HAN)");
+
+  const handleSwapLocation = () => {
+    setFrom(to);
+    setTo(from);
+  };
   return (
-    <div className={`${styles.searchTable} ${selectedWay === "Multi City" ? styles.multiCity : ""}`}>
+    <div
+      className={`${styles.searchTable} ${
+        selectedWay === "Multi City" ? styles.multiCity : ""
+      }`}
+    >
       {/* Labels Row */}
       <div className={styles.label}>From</div>
       <div className={styles.label}>To</div>
       <div className={styles.label}>Departure</div>
-      
+
       {selectedWay === "One way / Round trip" ? (
         <label className={styles.returnLabel}>
-          <input 
-            type="checkbox" 
-            checked={returnDate} 
-            onChange={() => setReturnDate(!returnDate)} 
-            className={styles.checkbox} 
+          <input
+            type="checkbox"
+            checked={returnDate}
+            onChange={() => setReturnDate(!returnDate)}
+            className={styles.checkbox}
           />
           <span>Return Date</span>
         </label>
       ) : (
-        <>
-          <label className={styles.returnLabel}>
-            <input 
-              type="checkbox" 
-              checked={returnDate} 
-              onChange={() => setReturnDate(!returnDate)} 
-              className={styles.checkbox} 
-            />
-            <span>Return Date</span>
-          </label>
-          <div className={styles.label}>Action</div>
-        </>
+        <div className={styles.label}>Action</div>
       )}
 
       {/* Content Rows */}
@@ -52,14 +53,14 @@ const SearchTable = ({
         <>
           <div className={styles.field}>
             <FlightTakeoffIcon className={styles.icon} />
-            <span>Ho Chi Minh (SGN)</span>
+            <span>{from}</span>
           </div>
           <div className={styles.field}>
-            <div className={styles.swapButton}>
+            <div className={styles.swapButton} onClick={handleSwapLocation}>
               <AutorenewIcon className={styles.swapIcon} />
             </div>
             <FlightLandIcon className={styles.icon} />
-            <span>Hanoi (HAN)</span>
+            <span>{to}</span>
           </div>
           <div className={styles.field}>
             <CalendarMonthIcon className={styles.icon} />
@@ -71,7 +72,10 @@ const SearchTable = ({
               <span>19 May 2025</span>
             </div>
           ) : (
-            <div className={styles.emptyField}></div>
+            <div className={styles.emptyField}>
+              <CalendarMonthIcon className={styles.icon} />
+              <span>19 May 2025</span>
+            </div>
           )}
         </>
       ) : (
@@ -93,17 +97,9 @@ const SearchTable = ({
                 <CalendarMonthIcon className={styles.icon} />
                 <span>{route.departure || "Select date"}</span>
               </div>
-              {returnDate ? (
-                <div className={styles.field}>
-                  <CalendarMonthIcon className={styles.icon} />
-                  <span>Return date</span>
-                </div>
-              ) : (
-                <div className={styles.emptyField}></div>
-              )}
               <div>
                 {multiCityRoutes.length > 1 && (
-                  <button 
+                  <button
                     className={styles.removeButton}
                     onClick={() => removeMultiCityRoute(index)}
                   >
@@ -125,12 +121,12 @@ const SearchTable = ({
       )}
 
       {/* Search Button */}
-      <div className={styles.searchButton}>
+      <Link to="/flight-ticket" className={styles.searchButton}>
         <button className={styles.searchBtn}>
           <SearchIcon className={styles.searchIcon} />
           Search Flights
         </button>
-      </div>
+      </Link>
     </div>
   );
 };

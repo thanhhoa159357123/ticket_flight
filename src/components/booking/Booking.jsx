@@ -11,7 +11,7 @@ const Booking = () => {
   const people = [
     { type: "Adult", icon: <PersonIcon /> },
     { type: "Children", icon: <ChildCareIcon /> },
-    { type: "Infant", icon: <BabyChangingStationIcon /> }
+    { type: "Infant", icon: <BabyChangingStationIcon /> },
   ];
 
   const [selected, setSelected] = useState(options[0]);
@@ -22,20 +22,33 @@ const Booking = () => {
     Infant: 0,
   });
   const [multiCityRoutes, setMultiCityRoutes] = useState([
-    { from: "Ho Chi Minh (SGN)", to: "Hanoi (HAN)", departure: "11 May 2025" }
+    { from: "Ho Chi Minh (SGN)", to: "Hanoi (HAN)", departure: "11 May 2025" },
   ]);
   const [returnDate, setReturnDate] = useState(true);
 
   const handlePassengerInput = (type, value) => {
-    setPassengers((prev) => ({
-      ...prev,
-      [type]: Math.max(0, parseInt(value) || 0),
-    }));
+    // Nếu value là chuỗi rỗng (khi xóa hết nội dung)
+    if (value === "") {
+      // Nếu là Adult thì set về 1, các loại khác set về 0
+      const defaultValue = type === "Adult" ? 1 : 0;
+      setPassengers((prev) => ({
+        ...prev,
+        [type]: defaultValue,
+      }));
+    } else {
+      // Xử lý giá trị số bình thường
+      const numValue = parseInt(value) || 0;
+      setPassengers((prev) => ({
+        ...prev,
+        [type]: Math.max(0, numValue),
+      }));
+    }
   };
 
   const addMultiCityRoute = () => {
-    setMultiCityRoutes([...multiCityRoutes, 
-      { from: "", to: "", departure: "" }
+    setMultiCityRoutes([
+      ...multiCityRoutes,
+      { from: "", to: "", departure: "" },
     ]);
   };
 
@@ -80,28 +93,39 @@ const Booking = () => {
           </div>
 
           <div className={styles.passengerInputs}>
-            {people.map(({type, icon}) => (
+            {people.map(({ type, icon }) => (
               <div className={styles.passengerItem} key={type}>
                 <span className={styles.passengerLabel}>
                   {icon} {type}
                 </span>
                 <div className={styles.inputWrapper}>
-                  <button 
-                    className={styles.quantityBtn} 
-                    onClick={() => handlePassengerInput(type, passengers[type] - 1)}
+                  <button
+                    className={styles.quantityBtn}
+                    onClick={() =>
+                      handlePassengerInput(type, passengers[type] - 1)
+                    }
                   >
                     -
                   </button>
                   <input
                     type="number"
                     min="0"
-                    value={passengers[type]}
+                    value={passengers[type] === 0 ? "" : passengers[type]}
                     onChange={(e) => handlePassengerInput(type, e.target.value)}
                     className={styles.passengerInput}
+                    onBlur={(e) => {
+                      if (e.target.value === "") {
+                        const defaultValue = type === "Adult" ? 1 : 0;
+                        handlePassengerInput(type, defaultValue);
+                      }
+                    }}
+                    placeholder={type === "Adult" ? "1" : "0"}
                   />
-                  <button 
-                    className={styles.quantityBtn} 
-                    onClick={() => handlePassengerInput(type, passengers[type] + 1)}
+                  <button
+                    className={styles.quantityBtn}
+                    onClick={() =>
+                      handlePassengerInput(type, passengers[type] + 1)
+                    }
                   >
                     +
                   </button>

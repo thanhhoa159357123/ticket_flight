@@ -6,12 +6,13 @@
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
   font-family: "Inter", sans-serif;
 
+
   .container {
     background-color: #fff;
     border-radius: 24px;
     padding: 2rem;
     width: 100%;
-    max-width: 1500px;
+    max-width: 1700px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   }
 
@@ -138,6 +139,7 @@
       }
     }
   }
+
   .removeButton {
     background: #ff4757;
     color: white;
@@ -149,7 +151,7 @@
     font-weight: 500;
 
     &:hover {
-      background: darken(#ff4757, 10%);
+      background: #b83a44;
     }
   }
 
@@ -173,10 +175,11 @@
       font-weight: 500;
 
       &:hover {
-        background: darken(#2ed573, 10%);
+        background: #30bb6a;
       }
     }
   }
+
   .searchTable {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -184,14 +187,11 @@
     align-items: center;
 
     &.multiCity {
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
 
-      .returnLabel {
-        grid-column: 4;
-      }
 
       .label:last-child {
-        grid-column: 5;
+        grid-column: 4;
       }
     }
 
@@ -254,14 +254,38 @@
         transition: all 0.3s ease;
 
         &:hover {
-          transform: rotate(180deg);
           background: #3a86ff;
           color: white;
+          transform: rotate(360deg);
         }
+
 
         .swapIcon {
           font-size: 1rem;
         }
+      }
+    }
+
+    .emptyField {
+      opacity: 0.4;
+      /* hoặc giá trị thấp hơn */
+      pointer-events: none;
+      /* để không click được */
+      user-select: none;
+      /* không cho copy */
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #f8f9fa;
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      cursor: pointer;
+
+      .icon {
+        color: #3a86ff;
+        font-size: 1.25rem;
       }
     }
   }
@@ -271,7 +295,8 @@
     display: flex;
     justify-content: flex-end;
     margin-top: 0.5rem;
-
+    text-decoration: none;
+    
     .searchBtn {
       display: flex;
       align-items: center;

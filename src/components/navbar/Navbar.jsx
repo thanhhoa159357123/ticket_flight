@@ -8,7 +8,7 @@ const Navbar = () => {
       {/* LEFT */}
       <div className={styles.navbarLeftContent}>
         <Link to="/" className={styles.logo}>
-          Travelocka
+          Travelokaa
         </Link>
       </div>
 
@@ -17,7 +17,7 @@ const Navbar = () => {
         <Link to="#" className={styles.navLink}>
           Chuyến bay
         </Link>
-        <Link to="#" className={styles.navLink}>
+        <Link to="/flight-ticket" className={styles.navLink}>
           Vé máy bay
         </Link>
         <Link to="/login">

@@ -1,4 +1,5 @@
-// login.module.scss
+@import "../../styles/variables";
+
 .pageLogin {
   min-height: 100vh;
   background-image: url("../../assets/clouds.jpg");
@@ -25,7 +26,7 @@
     padding: 2rem;
     z-index: 1;
     text-decoration: none;
-    
+
     .logoLink {
       display: inline-block; // Chỉ chiếm width của content
       text-decoration: none; // Bỏ gạch chân
@@ -145,10 +146,28 @@
         font-weight: 600;
         text-decoration: none;
         transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
+        width: fit-content;
+        height: fit-content;
 
         &:hover {
-          color: #2667cc;
-          text-decoration: underline;
+          color: $primary;
+
+          &::after {
+            width: 100%;
+          }
+        }
+
+        &::after {
+          content: "";
+          position: absolute;
+          bottom: -4px;
+          left: 0;
+          width: 0;
+          height: 2px;
+          background-color: $primary;
+          transition: width 0.3s ease;
         }
       }
     }
@@ -160,6 +179,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
