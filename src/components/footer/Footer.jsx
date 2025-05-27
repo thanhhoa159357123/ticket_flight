@@ -45,6 +45,13 @@ const Footer = () => {
               decoding="async"
               alt="QR Download App"
             />
+            <img
+              importance="low"
+              loading="lazy"
+              src="https://d1785e74lyxkqq.cloudfront.net/_next/static/v3/1/18339f1ae28fb0c49075916d11b98829.svg"
+              decoding="async"
+              alt="QR Download App"
+            ></img>
           </div>
         </div>
       </div>

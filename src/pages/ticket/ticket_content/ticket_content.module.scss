@@ -1,17 +1,5 @@
 .ticketContent {
-  position: relative;
-  width: 100%;
-  height: auto;
-  background: linear-gradient(135deg, #3a86ff, #2667cc);
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.ticketHeader {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 100%;
+  gap: 20px;
 }
