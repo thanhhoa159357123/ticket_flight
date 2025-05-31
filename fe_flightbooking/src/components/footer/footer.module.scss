@@ -1,0 +1,216 @@
+@import "../../styles/variables";
+
+.footer {
+  background-color: #f5f6fa;
+  color: #333;
+  padding: 40px 0;
+  border-top: 1px solid #e0e0e0;
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+
+    .mainTitle {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2rem;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #e0e0e0;
+
+      .mainLabel {
+        font-size: 18px;
+        font-weight: 700;
+        color: #222;
+        padding-bottom: 10px;
+      }
+    }
+
+    .mainContent {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2rem;
+      padding-top: 30px;
+
+      .mainContentLabel {
+        font-size: 16px;
+        font-weight: 500;
+        color: #555;
+        margin-bottom: 12px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: fit-content;
+        height: fit-content;
+
+        &:hover {
+          color: $primary;
+
+          &::after {
+            width: 100%;
+          }
+        }
+
+        &::after {
+          content: "";
+          position: absolute;
+          bottom: -4px;
+          left: 0;
+          width: 0;
+          height: 2px;
+          background-color: $primary;
+          transition: width 0.3s ease;
+        }
+      }
+
+      .mainContentIcon {
+        display: inline-flex;
+        flex-direction: column;
+        position: relative;
+        gap: 15px;
+
+        .contactSocial {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          position: relative;
+          cursor: pointer;
+          font-size: 16px;
+          color: #555;
+          transition: all 0.2s ease;
+          padding: 5px 0;
+          width: fit-content;
+          height: fit-content;
+
+          svg {
+            font-size: 22px;
+            transition: all 0.2s ease;
+          }
+
+          &:hover {
+            color: #000;
+
+            &::after {
+              width: 100%;
+            }
+
+            // Facebook
+            &:nth-child(1) {
+              svg {
+                color: #3b5998;
+              }
+
+              &::after {
+                background-color: #3b5998;
+              }
+            }
+
+            // Instagram
+            &:nth-child(2) {
+              svg {
+                color: #e1306c;
+              }
+
+              &::after {
+                background-color: #e1306c;
+              }
+            }
+
+            // YouTube
+            &:nth-child(3) {
+              svg {
+                color: #ff0000;
+              }
+
+              &::after {
+                background-color: #ff0000;
+              }
+            }
+          }
+
+          &::after {
+            content: "";
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: $primary;
+            transition: width 0.3s ease;
+          }
+        }
+      }
+
+      .qrWrapper {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+
+        img {
+          width: 120px;
+          height: auto;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          transition: transform 0.3s ease;
+
+          &:hover {
+            cursor: pointer;
+          }
+        }
+
+        .download-text {
+          font-size: 13px;
+          color: #666;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+// Responsive styles
+@media (max-width: 992px) {
+  .footer {
+    .container {
+
+      .mainTitle,
+      .mainContent {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    .container {
+
+      .mainTitle,
+      .mainContent {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .footer {
+    .container {
+
+      .mainTitle,
+      .mainContent {
+        grid-template-columns: 1fr;
+      }
+
+      .mainTitle {
+        gap: 1rem;
+
+        .mainLabel {
+          padding-bottom: 5px;
+          border-bottom: 1px solid #eee;
+        }
+      }
+    }
+  }
+}

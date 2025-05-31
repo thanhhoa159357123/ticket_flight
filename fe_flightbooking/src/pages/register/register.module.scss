@@ -1,0 +1,187 @@
+@import "../../styles/variables";
+
+.pageRegister {
+  min-height: 100vh;
+  background-image: url("../../assets/clouds.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  font-family: "Inter", sans-serif;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.85);
+    z-index: 0;
+  }
+
+  .topHeader {
+    padding: 2rem;
+    z-index: 1;
+    text-decoration: none;
+
+    .logoLink {
+      display: inline-block; // Chỉ chiếm width của content
+      text-decoration: none; // Bỏ gạch chân
+
+      &:hover {
+        text-decoration: none;
+      }
+    }
+
+    .logo {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #3a86ff;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      text-decoration: none;
+    }
+  }
+
+  .registerWrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    padding: 2rem;
+    z-index: 1;
+  }
+
+  .registerForm {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+    padding: 3rem;
+    width: 100%;
+    max-width: 500px;
+    animation: fadeInUp 0.5s ease;
+
+    .formHeader {
+      margin-bottom: 2rem;
+      text-align: center;
+
+      .title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+      }
+
+      .subtitle {
+        font-size: 1rem;
+        color: #7f8c8d;
+      }
+    }
+
+    .inputGroup {
+      margin-bottom: 1.5rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: #2c3e50;
+        font-size: 0.9rem;
+      }
+
+      .inputField {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+
+        &:focus {
+          border-color: #3a86ff;
+          box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2);
+          outline: none;
+        }
+
+        &::placeholder {
+          color: #bdc3c7;
+        }
+      }
+    }
+
+    .registerButton {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #3a86ff, #2667cc);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+      box-shadow: 0 4px 6px rgba(58, 134, 255, 0.2);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(58, 134, 255, 0.3);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    .loginPrompt {
+      text-align: center;
+      margin-top: 2rem;
+      color: #7f8c8d;
+      font-size: 0.9rem;
+
+      .loginLink {
+        color: #3a86ff;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
+        width: fit-content;
+        height: fit-content;
+
+        &:hover {
+          color: $primary;
+
+          &::after {
+            width: 100%;
+          }
+        }
+
+        &::after {
+          content: "";
+          position: absolute;
+          bottom: -4px;
+          left: 0;
+          width: 0;
+          height: 2px;
+          background-color: $primary;
+          transition: width 0.3s ease;
+        }
+      }
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

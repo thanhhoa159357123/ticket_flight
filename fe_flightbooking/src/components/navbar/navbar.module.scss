@@ -1,0 +1,278 @@
+@import "../../styles/variables";
+
+.navbar {
+  background-color: $white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 5%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 70px;
+
+  &LeftContent {
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      color: $primary;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        color: darken($primary, 10%);
+      }
+    }
+  }
+
+  &RightContent {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+
+    .navLink {
+      font-size: 16px;
+      font-weight: 600;
+      color: $black;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      position: relative;
+
+      &:hover {
+        color: $primary;
+
+        &::after {
+          width: 100%;
+        }
+      }
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: $primary;
+        transition: width 0.3s ease;
+      }
+    }
+
+    .menuContainer {
+      position: relative;
+      display: inline-block;
+    }
+
+    .triggerArea {
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: inline-block;
+
+      &:hover {
+        background-color: #f0f0f0;
+      }
+    }
+
+    .dropdownBox {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 200px;
+      background: white;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.25s ease;
+      z-index: 100;
+
+      /* Tạo tam giác nhỏ nối lên trên */
+      &::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        right: 15px;
+        border-width: 8px;
+        border-style: solid;
+        border-color: transparent transparent white transparent;
+        filter: drop-shadow(0 -2px 1px rgba(0, 0, 0, 0.05));
+      }
+    }
+
+    .menuContainer:hover .dropdownBox {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition-delay: 0.1s;
+    }
+
+    /* Tạo vùng đệm vô hình kết nối trigger và menu */
+    .menuContainer::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 0;
+      width: 100%;
+      height: 20px;
+      background: transparent;
+    }
+
+    .menuItem {
+      display: block;
+      width: 100%;
+      padding: 12px 16px;
+      text-align: left;
+      color: #333;
+      text-decoration: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 14px;
+
+      &:hover {
+        background: #f7f7f7;
+      }
+
+      &:first-child {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+      }
+
+      &:last-child {
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+      }
+    }
+
+    /* Style riêng cho nút đăng xuất */
+    .menuItem:last-child {
+      color: #d32f2f;
+      border-top: 1px solid #f0f0f0;
+
+      &:hover {
+        background: #ffebee;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+
+    .navButton {
+      font-size: 15px;
+      font-weight: 600;
+      padding: 10px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      border: none;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 120px;
+    }
+
+    .login {
+      background-color: transparent;
+      color: $black;
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+      &:hover {
+        color: $white;
+        border-color: $primary;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+        &::before {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, $primary, darken($primary, 10%));
+        transform: translateY(100%) scale(0.8);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: -1;
+        border-radius: 6px;
+      }
+    }
+
+    .register {
+      background: linear-gradient(135deg, $primary, darken($primary, 8%));
+      color: $white;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border: 1px solid transparent;
+
+      &:hover {
+        color: black;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+
+        &::before {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: $white;
+        transform: translateY(-100%) scale(0.8);
+        opacity: 0;
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        z-index: -1;
+        border-radius: 6px;
+      }
+    }
+
+    // Hiệu ứng khi click
+    .navButton:active {
+      transform: scale(0.96);
+    }
+  }
+}

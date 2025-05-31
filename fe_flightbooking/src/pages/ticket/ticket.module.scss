@@ -1,0 +1,25 @@
+@import "../../styles/variables";
+
+.pageTicket {
+  padding-top: 30px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 1500px; // Thêm max-width để giới hạn chiều rộng
+  margin: 0 auto; // Căn giữa
+  min-height: calc(100vh - 100px); // Trừ chiều cao navbar
+
+  .pageTicket>div:last-child {
+    flex: 1; // Chiếm phần không gian còn lại
+    max-width: 800px; // Giới hạn chiều rộng
+  }
+}
+
+.divider {
+  width: 1px; // Giảm từ 2px xuống 1px
+  height: 100%; // Thay đổi từ 100px sang 100%
+  background-color: rgba(0, 0, 0, 0.1); // Làm mờ màu
+  border-radius: 4px;
+}

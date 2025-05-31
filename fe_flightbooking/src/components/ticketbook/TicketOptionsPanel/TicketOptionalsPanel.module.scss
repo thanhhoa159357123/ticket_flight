@@ -1,0 +1,113 @@
+// Thêm vào ItemContent.module.scss
+
+.ticketOptionsOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+
+  &.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.ticketOptionsPanel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 40%;
+  height: 100vh;
+  background: white;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 0.3s ease-out;
+  overflow-y: auto;
+  padding: 20px;
+
+  &.show {
+    transform: translateX(0);
+  }
+
+  .panelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .closeButton {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #666;
+
+      &:hover {
+        color: #333;
+      }
+    }
+  }
+
+  .optionItem {
+    margin-bottom: 15px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+
+    h3 {
+      margin-top: 0;
+      color: #2a6fdb;
+    }
+
+    .price {
+      font-weight: bold;
+      color: #e53935;
+      margin: 10px 0;
+    }
+
+    .detailButton {
+      background: none;
+      border: none;
+      color: #2a6fdb;
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 0;
+      font-size: 0.9rem;
+
+      &:hover {
+        color: #1a4b9e;
+      }
+    }
+  }
+
+  .confirmButton {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background-color: #ff6d00;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 20px;
+
+    &:hover {
+      background-color: #e65100;
+    }
+  }
+}
