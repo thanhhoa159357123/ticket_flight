@@ -1,0 +1,5 @@
+(Chạy BE)
+uvicorn main:app --reload
+
+Kích hoạt môi trường 
+.\.venv\Scripts\activate
