@@ -7,31 +7,40 @@ const Login = () => {
   const [password, setPassword] = useState("");
 
   const handleLogin = async (e) => {
-  e.preventDefault();
-  console.log("📤 Gửi yêu cầu ĐĂNG NHẬP với:", { email, password });
+    e.preventDefault();
 
-  try {
-    const response = await fetch(
-      `http://localhost:8000/auth/login?email=${encodeURIComponent(email)}&matkhau=${encodeURIComponent(password)}`,
-      { method: "POST" }
-    );
+    try {
+      const response = await fetch(
+        `http://localhost:8000/auth/login?email=${encodeURIComponent(
+          email
+        )}&matkhau=${encodeURIComponent(password)}`,
+        { method: "POST" }
+      );
 
-    const data = await response.json();
-    console.log("✅ Phản hồi ĐĂNG NHẬP từ server:", data);
+      const data = await response.json();
+      console.log("✅ Phản hồi ĐĂNG NHẬP từ server:", data);
 
-    if (response.ok) {
-      alert("🎉 " + data.message);
-      localStorage.setItem("tenKhachHang", data.ten_khach_hang);
-      window.location.href = "/";
-    } else {
-      alert("❌ " + (data.detail || "Đăng nhập thất bại"));
+      if (response.ok) {
+        alert("🎉 " + data.message);
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            ten_khach_hang: data.ten_khach_hang,
+            email: data.email,
+            so_dien_thoai: data.so_dien_thoai,
+            matkhau: data.matkhau,
+          })
+        );
+
+        window.location.href = "/";
+      } else {
+        alert("❌ " + (data.detail || "Đăng nhập thất bại"));
+      }
+    } catch (error) {
+      console.error("🚫 Lỗi khi kết nối tới API:", error);
+      alert("🚫 Lỗi kết nối máy chủ");
     }
-  } catch (error) {
-    console.error("🚫 Lỗi khi kết nối tới API:", error);
-    alert("🚫 Lỗi kết nối máy chủ");
-  }
-};
-
+  };
 
   return (
     <div className={styles.pageLogin}>

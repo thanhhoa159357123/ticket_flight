@@ -1,7 +1,10 @@
-from pydantic import BaseModel, EmailStr # type: ignore
+from pydantic import BaseModel
 
-class KhachHangModel(BaseModel):
+class KhachHangCreate(BaseModel):
     ten_khach_hang: str
-    email: EmailStr
     so_dien_thoai: str
+    email: str
     matkhau: str
+
+class KhachHang(KhachHangCreate):
+    ma_khach_hang: str  # dùng trong DB

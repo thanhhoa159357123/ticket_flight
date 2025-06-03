@@ -31,6 +31,15 @@
     display: flex;
     align-items: center;
     gap: 25px;
+    height: 100%;
+
+    .navLink,
+    .menuContainer,
+    .navButton {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
 
     .navLink {
       font-size: 16px;
@@ -64,23 +73,55 @@
 
     .menuContainer {
       position: relative;
-      display: inline-block;
+      display: flex;
+      align-items: center;
+      height: 100%;
     }
 
     .triggerArea {
-      padding: 8px 16px;
+      padding: 8px 12px;
+      font-weight: 600;
       cursor: pointer;
       border-radius: 4px;
-      display: inline-block;
+      display: flex;
+      align-items: center;
+      height: 100%;
+      color: $black;
+      transition: all 0.3s ease;
+      position: relative;
 
       &:hover {
-        background-color: #f0f0f0;
+        color: $primary;
+        background-color: transparent;
+
+        &::after {
+          width: 100%;
+        }
       }
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: $primary;
+        transition: width 0.3s ease;
+      }
+    }
+
+    .userName {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+      display: inline-block;
     }
 
     .dropdownBox {
       position: absolute;
-      top: 100%;
+      top: calc(100% + 10px);
       right: 0;
       width: 200px;
       background: white;
@@ -93,7 +134,6 @@
       transition: all 0.25s ease;
       z-index: 100;
 
-      /* Tạo tam giác nhỏ nối lên trên */
       &::before {
         content: '';
         position: absolute;
@@ -110,7 +150,6 @@
       opacity: 1;
       visibility: visible;
       transform: translateY(0);
-      transition-delay: 0.1s;
     }
 
     /* Tạo vùng đệm vô hình kết nối trigger và menu */
@@ -190,7 +229,7 @@
     .navButton {
       font-size: 15px;
       font-weight: 600;
-      padding: 10px 24px;
+      padding: 8px 24px;
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -203,6 +242,7 @@
       align-items: center;
       justify-content: center;
       min-width: 120px;
+      height: 40px; // Thêm chiều cao cố định
     }
 
     .login {

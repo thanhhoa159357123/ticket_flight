@@ -11,7 +11,6 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
-    console.log("📤 Gửi yêu cầu ĐĂNG KÝ:", { email, password });
 
     if (password !== confirmPass) {
       alert("❌ Mật khẩu xác nhận không khớp");

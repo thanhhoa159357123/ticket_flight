@@ -6,9 +6,9 @@ const Navbar = () => {
   const [tenKhachHang, setTenKhachHang] = useState("");
 
   useEffect(() => {
-    const name = localStorage.getItem("tenKhachHang");
-    if (name) {
-      setTenKhachHang(name);
+    const userData = JSON.parse(localStorage.getItem("user"));
+    if (userData?.ten_khach_hang) {
+      setTenKhachHang(userData.ten_khach_hang);
     }
   }, []);
 
@@ -36,13 +36,13 @@ const Navbar = () => {
             </div>
 
             <div className={styles.dropdownBox}>
-              <Link to="#" className={styles.menuItem}>
+              <Link to="/detail-account" className={styles.menuItem}>
                 Thông tin cá nhân
               </Link>
               <button
                 className={styles.menuItem}
                 onClick={() => {
-                  localStorage.removeItem("tenKhachHang");
+                  localStorage.removeItem("user");
                   window.location.href = "/";
                 }}
               >
