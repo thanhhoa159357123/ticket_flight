@@ -1,10 +1,9 @@
-// feature.module.scss
 .feature {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 80vh;
-  padding: 80px 20px;
+  min-height: 60vh; // Giảm từ 80vh xuống 60vh
+  padding: 60px 20px; // Giảm padding top/bottom từ 80px xuống 60px
   position: relative;
   overflow: hidden;
   background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
@@ -45,13 +44,13 @@
 
   .imageWrapper {
     width: 100%;
-    max-width: 900px;
-    height: 400px;
+    max-width: 800px;
+    height: 300px; 
     border-radius: 20px;
     overflow: hidden;
     position: relative;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    margin-bottom: 40px;
+    margin-bottom: 30px; // Giảm từ 40px xuống 30px
     transition: transform 0.5s ease;
 
     &:hover {
