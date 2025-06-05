@@ -8,7 +8,6 @@ khach_hang_collection = client["flightApp"]["khach_hang"]
 
 router = APIRouter()
 
-
 def generate_next_ma_khach_hang():
     last = khach_hang_collection.find().sort("ma_khach_hang", -1).limit(1)
     last_code = next(last, {}).get("ma_khach_hang", "KH000")
