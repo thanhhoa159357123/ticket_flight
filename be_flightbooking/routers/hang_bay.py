@@ -66,3 +66,23 @@ def get_all_hang_bay():
     except Exception as e:
         print("❌ Lỗi trong get_all_hang_bay:", str(e))
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
+
+
+@router.delete("/delete/{ma_hang_bay}", tags=["hang_bay"])
+def delete_hang_bay(ma_hang_bay: str):
+    try:
+        print(f"🗑 Nhận yêu cầu xoá tuyến bay: {ma_hang_bay}")
+
+        result = hang_bay_collection.delete_one({"ma_hang_bay": ma_hang_bay})
+
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Không tìm thấy tuyến bay cần xoá")
+
+        return JSONResponse(content={"message": f"Đã xoá hãng bay {ma_hang_bay} thành công"})
+
+    except HTTPException as he:
+        raise he
+
+    except Exception as e:
+        print("❌ Lỗi trong /delete:", str(e))
+        raise HTTPException(status_code=500, detail="Lỗi server nội bộ")

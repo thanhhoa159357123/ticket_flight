@@ -3,7 +3,7 @@ from typing import Optional
 
 class HangVe(BaseModel):
     ma_hang_ve: str
-    vi_tri_ngoi: Optional[str]
-    so_luong_hanh_ly: Optional[int]
-    refundable: Optional[bool]
-    changeable: Optional[bool]
+    vi_tri_ngoi: str
+    so_luong_hanh_ly: int
+    refundable: bool
+    changeable: bool

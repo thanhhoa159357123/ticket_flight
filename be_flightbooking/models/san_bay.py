@@ -5,5 +5,5 @@ class SanBay(BaseModel):
     ma_san_bay: str
     ten_san_bay: str
     thanh_pho: str
-    ma_quoc_gia: Optional[str]
-    iata_code: Optional[str]
+    ma_quoc_gia: str
+    iata_code: str

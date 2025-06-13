@@ -14,24 +14,26 @@ import ClassIcon from "@mui/icons-material/Class";
 import BusinessIcon from "@mui/icons-material/Business";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import MenuIcon from "@mui/icons-material/Menu";
+import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 
 const menuItems = [
-  { label: "Chuyến bay", icon: <FlightIcon />, path: "#" },
-  { label: "Khách hàng", icon: <GroupsIcon />, path: "/khach-hang" },
-  { label: "Giá vé", icon: <MonetizationOnIcon />, path: "#" },
-  { label: "Đặt vé", icon: <AssignmentIcon />, path: "#" },
-  {
-    label: "Chi tiết vé đặt",
-    icon: <DescriptionIcon />,
-    path: "#",
-  },
-  { label: "Hành khách", icon: <PersonIcon />, path: "#" },
-  { label: "Hóa đơn", icon: <ReceiptIcon />, path: "#" },
   { label: "Hãng bay", icon: <AirplanemodeActiveIcon />, path: "/hang-bay" },
-  { label: "Sân bay", icon: <LocationOnIcon />, path: "#" },
-  { label: "Tuyến bay", icon: <AltRouteIcon />, path: "#" },
-  { label: "Hạng vé", icon: <ClassIcon />, path: "#" },
-  { label: "Hãng bán vé", icon: <BusinessIcon />, path: "#" },
+  { label: "Hãng bán vé", icon: <BusinessIcon />, path: "/hang-ban-ve" },
+  { label: "Khách hàng", icon: <GroupsIcon />, path: "/khach-hang" },
+  { label: "Sân bay", icon: <LocationOnIcon />, path: "/san-bay" },
+  { label: "Tuyến bay", icon: <AltRouteIcon />, path: "/tuyen-bay" },
+  { label: "Chuyến bay", icon: <FlightIcon />, path: "/chuyen-bay" },
+  { label: "Hạng vé", icon: <ClassIcon />, path: "/hang-ve" },
+  { label: "Loại chuyến đi", icon: <FlightTakeoffIcon />, path: "/loai-chuyen-di" },
+  // { label: "Giá vé", icon: <MonetizationOnIcon />, path: "#" },
+  // { label: "Đặt vé", icon: <AssignmentIcon />, path: "#" },
+  // {
+  //   label: "Chi tiết vé đặt",
+  //   icon: <DescriptionIcon />,
+  //   path: "#",
+  // },
+  // { label: "Hành khách", icon: <PersonIcon />, path: "#" },
+  // { label: "Hóa đơn", icon: <ReceiptIcon />, path: "#" },
 ];
 
 const SideBar = () => {

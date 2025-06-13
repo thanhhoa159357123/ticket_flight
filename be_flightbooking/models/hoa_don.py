@@ -6,6 +6,6 @@ class HoaDon(BaseModel):
     ma_hoa_don: str
     ngay_thanh_toan: date
     tong_tien: float
-    phuong_thuc: Optional[str]
-    ghi_chu: Optional[str]
+    phuong_thuc: str
+    ghi_chu: str
     ma_dat_ve: str
