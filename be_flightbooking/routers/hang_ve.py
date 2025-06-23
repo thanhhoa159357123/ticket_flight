@@ -74,3 +74,4 @@ def get_all_hang_ve():
     except Exception as e:
         print("❌ Lỗi trong /get:", str(e))
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
+

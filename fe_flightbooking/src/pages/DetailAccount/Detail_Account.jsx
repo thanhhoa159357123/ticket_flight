@@ -1,10 +1,8 @@
-// Detail_Account.js
 import React, { useState } from "react";
-import Navbar from "../../components/navbar/Navbar";
-import styles from "./DetailAccount.module.scss";
-import Item_Information from "./ItemInformation/Item_Information";
-import Item_History_Ticket from "./ItemHistoryTicket/Item_History_Ticket";
-import Edit_Information from "../../components/editinformation/Edit_Information";
+import Navbar from "../../components/Navbar";
+import Item_Information from "./Item_Information";
+import Item_History_Ticket from "./Item_History_Ticket";
+import Edit_Information from "../../components/Edit_Information";
 
 const FIELD_LABELS = {
   ten_khach_hang: "Họ tên",
@@ -25,7 +23,7 @@ const Detail_Account = () => {
   };
 
   const handleSave = async (newValue) => {
-    const currentEmail = user.email; // lưu lại email hiện tại
+    const currentEmail = user.email;
     try {
       const res = await fetch(
         "http://localhost:8000/auth/update-info?current_email=" + currentEmail,
@@ -58,25 +56,34 @@ const Detail_Account = () => {
     <>
       <Navbar />
       <div
-        className={`${styles.detailAccount} ${
-          showModal ? styles.blurEffect : ""
+        className={`bg-[#f8fafc] min-h-[calc(100vh-80px)] px-8 py-5 transition-all duration-300 ease-in-out font-sans relative ${
+          showModal ? "filter blur-sm pointer-events-none select-none" : ""
         }`}
       >
-        <div className={styles.itemAccount}>
+        <div className="flex flex-wrap gap-4 mb-8 border-b border-[#e2e8f0] pb-4 max-w-[1500px] mx-auto px-4">
           {["Thông tin cá nhân", "Lịch sử đặt vé"].map((name, i) => (
             <span
               key={i}
-              className={`${styles.itemsLink} ${
-                activeTab === name ? styles.active : ""
-              }`}
               onClick={() => setActiveTab(name)}
+              className={`relative px-6 py-3 cursor-pointer font-semibold text-sm uppercase tracking-wide transition-all duration-300
+    ${activeTab === name ? "text-blue-600" : "text-slate-500"}
+  `}
             >
               {name}
+              <span
+                className={`absolute left-1/2 bottom-0 h-[3px] bg-blue-600 rounded-t-md transition-transform duration-300 ease-in-out
+      ${
+        activeTab === name
+          ? "w-[80%] -translate-x-1/2 scale-x-100 origin-center"
+          : "w-[80%] -translate-x-1/2 scale-x-0 origin-center"
+      }
+    `}
+              />
             </span>
           ))}
         </div>
 
-        <div className={styles.contentArea}>
+        <div className="w-full max-w-[1500px] mx-auto p-6 bg-white rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
           {activeTab === "Thông tin cá nhân" ? (
             <Item_Information user={user} onEditField={handleEdit} />
           ) : (

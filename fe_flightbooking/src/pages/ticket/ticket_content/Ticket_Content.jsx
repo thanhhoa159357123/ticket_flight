@@ -1,16 +1,15 @@
 import React, { useState } from "react";
-import HeaderContent from "./header_content/HeaderContent";
-import FilterContent from "./filter_content/FilterContent";
-import styles from "./ticket_content.module.scss";
+import HeaderContent from "./HeaderContent";
+import FilterContent from "./FilterContent";
 import ItemContent from "./item_content/ItemContent";
-import TicketOptionsPanel from "../../../components/ticketbook/TicketOptionsPanel/TicketOptionalsPanel";
+import TicketOptionsPanel from "../../../components/ticketbook/TicketOptionalsPanel";
 
 const Ticket_Content = () => {
   const itemList = Array.from({ length: 5 });
   const [showOptions, setShowOptions] = useState(false);
   const [showTicketDetail, setShowTicketDetail] = useState(false);
   return (
-    <div className={styles.ticketContent}>
+    <div className="flex flex-col gap-[20px]">
       <HeaderContent />
       <FilterContent />
       {itemList.map((_, index) => (
