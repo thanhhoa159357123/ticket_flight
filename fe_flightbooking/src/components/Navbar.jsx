@@ -12,7 +12,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <nav className="bg-white flex sticky justify-between items-center px-[25px] shadow-md top-0 z-50 h-[90px]">
+    <nav className="bg-white flex sticky justify-between items-center px-[100px] shadow-md top-0 z-50 h-[90px]">
       {/* LEFT */}
       <div>
         <Link
@@ -43,7 +43,7 @@ const Navbar = () => {
             <div
               className="px-3 py-2 font-semibold cursor-pointer flex items-center rounded-md h-full text-black relative transition-all duration-300 ease-in-out 
           hover:text-[#007bff] after:content-[''] after:absolute after:bottom-[20px] after:left-0 after:h-[2px] after:w-0 
-          after:bg-[#007bff] after:transition-all after:duration-300 group-hover:after:w-full"
+          after:bg-[#007bff] after:text-[#007bff] after:transition-all after:duration-300 group-hover:after:w-full"
             >
               <span className="whitespace-nowrap overflow-hidden text-ellipsis max-w-[150px] inline-block">
                 {tenKhachHang}
@@ -52,7 +52,7 @@ const Navbar = () => {
 
             {/* Dropdown box */}
             <div
-              className="absolute top-[calc(100%+10px)] right-0 w-[200px] bg-white border border-[#e0e0e0] 
+              className="absolute top-[calc(100%-10px)] right-0 w-[200px] bg-white border border-[#e0e0e0] 
           rounded-lg shadow-[0_4px_12px_rgba(0,0,0,0.1)] opacity-0 invisible translate-y-[-10px] 
           transition-all duration-300 ease-in-out z-[100] group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 
           before:content-[''] before:absolute before:bottom-full before:right-[15px] before:border-8 
@@ -71,7 +71,7 @@ const Navbar = () => {
                   localStorage.removeItem("user");
                   window.location.href = "/";
                 }}
-                className="block w-full px-4 py-3 text-left text-[#d32f2f] text-sm border-t border-[#f0f0f0] hover:bg-[#ffebee] rounded-b-lg"
+                className="block w-full px-4 py-3 text-left text-[#d32f2f] cursor-pointer text-sm border-t border-[#f0f0f0] hover:bg-[#ffebee] rounded-b-lg"
               >
                 Đăng xuất
               </button>

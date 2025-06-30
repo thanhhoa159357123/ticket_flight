@@ -3,7 +3,7 @@ import PlaneImg from "../assets/bg_feature.jpg";
 
 const Feature = () => {
   return (
-    <section className="flex justify-center items-center relative min-h-[60vh] px-[60px] py-[20px] overflow-hidden bg-[linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);]">
+    <section className="flex justify-center items-center relative min-h-[60vh] px-[100px] py-[20px] overflow-hidden bg-[linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);]">
       <div className="w-[100%] max-w-[1200px] flex flex-col items-center justify-center text-center relative z-10">
         <h1 className="text-[clamp(2.5rem,5vw,4rem)] font-bold text-[#2c3e50] mb-[20px] tracking-tight">
           <span className="bg-gradient-to-r from-[#3498db] to-[#2ecc71] bg-clip-text text-transparent">

@@ -60,8 +60,8 @@ const Booking = () => {
   };
 
   return (
-    <div className="flex justify-center items-center px-[2rem] py-[1rem] bg-[linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)]">
-      <div className="bg-[#fff] rounded-md p-[2rem] w-[100%] max-w-[1700px] shadow-2xl">
+    <div className="flex justify-center items-center w-full py-[1rem] bg-[linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%)]">
+      <div className="bg-[#fff] rounded-md p-[2rem] w-[100%] max-w-[1700px] shadow-md">
         <div className="flex flex-wrap gap-[1rem] mb-[1.2rem]">
           <div className="flex items-center bg-[#f8f9fa] rounded-[50px] p-[0.5rem] gap-[0.5rem]">
             {ways.map((option) => (

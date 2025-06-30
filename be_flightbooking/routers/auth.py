@@ -1,14 +1,17 @@
 from fastapi import APIRouter, HTTPException, Query, Body
-from models.khach_hang import KhachHang, KhachHangCreate
+from models.khach_hang import KhachHangCreate
 from utils.spark import get_spark
+from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from datetime import datetime, timezone
+import os
+import json
+import traceback
 
-client = MongoClient("mongodb://localhost:27017")
-khach_hang_collection = client["flightApp"]["khach_hang"]
+client = MongoClient(MONGO_URI)
+khach_hang_collection = client[MONGO_DB]["khach_hang"]
 
 router = APIRouter()
-
 
 def generate_next_ma_khach_hang():
     last = khach_hang_collection.find().sort("ma_khach_hang", -1).limit(1)
@@ -16,59 +19,53 @@ def generate_next_ma_khach_hang():
     next_number = int(last_code[2:]) + 1
     return f"KH{next_number:03}"
 
+def load_khach_hang_df():
+    spark = get_spark()
+    return (
+        spark.read.format("com.mongodb.spark.sql.DefaultSource")
+        .option("uri", os.getenv("MONGO_URI"))
+        .option("database", MONGO_DB)
+        .option("collection", "khach_hang")
+        .load()
+    )
 
 @router.post("/register", tags=["auth"])
 def register_user(khach_hang: KhachHangCreate):
     try:
-        print("📥 Dữ liệu nhận từ client:", khach_hang.dict())
+        print("📥 Dữ liệu nhận từ client:", json.dumps(khach_hang.dict(), ensure_ascii=False))
 
-        spark = get_spark()
-        df = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.khach_hang")
-            .load()
-        )
+        df = load_khach_hang_df()
 
-        if (
-            "email" in df.columns
-            and df.filter(df["email"] == khach_hang.email).count() > 0
-        ):
+        if "email" in df.columns and df.filter(df["email"] == khach_hang.email).count() > 0:
             raise HTTPException(status_code=400, detail="Email đã tồn tại")
 
         ma_khach_hang = generate_next_ma_khach_hang()
         now_str = datetime.now(timezone.utc).isoformat()
 
         data_to_insert = khach_hang.dict()
-        data_to_insert.update(
-            {
-                "ma_khach_hang": ma_khach_hang,
-                "is_active": True,
-                "da_dat_ve": False,
-                "deleted_at": "",
-                "last_active_at": now_str,
-                "created_at": now_str,
-            }
-        )
+        data_to_insert.update({
+            "ma_khach_hang": ma_khach_hang,
+            "is_active": True,
+            "da_dat_ve": False,
+            "deleted_at": "",
+            "last_active_at": now_str,
+            "created_at": now_str
+        })
 
         khach_hang_collection.insert_one(data_to_insert)
-        print("🎉 Thêm khách hàng thành công:", khach_hang.email)
+        print("🎉 Đăng ký thành công:", khach_hang.email)
 
         return {"message": "Đăng ký thành công", "ma_khach_hang": ma_khach_hang}
 
     except Exception as e:
-        print("❌ Lỗi trong /register:", str(e))
+        print("❌ Lỗi trong /register:", repr(e))
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
-
 
 @router.post("/login", tags=["auth"])
 def login_user(email: str = Query(...), matkhau: str = Query(...)):
     try:
-        spark = get_spark()
-        df = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.khach_hang")
-            .load()
-        )
+        df = load_khach_hang_df()
 
         matched = df.filter(
             (df.email == email)
@@ -91,19 +88,21 @@ def login_user(email: str = Query(...), matkhau: str = Query(...)):
         }
 
     except Exception as e:
-        print("❌ Lỗi trong /login:", str(e))
+        print("❌ Lỗi trong /login:", repr(e))
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
-
 
 @router.post("/update-info", tags=["auth"])
 def update_user_info(
-    current_email: str = Query(..., description="Email hiện tại"),
+    current_email: str = Query(...),
     ten_khach_hang: str = Body(None),
     so_dien_thoai: str = Body(None),
     matkhau: str = Body(None),
     email: str = Body(None),
 ):
     try:
+        df_check = load_khach_hang_df()
+
         update_fields = {}
         if ten_khach_hang:
             update_fields["ten_khach_hang"] = ten_khach_hang
@@ -112,42 +111,24 @@ def update_user_info(
         if matkhau:
             update_fields["matkhau"] = matkhau
         if email:
-            spark = get_spark()
-            df_check = (
-                spark.read.format("com.mongodb.spark.sql.DefaultSource")
-                .option("uri", "mongodb://localhost:27017/flightApp.khach_hang")
-                .load()
-            )
             if (
-                df_check.filter(
-                    (df_check.email == email) & (df_check.email != current_email)
-                ).count()
+                df_check.filter((df_check.email == email) & (df_check.email != current_email)).count()
                 > 0
             ):
                 raise HTTPException(status_code=400, detail="Email mới đã tồn tại")
             update_fields["email"] = email
-            update_fields["last_active_at"] = datetime.now(timezone.utc).isoformat()
 
         if not update_fields:
-            raise HTTPException(
-                status_code=400, detail="Không có thông tin nào để cập nhật"
-            )
+            raise HTTPException(status_code=400, detail="Không có thông tin nào để cập nhật")
 
-        result = khach_hang_collection.update_one(
-            {"email": current_email}, {"$set": update_fields}
-        )
+        update_fields["last_active_at"] = datetime.now(timezone.utc).isoformat()
+
+        result = khach_hang_collection.update_one({"email": current_email}, {"$set": update_fields})
 
         if result.matched_count == 0:
-            raise HTTPException(
-                status_code=404, detail="Không tìm thấy người dùng với email đã cho"
-            )
+            raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
 
-        spark = get_spark()
-        df_updated = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.khach_hang")
-            .load()
-        )
+        df_updated = load_khach_hang_df()
         final_email = email if email else current_email
         user_row = df_updated.filter(df_updated.email == final_email).first()
 
@@ -162,5 +143,6 @@ def update_user_info(
         }
 
     except Exception as e:
-        print("❌ Lỗi trong /update-info:", str(e))
+        print("❌ Lỗi trong /update-info:", repr(e))
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")

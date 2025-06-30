@@ -5,7 +5,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Ticket from "./pages/ticket/Ticket";
 import Detail_Account from "./pages/DetailAccount/Detail_Account";
-import Booking from "./pages/Booking";
+import Booking from "./pages/booking/Booking";
 
 function App() {
   return (

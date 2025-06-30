@@ -74,7 +74,7 @@ const TicketOptionsPanel = ({
           show ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center p-6 bg-gradient-to-br from-blue-700 to-blue-500 text-white sticky top-0 z-10">
+        <div className="flex items-center px-6 py-2 bg-gradient-to-br from-blue-700 to-blue-500 text-white sticky top-0 z-10">
           <CloseIcon
             onClick={onClose}
             className="mr-5 cursor-pointer p-2 rounded-full bg-white/15 text-white/90 transition-all duration-200 ease-in-out hover:rotate-90 hover:bg-white/25 hover:text-white flex items-center justify-center"
@@ -85,7 +85,7 @@ const TicketOptionsPanel = ({
         </div>
 
         <div className="p-[24px] bg-[#f8fafc] border-b-[1px] border-b-solid border-b-[#e5e7eb]">
-          <div className="flex flex-col gap-3 p-4 bg-[#f8fafc] rounded-[10px] border-[1px] border-solid border-[#e5e7eb]">
+          <div className="flex flex-col gap-3 px-4 py-2 bg-[#f8fafc] rounded-[10px] border-[1px] border-solid border-[#e5e7eb]">
             <div className="flex items-center flex-wrap gap-5">
               <h3 className="inline-flex items-center bg-green-500 text-white px-[14px] py-[6px] rounded text-sm font-semibold uppercase whitespace-nowrap m-0">
                 Khởi hành
@@ -147,7 +147,7 @@ const TicketOptionsPanel = ({
           </div>
         </div>
 
-        <div className="flex justify-between items-center px-[20px] py-[24px] bg-white sticky top-0 z-[5] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+        <div className="flex justify-between items-center px-[20px] py-3 bg-white sticky top-0 z-[5] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
           <span className="text-[1.1rem] font-semibold text-[#111827]">
             Chọn loại vé của bạn
           </span>
@@ -197,31 +197,31 @@ const TicketOptionsPanel = ({
               </span>
             </div>
             <ul className="flex-1 mb-6 pr-2 overflow-y-auto">
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <LuggageIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Hành lý xách tay 7 kg
                 </span>
               </li>
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <LuggageIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Hành lý ký gửi 0 kg
                 </span>
               </li>
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <SwapHorizIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Phí đổi lịch bay 378.000 VND
                 </span>
               </li>
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <BlockIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Không hoàn vé
                 </span>
               </li>
-              <li className="flex items-start py-3 border-0">
+              <li className="flex items-start py-2 border-0">
                 <ReceiptIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Có hóa đơn VAT
@@ -260,31 +260,31 @@ const TicketOptionsPanel = ({
               </span>
             </div>
             <ul className="flex-1 mb-6 pr-2 overflow-y-auto">
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <LuggageIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Hành lý xách tay 7 kg
                 </span>
               </li>
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <LuggageIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Hành lý ký gửi 0 kg
                 </span>
               </li>
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <SwapHorizIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Đổi lịch miễn phí
                 </span>
               </li>
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <BlockIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Không hoàn vé
                 </span>
               </li>
-              <li className="flex items-start py-3 border-0">
+              <li className="flex items-start py-2 border-0">
                 <ReceiptIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Có hóa đơn VAT
@@ -322,31 +322,31 @@ const TicketOptionsPanel = ({
               </span>
             </div>
             <ul className="flex-1 mb-6 pr-2 overflow-y-auto">
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <LuggageIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Hành lý xách tay 10 kg
                 </span>
               </li>
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <LuggageIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Hành lý ký gửi 30 kg
                 </span>
               </li>
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <SwapHorizIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Đổi lịch miễn phí
                 </span>
               </li>
-              <li className="flex items-start py-3">
+              <li className="flex items-start py-2">
                 <BlockIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Không hoàn vé
                 </span>
               </li>
-              <li className="flex items-start py-3 border-0">
+              <li className="flex items-start py-2 border-0">
                 <ReceiptIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
                   Có hóa đơn VAT

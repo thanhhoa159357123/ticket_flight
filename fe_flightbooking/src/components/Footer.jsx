@@ -10,7 +10,7 @@ const Footer = () => {
 
   return (
     <div className="bg-[#f5f6fa] flex text-[#333] px-[40px] border-t-[1px] border-solid border-[#e5e5e5] justify-center items-center">
-      <div className="w-full max-w-[1200px] m-0-auto py-[20px]">
+      <div className="w-full max-w-[1400px] m-0-auto py-[20px]">
         <div className="grid grid-cols-5 gap-[2rem] pb-20px border-b-[1px] border-solid border-[#e0e0e0]">
           <div className="text-[18px] font-bold text-[#222] pb-[10px]">
             Về Travelocka

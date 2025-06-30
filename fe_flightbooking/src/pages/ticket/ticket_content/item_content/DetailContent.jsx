@@ -7,94 +7,113 @@ import AirlineSeatLegroomReducedIcon from "@mui/icons-material/AirlineSeatLegroo
 
 const DetailContent = () => {
   return (
-    <div className="flex bg-[#ffffff] rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-[24px] text-[#333] relative overflow-hidden transition-all duration-300 ease-in-out hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)]">
-      <div className="flex flex-col items-center justify-between pr-[24px] min-w-[120px]">
+    <div className="flex bg-white rounded-lg shadow-sm p-4 text-gray-800">
+      {/* Timeline section */}
+      <div className="flex flex-col items-center justify-between pr-4 min-w-[100px]">
         <div className="flex flex-col items-center mb-2">
-          <strong className="text-[24px] font-bold text-[#2a4365]">20:05</strong>
-          <span className="text-[24px] text-[#718096] mt-1">28 thg 5</span>
+          <strong className="text-xl font-bold text-blue-800">20:05</strong>
+          <span className="text-sm text-gray-500 mt-1">28 thg 5</span>
         </div>
-        <div className="flex flex-col items-center mx-3 relative before:absolute before:content-[''] before:w-[1px] before:h-[20px] before:bg-[#e2e8f0] before:top-[-22px] after:absolute after:content-[''] after:w-[1px] after:h-[20px] after:bg-[#e2e8f0]after:bottom-[-22px]">
-          <span className="text-[14px] text-[#4a5568] font-medium">2h 5m</span>
-          <div className="text-[12px] bg-[#ebf8ff] text-[#3182ce] px-0.5 py-2 rounded-[12px] mt-1 font-medium">Bay thẳng</div>
+
+        <div
+          className="flex flex-col items-center mx-2 relative 
+  before:absolute before:content-[''] before:w-px before:h-12 before:bg-gray-200 before:top-[-3rem]
+  after:absolute after:content-[''] after:w-px after:h-12 after:bg-gray-200 after:bottom-[-3rem]"
+        >
+          <span className="text-xs text-gray-500">2h 5m</span>
+          <div className="text-xs bg-blue-50 text-blue-600 px-1 py-0.5 rounded-full mt-1 font-medium">
+            Bay thẳng
+          </div>
         </div>
+
         <div className="flex flex-col items-center mb-2">
-          <strong className="text-[24px] font-bold text-[#2a4365]">22:10</strong>
-          <span className="text-[24px] text-[#718096] mt-1">28 thg 5</span>
+          <strong className="text-xl font-bold text-blue-800">22:10</strong>
+          <span className="text-sm text-gray-500 mt-1">28 thg 5</span>
         </div>
       </div>
-      {/* Thêm div chứa đường kẻ dọc */}
-      <div className="w-[1px] bg-[#e2e8f0] my-4"></div>
-      <div className="flex-1 flex flex-col gap-5">
-        <div className="flex flex-col">
-          <div>
-            <strong className="text-[18px] text-[#2d3748 font-semibold]">TP HCM (SGN)</strong>
-            <span className="block text-[14px] text-[#718096] mt-1">
-              Sân bay Tân Sơn Nhất - Nhà ga 1
+
+      {/* Vertical divider */}
+      <div className="w-px bg-gray-200 my-2"></div>
+
+      {/* Content section */}
+      <div className="flex-1 flex flex-col gap-3 pl-4">
+        {/* Departure info */}
+        <div>
+          <strong className="text-base font-semibold text-gray-800">
+            TP HCM (SGN)
+          </strong>
+          <span className="block text-xs text-gray-500 mt-1">
+            Sân bay Tân Sơn Nhất - Nhà ga 1
+          </span>
+        </div>
+
+        {/* Flight details card */}
+        <div className="bg-gray-50 rounded-md p-3 border border-gray-200">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className="text-base font-bold text-blue-900">
+              VietJet Air
+            </span>
+            <span className="text-xs font-medium text-white bg-green-500 px-2 py-0.5 rounded-full">
+              VJ-1176 - Khuyến mãi
             </span>
           </div>
-        </div>
 
-        <div className="bg-[#f8fafc] rounded-[10px] p-4 mx-3 border-[1px] border-solid border-[#cbd5e0]">
-          <div className="flex flex-col gap-[12px]">
-            <div className="flex items-center flex-wrap gap-[12px] mb-2">
-              <span className="text-[18px] font-bold text-[#2c5282]">VietJet Air</span>
-              <span className="text-[14px] font-medium text-[#ffffff] bg-[#38a169] px-1 py-2.5 rounded-[20px]">VJ-1176 - Khuyến mãi</span>
+          <div className="grid gap-2 grid-cols-2">
+            {/* Luggage info */}
+            <div className="flex items-center gap-2 p-2 bg-white rounded-md shadow-xs">
+              <LuggageIcon className="text-gray-600 !text-base" />
+              <div>
+                <div className="text-xs text-gray-500">Hành lý ký gửi</div>
+                <div className="text-sm font-semibold">0 kg</div>
+              </div>
             </div>
 
-            <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,_minmax(180px,_1fr))]">
-              {/* Hàng 1 - Thông tin hành lý */}
-              <div className="flex items-center gap-2.5 p-2 bg-white rounded-[8px] shadow-[0_2px_4px_rgba(0,0,0,0.05)] hover:bg-[#f7fafc]">
-                <LuggageIcon className="text-[#4a5568] !text-[20px] shrink-0" />
-                <div>
-                  <div className="text-[12px] text-[#718096] font-medium">Hành lý ký gửi</div>
-                  <div className="text-[14px] font-semibold text-[#2d3748] mt-0.5">0 kg</div>
-                </div>
+            <div className="flex items-center gap-2 p-2 bg-white rounded-md shadow-xs">
+              <WorkIcon className="text-gray-600 !text-base" />
+              <div>
+                <div className="text-xs text-gray-500">Hành lý xách tay</div>
+                <div className="text-sm font-semibold">7 kg</div>
               </div>
+            </div>
 
-              <div className="flex items-center gap-2.5 p-2 bg-white rounded-[8px] shadow-[0_2px_4px_rgba(0,0,0,0.05)] hover:bg-[#f7fafc]">
-                <WorkIcon className="text-[#4a5568] !text-[20px] shrink-0" />
-                <div>
-                  <div className="text-[12px] text-[#718096] font-medium">Hành lý xách tay</div>
-                  <div className="text-[14px] font-semibold text-[#2d3748] mt-0.5">7 kg</div>
-                </div>
+            {/* Plane info */}
+            <div className="flex items-center gap-2 p-2 bg-white rounded-md shadow-xs">
+              <AirlinesIcon className="text-gray-600 !text-base" />
+              <div>
+                <div className="text-xs text-gray-500">Loại máy bay</div>
+                <div className="text-sm font-semibold">Airbus A321</div>
               </div>
+            </div>
 
-              {/* Hàng 2 - Thông tin máy bay */}
-              <div className="flex items-center gap-2.5 p-2 bg-white rounded-[8px] shadow-[0_2px_4px_rgba(0,0,0,0.05)] hover:bg-[#f7fafc]">
-                <AirlinesIcon className="text-[#4a5568] !text-[20px] shrink-0" />
-                <div>
-                  <div className="text-[12px] text-[#718096] font-medium">Loại máy bay</div>
-                  <div className="text-[14px] font-semibold text-[#2d3748] mt-0.5">Airbus A321</div>
-                </div>
+            <div className="flex items-center gap-2 p-2 bg-white rounded-md shadow-xs">
+              <AirlineSeatReclineNormalIcon className="text-gray-600 !text-base" />
+              <div>
+                <div className="text-xs text-gray-500">Sơ đồ ghế</div>
+                <div className="text-sm font-semibold">3-3</div>
               </div>
+            </div>
 
-              <div className="flex items-center gap-2.5 p-2 bg-white rounded-[8px] shadow-[0_2px_4px_rgba(0,0,0,0.05)] hover:bg-[#f7fafc]">
-                <AirlineSeatReclineNormalIcon className="text-[#4a5568] !text-[20px] shrink-0" />
-                <div>
-                  <div className="text-[12px] text-[#718096] font-medium">Sơ đồ ghế</div>
-                  <div className="text-[14px] font-semibold text-[#2d3748] mt-0.5">3-3</div>
-                </div>
-              </div>
-
-              {/* Hàng 3 - Thông tin khác */}
-              <div className="flex items-center gap-2.5 p-2 bg-white rounded-[8px] shadow-[0_2px_4px_rgba(0,0,0,0.05)] hover:bg-[#f7fafc]">
-                <AirlineSeatLegroomReducedIcon className="text-[#4a5568] !text-[20px] shrink-0" />
-                <div>
-                  <div className="text-[12px] text-[#718096] font-medium">Khoảng cách ghế</div>
-                  <div className="text-[14px] font-semibold text-[#2d3748] mt-0.5">
-                    28" (dưới tiêu chuẩn)
-                  </div>
+            {/* Seat info */}
+            <div className="flex items-center gap-2 p-2 bg-white rounded-md shadow-xs">
+              <AirlineSeatLegroomReducedIcon className="text-gray-600 !text-base" />
+              <div>
+                <div className="text-xs text-gray-500">Khoảng cách ghế</div>
+                <div className="text-sm font-semibold">
+                  28" (dưới tiêu chuẩn)
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col">
-          <div>
-            <strong className="text-[18px] text-[#2d3748 font-semibold]">Hà Nội (HAN)</strong>
-            <span className="block text-[14px] text-[#718096] mt-1">Sân bay Nội Bài - Nhà ga 1</span>
-          </div>
+        {/* Arrival info */}
+        <div>
+          <strong className="text-base font-semibold text-gray-800">
+            Hà Nội (HAN)
+          </strong>
+          <span className="block text-xs text-gray-500 mt-1">
+            Sân bay Nội Bài - Nhà ga 1
+          </span>
         </div>
       </div>
     </div>

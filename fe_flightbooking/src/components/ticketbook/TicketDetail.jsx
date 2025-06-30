@@ -6,7 +6,7 @@ const TicketDetail = ({ onClose }) => {
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <div className="flex items-center p-6 bg-gradient-to-br from-blue-700 to-blue-500 text-white sticky top-0 z-10">
+      <div className="flex items-center px-6 py-[13px] bg-gradient-to-br from-blue-700 to-blue-500 text-white sticky top-0 z-10">
         <CloseIcon
           onClick={onClose}
           className="mr-5 cursor-pointer transition-all duration-200 ease-in-out text-white/90 bg-white/15 rounded-full p-2 flex items-center justify-center hover:rotate-90 hover:bg-white/25 hover:text-white"
@@ -15,7 +15,7 @@ const TicketDetail = ({ onClose }) => {
       </div>
 
       {/* Route Info */}
-      <div className="bg-[#f8f9fa] px-6 py-5 border-b border-[#f0f0f0]">
+      <div className="bg-[#f8f9fa] px-6 py-3 border-b border-[#f0f0f0]">
         <div className="text-blue-700 text-[1.1rem] font-semibold">
           TP HCM (SGN) → Hà Nội (HAN)
         </div>

@@ -1,16 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 
 const Item_Information = ({ user, onEditField }) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [editingField, setEditingField] = useState(null);
-
-  const handleEdit = (field) => {
-    setEditingField(field);
-  };
-
-  const closeModal = () => {
-    setEditingField(null);
-  };
+  const [showPassword, setShowPassword] = React.useState(false);
 
   return (
     <div className="w-full text-[#1a202c] transition-all duration-300 ease-in-out relative">
@@ -20,46 +11,13 @@ const Item_Information = ({ user, onEditField }) => {
         </h3>
 
         {/* Họ tên */}
-        <div className="flex justify-between items-center px-4 border-b border-[#edf2f7] py-4">
-          <div className="flex items-center flex-1 flex-wrap">
-            <strong className="font-extrabold text-[#4a5568] min-w-[140px] mr-5">Họ tên:</strong>
-            <span className="text-[#2d3748] mr-4 text-[16px]">{user?.ten_khach_hang}</span>
-          </div>
-          <button
-            onClick={() => handleEdit("ten_khach_hang")}
-            className="bg-[#4299e1] text-white px-3 py-[10px] rounded-md text-sm font-medium shadow-md hover:bg-[#3182ce] hover:-translate-y-[1px] hover:shadow-lg active:translate-y-0 transition-all"
-          >
-            Chỉnh sửa
-          </button>
-        </div>
+        <InfoRow label="Họ tên:" value={user?.ten_khach_hang} onEdit={() => onEditField("ten_khach_hang")} />
 
         {/* Email */}
-        <div className="flex justify-between items-center px-4 border-b border-[#edf2f7] py-4">
-          <div className="flex items-center flex-1 flex-wrap">
-            <strong className="font-extrabold text-[#4a5568] min-w-[140px] mr-5">Email:</strong>
-            <span className="text-[#2d3748] mr-4 text-[16px]">{user?.email}</span>
-          </div>
-          <button
-            onClick={() => handleEdit("email")}
-            className="bg-[#4299e1] text-white px-3 py-[10px] rounded-md text-sm font-medium shadow-md hover:bg-[#3182ce] hover:-translate-y-[1px] hover:shadow-lg active:translate-y-0 transition-all"
-          >
-            Chỉnh sửa
-          </button>
-        </div>
+        <InfoRow label="Email:" value={user?.email} onEdit={() => onEditField("email")} />
 
         {/* SĐT */}
-        <div className="flex justify-between items-center px-4 border-b border-[#edf2f7] py-4">
-          <div className="flex items-center flex-1 flex-wrap">
-            <strong className="font-extrabold text-[#4a5568] min-w-[140px] mr-5">SĐT:</strong>
-            <span className="text-[#2d3748] mr-4 text-[16px]">{user?.so_dien_thoai}</span>
-          </div>
-          <button
-            onClick={() => handleEdit("so_dien_thoai")}
-            className="bg-[#4299e1] text-white px-3 py-[10px] rounded-md text-sm font-medium shadow-md hover:bg-[#3182ce] hover:-translate-y-[1px] hover:shadow-lg active:translate-y-0 transition-all"
-          >
-            Chỉnh sửa
-          </button>
-        </div>
+        <InfoRow label="SĐT:" value={user?.so_dien_thoai} onEdit={() => onEditField("so_dien_thoai")} />
 
         {/* Mật khẩu */}
         <div className="flex justify-between items-center px-4 py-4 border-b border-[#edf2f7]">
@@ -78,7 +36,7 @@ const Item_Information = ({ user, onEditField }) => {
               {showPassword ? "👁️" : "👁‍🗨️"}
             </button>
             <button
-              onClick={() => handleEdit("matkhau")}
+              onClick={() => onEditField("matkhau")}
               className="bg-[#4299e1] text-white px-3 py-[10px] rounded-md text-sm font-medium shadow-md hover:bg-[#3182ce] hover:-translate-y-[1px] hover:shadow-lg active:translate-y-0 transition-all"
             >
               Chỉnh sửa
@@ -86,43 +44,25 @@ const Item_Information = ({ user, onEditField }) => {
           </div>
         </div>
       </div>
-
-      {/* Overlay + Popup Edit */}
-      {editingField && (
-        <>
-          {/* Overlay đen mờ nhẹ */}
-          <div className="fixed inset-0 bg-black/40 z-10"></div>
-
-          {/* Popup chỉnh sửa */}
-          <div className="fixed top-1/2 left-1/2 z-20 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-xl shadow-2xl w-[90%] max-w-md popup-animate">
-            <h3 className="text-lg font-bold mb-4">Chỉnh sửa {editingField}</h3>
-            <input
-              type="text"
-              placeholder={`Nhập ${editingField} mới`}
-              className="w-full border border-gray-300 p-2 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={() => {
-                  onEditField(editingField);
-                  closeModal();
-                }}
-                className="px-4 py-2 bg-[#4299e1] text-white rounded hover:bg-[#3182ce]"
-              >
-                Lưu
-              </button>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 };
+
+// Reusable Row Component
+// eslint-disable-next-line react-refresh/only-export-components
+const InfoRow = ({ label, value, onEdit }) => (
+  <div className="flex justify-between items-center px-4 border-b border-[#edf2f7] py-4">
+    <div className="flex items-center flex-1 flex-wrap">
+      <strong className="font-extrabold text-[#4a5568] min-w-[140px] mr-5">{label}</strong>
+      <span className="text-[#2d3748] mr-4 text-[16px]">{value}</span>
+    </div>
+    <button
+      onClick={onEdit}
+      className="bg-[#4299e1] text-white px-3 py-[10px] rounded-md text-sm font-medium shadow-md hover:bg-[#3182ce] hover:-translate-y-[1px] hover:shadow-lg active:translate-y-0 transition-all"
+    >
+      Chỉnh sửa
+    </button>
+  </div>
+);
 
 export default Item_Information;

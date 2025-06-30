@@ -29,14 +29,16 @@ const Utilities = () => {
   };
 
   return (
-    <div className="flex flex-col gap-2 border-b border-black/10">
+    <div className="flex flex-col border-b border-black/10">
+      {/* Header */}
       <div
-        className="flex justify-between items-center py-3 text-[15px] font-semibold text-[#222] cursor-pointer select-none transition-all duration-200 hover:text-[#3a86ff]"
+        className="flex justify-between items-center py-2 text-sm font-semibold text-[#222] cursor-pointer select-none transition hover:text-[#3a86ff]"
         onClick={() => setIsUtilitiesOpen(!isUtilitiesOpen)}
       >
-        <div>Tiện ích</div>
+        <span>Tiện ích</span>
         <KeyboardArrowUpIcon
-          className={`transition-transform duration-300 text-[#666] text-[20px] hover:text-[#3a86ff] ${
+          fontSize="small"
+          className={`transition-transform duration-200 ${
             isUtilitiesOpen ? "rotate-180" : ""
           }`}
         />
@@ -44,9 +46,9 @@ const Utilities = () => {
 
       {/* Content */}
       <div
-        className={`flex flex-col gap-1 overflow-hidden transition-all duration-400 ease-in-out ${
+        className={`flex flex-col gap-1 overflow-hidden transition-all duration-300 ease-in-out ${
           isUtilitiesOpen
-            ? "max-h-[500px] opacity-100 pt-1 pb-3"
+            ? "max-h-[500px] opacity-100 pt-1 pb-2"
             : "max-h-0 opacity-0"
         }`}
       >
@@ -55,49 +57,52 @@ const Utilities = () => {
           return (
             <div
               key={id}
-              className={`flex items-center justify-between rounded-lg bg-white py-3 transition-all duration-200 border ${
+              className={`flex items-center justify-between gap-2 px-2 py-1.5 rounded-md transition-all cursor-pointer ${
                 disabled
-                  ? "bg-black/5 opacity-60 pointer-events-none border-transparent"
+                  ? "opacity-50 pointer-events-none"
                   : isSelected
-                  ? "bg-[#3a86ff]/10 border-[#3a86ff]/30"
-                  : "hover:bg-[#3a86ff]/5 hover:border-[#3a86ff]/10 border-transparent"
-              } active:opacity-80 cursor-pointer`}
+                  ? "bg-[#3a86ff]/10"
+                  : "hover:bg-[#3a86ff]/5"
+              }`}
               onClick={() => !disabled && toggleUtility(id)}
             >
-              {/* Left row */}
-              <div className="flex items-center gap-3">
+              {/* Checkbox + Label */}
+              <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
                   checked={isSelected}
                   disabled={disabled}
                   readOnly
-                  className={`w-[18px] h-[18px] accent-[#3a86ff] cursor-pointer transition-all ${
-                    disabled ? "pointer-events-none opacity-50" : ""
+                  className={`w-4 h-4 accent-[#3a86ff] transition-all ${
+                    !disabled && "checked:shadow-[0_0_0_2px_rgba(58,134,255,0.2)]"
                   }`}
                 />
                 <span
-                  className={`text-sm transition-all ${
+                  className={`text-sm ${
                     disabled
                       ? "text-[#999]"
                       : isSelected
                       ? "text-[#3a86ff] font-semibold"
-                      : "text-[#333] font-medium"
+                      : "text-[#333]"
                   }`}
                 >
                   {label}
                 </span>
               </div>
 
-              {/* Right icon */}
-              <Icon
-                className={`text-[20px] mr-1 transition-all ${
-                  disabled
-                    ? "text-[#ccc]"
-                    : isSelected
-                    ? "text-[#3a86ff]"
-                    : "text-[#666]"
-                }`}
-              />
+              {/* Icon */}
+              {Icon && (
+                <Icon
+                  fontSize="small"
+                  className={`${
+                    disabled
+                      ? "text-[#ccc]"
+                      : isSelected
+                      ? "text-[#3a86ff]"
+                      : "text-[#666]"
+                  }`}
+                />
+              )}
             </div>
           );
         })}

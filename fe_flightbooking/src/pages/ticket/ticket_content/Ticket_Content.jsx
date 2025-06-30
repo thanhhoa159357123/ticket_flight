@@ -7,7 +7,8 @@ import TicketOptionsPanel from "../../../components/ticketbook/TicketOptionalsPa
 const Ticket_Content = () => {
   const itemList = Array.from({ length: 5 });
   const [showOptions, setShowOptions] = useState(false);
-  const [showTicketDetail, setShowTicketDetail] = useState(false);
+  const [, setShowTicketDetail] = useState(false);
+  
   return (
     <div className="flex flex-col gap-[20px]">
       <HeaderContent />

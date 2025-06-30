@@ -9,13 +9,32 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
 
+  const [errors, setErrors] = useState({});
+
   const handleRegister = async (e) => {
     e.preventDefault();
 
-    if (password !== confirmPass) {
-      alert("❌ Mật khẩu xác nhận không khớp");
+    const newErrors = {};
+
+    if (!ten.trim()) newErrors.ten = "Vui lòng nhập họ tên.";
+    if (!sdt.trim()) newErrors.sdt = "Vui lòng nhập số điện thoại.";
+    if (!email.trim()) {
+      newErrors.email = "Vui lòng nhập Email.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Email không đúng định dạng.";
+    }
+
+    if (!password.trim()) newErrors.password = "Vui lòng nhập Mật khẩu.";
+    if (!confirmPass.trim()) newErrors.confirmPass = "Vui lòng xác nhận mật khẩu.";
+    else if (password !== confirmPass)
+      newErrors.confirmPass = "❌ Mật khẩu xác nhận không khớp.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+
+    setErrors({}); // Clear error trước khi gọi API
 
     try {
       const response = await fetch("http://localhost:8000/auth/register", {
@@ -23,7 +42,7 @@ const Register = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ten_khach_hang: ten,
-          email: email,
+          email,
           so_dien_thoai: sdt,
           matkhau: password,
         }),
@@ -45,103 +64,85 @@ const Register = () => {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col
-        relative bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: `url(${clouds})` }}
-    >
+    <div className="min-h-screen flex flex-col relative bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `url(${clouds})` }}>
       <div className="absolute inset-0 bg-white/50 z-0" />
-
-      <div className="p-[2rem] z-1">
+      <div className="ml-5 mt-3 z-1">
         <Link to="/" className="inline-block">
-          <span
-            className="text-[2.5rem] font-extrabold text-[#3a86ff]"
-            style={{ textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)" }}
-          >
+          <span className="text-[2rem] font-extrabold text-[#3a86ff]" style={{ textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)" }}>
             Travelockaa
           </span>
         </Link>
       </div>
 
       <div className="flex justify-center items-center flex-1 p-8 z-10">
-        <form
-          className="bg-white rounded-[20px] shadow-xl px-10 py-2 w-full max-w-[500px] animate-[fadeInUp_0.5s_ease-out]"
-          onSubmit={handleRegister}
-        >
+        <form onSubmit={handleRegister} className="bg-white rounded-[20px] shadow-xl px-10 py-2 w-full max-w-[500px] animate-[fadeInUp_0.5s_ease-out]">
           <div className="mb-[1rem] text-center">
-            <h1 className="text-[2rem] font-bold text-[#2c3e50] mb-[0.5rem]">
-              Đăng ký tài khoản
-            </h1>
+            <h1 className="text-[2rem] font-bold text-[#2c3e50] mb-[0.5rem]">Đăng ký tài khoản</h1>
           </div>
 
+          {/* Họ tên */}
           <div className="mb-[0.5rem]">
-            <label className="block mb-[0.5rem] font-medium text-[#2c3e50] text-[0.9rem]">
-              Họ tên
-            </label>
+            <label className="block mb-[0.5rem] font-medium text-[#2c3e50] text-[0.9rem]">Họ tên</label>
             <input
               type="text"
               placeholder="Nhập tên đầy đủ"
-              className="w-[100%] px-[0.8rem] py-[1rem] border-2 border-[#e0e0e0] rounded-xl"
+              className={`w-full px-3 py-3 border border-[#e0e0e0] rounded-xl text-base transition focus:border-[#3a86ff] focus:outline-none caret-[#2c3e50] ${errors.ten ? "border-red-500" : "border-[#e0e0e0]"}`}
               value={ten}
               onChange={(e) => setTen(e.target.value)}
-              required
             />
+            {errors.ten && <p className="text-red-500 text-sm mt-1">{errors.ten}</p>}
           </div>
 
+          {/* SĐT */}
           <div className="mb-[0.5rem]">
-            <label className="block mb-[0.5rem] font-medium text-[#2c3e50] text-[0.9rem]">
-              Số điện thoại
-            </label>
+            <label className="block mb-[0.5rem] font-medium text-[#2c3e50] text-[0.9rem]">Số điện thoại</label>
             <input
               type="tel"
               placeholder="Nhập số điện thoại"
-              className="w-[100%] px-[0.8rem] py-[1rem] border-2 border-[#e0e0e0] rounded-xl"
+              className={`w-full px-3 py-3 border border-[#e0e0e0] rounded-xl text-base transition focus:border-[#3a86ff] focus:outline-none caret-[#2c3e50] ${errors.sdt ? "border-red-500" : "border-[#e0e0e0]"}`}
               value={sdt}
               onChange={(e) => setSdt(e.target.value)}
-              required
             />
+            {errors.sdt && <p className="text-red-500 text-sm mt-1">{errors.sdt}</p>}
           </div>
 
+          {/* Email */}
           <div className="mb-[0.5rem]">
-            <label className="block mb-[0.5rem] font-medium text-[#2c3e50] text-[0.9rem]">
-              Email
-            </label>
+            <label className="block mb-[0.5rem] font-medium text-[#2c3e50] text-[0.9rem]">Email</label>
             <input
-              type="email"
+              type="text"
               placeholder="Nhập Email"
-              className="w-[100%] px-[0.8rem] py-[1rem] border-2 border-[#e0e0e0] rounded-xl"
+              className={`w-full px-3 py-3 border border-[#e0e0e0] rounded-xl text-base transition focus:border-[#3a86ff] focus:outline-none caret-[#2c3e50] ${errors.email ? "border-red-500" : "border-[#e0e0e0]"}`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
+            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           </div>
 
+          {/* Mật khẩu */}
           <div className="mb-[0.5rem]">
-            <label className="block mb-[0.5rem] font-medium text-[#2c3e50] text-[0.9rem]">
-              Mật khẩu
-            </label>
+            <label className="block mb-[0.5rem] font-medium text-[#2c3e50] text-[0.9rem]">Mật khẩu</label>
             <input
               type="password"
               placeholder="Nhập Mật khẩu"
-              className="w-[100%] px-[0.8rem] py-[1rem] border-2 border-[#e0e0e0] rounded-xl"
+              className={`w-full px-3 py-3 border border-[#e0e0e0] rounded-xl text-base transition focus:border-[#3a86ff] focus:outline-none caret-[#2c3e50] ${errors.password ? "border-red-500" : "border-[#e0e0e0]"}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
             />
+            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
 
+          {/* Xác nhận mật khẩu */}
           <div className="mb-[0.5rem]">
-            <label className="block mb-[0.5rem] font-medium text-[#2c3e50] text-[0.9rem]">
-              Xác nhận mật khẩu
-            </label>
+            <label className="block mb-[0.5rem] font-medium text-[#2c3e50] text-[0.9rem]">Xác nhận mật khẩu</label>
             <input
               type="password"
               placeholder="Xác nhận mật khẩu"
-              className="w-[100%] px-[0.8rem] py-[1rem] border-2 border-[#e0e0e0] rounded-xl"
+              className={`w-full px-3 py-3 border border-[#e0e0e0] rounded-xl text-base transition focus:border-[#3a86ff] focus:outline-none caret-[#2c3e50] ${errors.confirmPass ? "border-red-500" : "border-[#e0e0e0]"}`}
               value={confirmPass}
               onChange={(e) => setConfirmPass(e.target.value)}
-              required
             />
+            {errors.confirmPass && <p className="text-red-500 text-sm mt-1">{errors.confirmPass}</p>}
           </div>
 
           <button
@@ -151,13 +152,13 @@ const Register = () => {
             Đăng kí
           </button>
 
-          <div className="text-center mt-4 mb-4 text-[#7f8c8d] text-sm">
+          <div className="text-center mt-4 mb-4 text-[#7f8c8d] font-semibold">
             <p>
               Bạn đã có tài khoản?{" "}
               <Link
                 to="/login"
                 className="text-[#3a86ff] font-semibold no-underline transition-all duration-300 relative cursor-pointer
-        after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-[#3a86ff] after:transition-all after:duration-300 hover:after:w-full hover:text-blue-600"
+                after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-[#3a86ff] after:transition-all after:duration-300 hover:after:w-full hover:text-blue-600"
               >
                 Đăng nhập ngay
               </Link>

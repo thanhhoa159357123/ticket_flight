@@ -4,8 +4,8 @@ const Edit_Information = ({ fieldLabel, currentValue, onSave, onCancel }) => {
   const [value, setValue] = useState(currentValue || "");
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50">
-      <div className="w-[90%] max-w-[500px] bg-white p-8 rounded-xl shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)]">
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-none">
+      <div className="w-[90%] max-w-[500px] bg-white p-8 rounded-xl shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] animate-fade-in-up">
         <h3 className="mb-6 text-[20px] font-semibold text-[#1a202c]">
           Chỉnh sửa {fieldLabel}
         </h3>

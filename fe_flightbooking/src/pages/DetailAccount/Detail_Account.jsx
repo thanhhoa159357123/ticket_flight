@@ -57,7 +57,7 @@ const Detail_Account = () => {
       <Navbar />
       <div
         className={`bg-[#f8fafc] min-h-[calc(100vh-80px)] px-8 py-5 transition-all duration-300 ease-in-out font-sans relative ${
-          showModal ? "filter blur-sm pointer-events-none select-none" : ""
+          showModal ? "filter pointer-events-none select-none" : ""
         }`}
       >
         <div className="flex flex-wrap gap-4 mb-8 border-b border-[#e2e8f0] pb-4 max-w-[1500px] mx-auto px-4">
