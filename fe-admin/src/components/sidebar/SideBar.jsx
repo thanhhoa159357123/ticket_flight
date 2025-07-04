@@ -17,6 +17,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
 
 const menuItems = [
+  { label: "Trang chủ", icon: <MenuIcon />, path: "/" },
   { label: "Hãng bay", icon: <AirplanemodeActiveIcon />, path: "/hang-bay" },
   { label: "Hãng bán vé", icon: <BusinessIcon />, path: "/hang-ban-ve" },
   { label: "Khách hàng", icon: <GroupsIcon />, path: "/khach-hang" },
@@ -24,9 +25,9 @@ const menuItems = [
   { label: "Tuyến bay", icon: <AltRouteIcon />, path: "/tuyen-bay" },
   { label: "Chuyến bay", icon: <FlightIcon />, path: "/chuyen-bay" },
   { label: "Hạng vé", icon: <ClassIcon />, path: "/hang-ve" },
-  { label: "Loại chuyến đi", icon: <FlightTakeoffIcon />, path: "/loai-chuyen-di" },
-  // { label: "Giá vé", icon: <MonetizationOnIcon />, path: "#" },
-  // { label: "Đặt vé", icon: <AssignmentIcon />, path: "#" },
+  // { label: "Loại chuyến đi", icon: <FlightTakeoffIcon />, path: "/loai-chuyen-di" },  tạm thời comment lại
+  { label: "Giá vé", icon: <MonetizationOnIcon />, path: "/gia-ve" },
+  { label: "Đặt vé", icon: <AssignmentIcon />, path: "dat-ve" },
   // {
   //   label: "Chi tiết vé đặt",
   //   icon: <DescriptionIcon />,
