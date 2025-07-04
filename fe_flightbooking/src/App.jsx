@@ -1,25 +1,30 @@
 import "./App.scss";
+import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./pages/home/Home";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Ticket from "./pages/ticket/Ticket";
-import Detail_Account from "./pages/DetailAccount/Detail_Account";
-import Booking from "./pages/booking/Booking";
+
+const Home = lazy(() => import("./pages/home/Home"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Ticket = lazy(() => import("./pages/ticket/Ticket"));
+const Detail_Account = lazy(() => import("./pages/DetailAccount/Detail_Account"));
+const Booking = lazy(() => import("./pages/booking/Booking"));
 
 function App() {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/flight-ticket" element={<Ticket />} />
-        <Route path="/detail-account" element={<Detail_Account />} />
-        <Route path="/booking" element={<Booking />} />
-      </Routes>
+      <Suspense fallback={<div>Đang tải trang...</div>}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/flight-ticket" element={<Ticket />} />
+          <Route path="/detail-account" element={<Detail_Account />} />
+          <Route path="/booking" element={<Booking />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }
 
 export default App;
+

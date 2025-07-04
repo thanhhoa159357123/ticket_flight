@@ -3,14 +3,14 @@ from fastapi.responses import JSONResponse
 from models.loai_chuyen_di import LoaiChuyenDi
 from pymongo import MongoClient
 from utils.spark import load_df, invalidate_cache
-from utils.env_loader import MONGO_URI
+from utils.env_loader import MONGO_URI, MONGO_DB
 
 router = APIRouter()
 client = MongoClient(MONGO_URI)
-loai_chuyen_di_collection = client["ticket_flight_booking"]["loai_chuyen_di"]
+loai_chuyen_di_collection = client[MONGO_DB]["loai_chuyen_di"]
 
 
-@router.get("/get", tags=["loai_chuyen_di"])
+@router.get("", tags=["loai_chuyen_di"])
 def get_all_loai_chuyen_di():
     try:
         df = load_df("loai_chuyen_di")
@@ -23,7 +23,7 @@ def get_all_loai_chuyen_di():
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
 
-@router.post("/add", tags=["loai_chuyen_di"])
+@router.post("", tags=["loai_chuyen_di"])
 def add_loai_chuyen_di(loai_chuyen_di: LoaiChuyenDi):
     try:
         df = load_df("loai_chuyen_di")

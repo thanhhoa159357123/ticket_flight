@@ -14,7 +14,7 @@ const Hang_ve = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:8000/api-hang-ve/get")
+      .get("http://localhost:8000/api/hang-ve")
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
   };
@@ -29,7 +29,7 @@ const Hang_ve = () => {
 
   const handleAdd = () => {
     axios
-      .post("http://localhost:8000/api-hang-ve/add", formData)
+      .post("http://localhost:8000/api/hang-ve", formData)
       .then(() => {
         fetchData();
         setShowForm(false);

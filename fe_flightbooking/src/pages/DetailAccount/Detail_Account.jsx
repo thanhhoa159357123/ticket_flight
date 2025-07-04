@@ -28,7 +28,7 @@ const Detail_Account = () => {
       const res = await fetch(
         "http://localhost:8000/auth/update-info?current_email=" + currentEmail,
         {
-          method: "POST",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ [fieldEditing]: newValue }),
         }

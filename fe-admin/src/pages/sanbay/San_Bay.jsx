@@ -14,7 +14,7 @@ const San_Bay = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:8000/api-san-bay/get")
+      .get("http://localhost:8000/api/san-bay")
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
   };
@@ -29,7 +29,7 @@ const San_Bay = () => {
 
   const handleAdd = () => {
     axios
-      .post("http://localhost:8000/api-san-bay/add", formData)
+      .post("http://localhost:8000/api/san-bay", formData)
       .then(() => {
         fetchData();
         setShowForm(false);

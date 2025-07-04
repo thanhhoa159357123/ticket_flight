@@ -30,7 +30,7 @@ const Booking = () => {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const res = await axios.get("http://localhost:8000/api-hang-ve/get");
+        const res = await axios.get("http://localhost:8000/api/hang-ve");
         const uniqueOptions = res.data
           .map((item) => item.vi_tri_ngoi)
           .filter((value, index, self) => self.indexOf(value) === index); // loại trùng
@@ -49,7 +49,7 @@ const Booking = () => {
     const fetchWays = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8000/api-loai-chuyen-di/get"
+          "http://localhost:8000/api/loai-chuyen-di"
         );
         const uniqueWays = res.data.map((item) => item.ten_chuyen_di);
         setWays(uniqueWays);
@@ -65,7 +65,7 @@ const Booking = () => {
     const fetchLoai = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:8000/api-loai-chuyen-di/get"
+          "http://localhost:8000/api/loai-chuyen-di"
         );
         const label = selectedWay === "Nhiều chặng" ? "Đa chặng" : selectedWay;
         const found = res.data.find((item) => item.ten_chuyen_di === label);

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.tuyen_bay import TuyenBay
-from utils.spark import get_spark
+from utils.spark import load_df, invalidate_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 
@@ -11,52 +11,40 @@ db = client[MONGO_DB]
 tuyen_bay_collection = db["tuyen_bay"]
 san_bay_collection = db["san_bay"]
 
-def load_tuyen_bay_df():
-    spark = get_spark()
-
-    return (
-        spark.read.format("com.mongodb.spark.sql.DefaultSource")
-        .option("uri", MONGO_URI)
-        .option("database", MONGO_DB)
-        .option("collection", "tuyen_bay")
-        .load()
-    )
-
-def load_san_bay_df():
-    spark = get_spark()
-
-    return (
-        spark.read.format("com.mongodb.spark.sql.DefaultSource")
-        .option("uri", MONGO_URI)
-        .option("database", MONGO_DB)
-        .option("collection", "san_bay")
-        .load()
-    )
-
-@router.post("/add", tags=["tuyen_bay"])
+@router.post("", tags=["tuyen_bay"])
 def add_tuyen_bay(tuyen_bay: TuyenBay):
     print("🔥 Nhận yêu cầu POST /add")
     try:
         print("📥 Dữ liệu nhận từ client:", tuyen_bay.dict())
 
-        # ✅ Kiểm tra sân bay tồn tại
-        if not san_bay_collection.find_one({"ma_san_bay": tuyen_bay.ma_san_bay_di}):
+        df_san_bay = load_df("san_bay")
+        df_tuyen = load_df("tuyen_bay")
+
+        df_san_bay.createOrReplaceTempView("san_bay")
+        df_tuyen.createOrReplaceTempView("tuyen_bay")
+
+        # ✅ Kiểm tra sân bay đi
+        if df_san_bay.filter(df_san_bay["ma_san_bay"] == tuyen_bay.ma_san_bay_di).count() == 0:
             raise HTTPException(status_code=400, detail="Sân bay đi không tồn tại")
-        if not san_bay_collection.find_one({"ma_san_bay": tuyen_bay.ma_san_bay_den}):
+
+        # ✅ Kiểm tra sân bay đến
+        if df_san_bay.filter(df_san_bay["ma_san_bay"] == tuyen_bay.ma_san_bay_den).count() == 0:
             raise HTTPException(status_code=400, detail="Sân bay đến không tồn tại")
+
+        # ✅ Không cho cùng 1 sân bay
         if tuyen_bay.ma_san_bay_di == tuyen_bay.ma_san_bay_den:
             raise HTTPException(status_code=400, detail="Không được chọn cùng một sân bay")
 
-
-        df = load_tuyen_bay_df()
-
-        if "ma_tuyen_bay" in df.columns and df.filter(df["ma_tuyen_bay"] == tuyen_bay.ma_tuyen_bay).count() > 0:
+        # ✅ Kiểm tra tuyến bay đã tồn tại
+        if df_tuyen.filter(df_tuyen["ma_tuyen_bay"] == tuyen_bay.ma_tuyen_bay).count() > 0:
             raise HTTPException(status_code=400, detail="Mã tuyến bay đã tồn tại")
 
         # ✅ Thêm vào MongoDB
         data_to_insert = tuyen_bay.dict()
         inserted = tuyen_bay_collection.insert_one(data_to_insert)
         data_to_insert["_id"] = str(inserted.inserted_id)
+
+        invalidate_cache("tuyen_bay")
 
         print("🎉 Thêm tuyến bay thành công:", tuyen_bay.ma_tuyen_bay)
 
@@ -65,24 +53,22 @@ def add_tuyen_bay(tuyen_bay: TuyenBay):
         )
 
     except HTTPException as he:
-        # Cho phép FastAPI xử lý HTTPException đúng cách
         raise he
 
     except Exception as e:
         print("❌ Lỗi trong /add:", str(e))
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-
-@router.get("/get", tags=["tuyen_bay"])
+@router.get("", tags=["tuyen_bay"])
 def get_all_tuyen_bay():
     try:
-        spark = get_spark()
-
-        df_tuyen = load_tuyen_bay_df()
-        df_san_bay = load_san_bay_df()
+        df_tuyen = load_df("tuyen_bay")
+        df_san_bay = load_df("san_bay")
 
         df_tuyen.createOrReplaceTempView("tuyen_bay")
         df_san_bay.createOrReplaceTempView("san_bay")
+
+        spark = df_tuyen.sparkSession
 
         query = """
         SELECT 
@@ -107,8 +93,7 @@ def get_all_tuyen_bay():
         print("❌ Lỗi trong get_all_tuyen_bay:", str(e))
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-
-@router.delete("/delete/{ma_tuyen_bay}", tags=["tuyen_bay"])
+@router.delete("/{ma_tuyen_bay}", tags=["tuyen_bay"])
 def delete_tuyen_bay(ma_tuyen_bay: str):
     try:
         print(f"🗑 Nhận yêu cầu xoá tuyến bay: {ma_tuyen_bay}")
@@ -117,6 +102,8 @@ def delete_tuyen_bay(ma_tuyen_bay: str):
 
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Không tìm thấy tuyến bay cần xoá")
+
+        invalidate_cache("tuyen_bay")
 
         return JSONResponse(content={"message": f"Đã xoá tuyến bay {ma_tuyen_bay} thành công"})
 

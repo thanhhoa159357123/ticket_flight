@@ -18,7 +18,7 @@ const Chuyen_Bay = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/api-chuyen-bay/get")
+      .get("http://localhost:8000/api/chuyen-bay")
       .then((res) => setchuyenBays(res.data))
       .catch(() => setMessage("❌ Lỗi khi tải danh sách chuyến bay"));
     fetchTuyenBays();
@@ -27,21 +27,21 @@ const Chuyen_Bay = () => {
 
   const fetchTuyenBays = () => {
     axios
-      .get("http://localhost:8000/api-tuyen-bay/get")
+      .get("http://localhost:8000/api/tuyen-bay")
       .then((res) => setTuyenBays(res.data))
       .catch(() => setMessage("❌ Lỗi khi tải danh sách tuyến bay"));
   };
 
   const fetchHangBays = () => {
     axios
-      .get("http://localhost:8000/api-hang-bay/get")
+      .get("http://localhost:8000/api/hang-bay")
       .then((res) => setHangBays(res.data))
       .catch(() => setMessage("❌ Lỗi khi tải danh sách hãng bay"));
   };
 
   const fetchChuyenBays = () => {
     axios
-      .get("http://localhost:8000/api-chuyen-bay/get")
+      .get("http://localhost:8000/api/chuyen-bay")
       .then((res) => setchuyenBays(res.data))
       .catch(() => setMessage("❌ Lỗi khi tải danh sách chuyến bay"));
   };
@@ -76,7 +76,7 @@ const Chuyen_Bay = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:8000/api-chuyen-bay/add",
+        "http://localhost:8000/api/chuyen-bay",
         formData
       );
       setMessage(`✅ ${res.data.message}`);
@@ -101,7 +101,7 @@ const Chuyen_Bay = () => {
 
   //     try {
   //       await axios.delete(
-  //         `http://localhost:8000/api-chuyen-bay/delete/${ma_chuyen_bay}`
+  //         `http://localhost:8000/api/chuyen-bay/${ma_chuyen_bay}`
   //       );
   //       setMessage(`🗑️ Đã xoá chuyến bay ${ma_chuyen_bay}`);
   //       fetchChuyenBays();

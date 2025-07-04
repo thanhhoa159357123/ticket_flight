@@ -14,7 +14,7 @@ const Tuyen_bay = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/api-san-bay/get")
+      .get("http://localhost:8000/api/san-bay")
       .then((res) => setSanBays(res.data))
       .catch(() => setMessage("❌ Lỗi khi tải danh sách sân bay"));
 
@@ -23,7 +23,7 @@ const Tuyen_bay = () => {
 
   const fetchTuyenBays = () => {
     axios
-      .get("http://localhost:8000/api-tuyen-bay/get")
+      .get("http://localhost:8000/api/tuyen-bay")
       .then((res) => setTuyenBays(res.data))
       .catch(() => setMessage("❌ Lỗi khi tải danh sách tuyến bay"));
   };
@@ -44,7 +44,7 @@ const Tuyen_bay = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:8000/api-tuyen-bay/add",
+        "http://localhost:8000/api/tuyen-bay",
         formData
       );
       setMessage(`✅ ${res.data.message}`);
@@ -62,7 +62,7 @@ const Tuyen_bay = () => {
 
     try {
       await axios.delete(
-        `http://localhost:8000/api-tuyen-bay/delete/${ma_tuyen_bay}`
+        `http://localhost:8000/api/tuyen-bay/${ma_tuyen_bay}`
       );
       setMessage(`🗑️ Đã xoá tuyến bay ${ma_tuyen_bay}`);
       fetchTuyenBays(); // cập nhật lại danh sách

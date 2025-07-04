@@ -35,14 +35,14 @@ app.add_middleware(
 
 # ✅ Routers
 app.include_router(auth.router, prefix="/auth")
-app.include_router(khach_hang.router, prefix="/api")
-app.include_router(hang_bay.router, prefix="/api-hang-bay")
-app.include_router(hang_ban_ve.router, prefix="/api-hang-ban-ve")
-app.include_router(san_bay.router, prefix="/api-san-bay")
-app.include_router(tuyen_bay.router, prefix="/api-tuyen-bay")
-app.include_router(chuyen_bay.router, prefix="/api-chuyen-bay")
-app.include_router(hang_ve.router, prefix="/api-hang-ve")
-app.include_router(loai_chuyen_di.router, prefix="/api-loai-chuyen-di")
+app.include_router(khach_hang.router, prefix="/api/khach-hang")
+app.include_router(hang_bay.router, prefix="/api/hang-bay")
+app.include_router(hang_ban_ve.router, prefix="/api/hang-ban-ve")
+app.include_router(san_bay.router, prefix="/api/san-bay")
+app.include_router(tuyen_bay.router, prefix="/api/tuyen-bay")
+app.include_router(chuyen_bay.router, prefix="/api/chuyen-bay")
+app.include_router(hang_ve.router, prefix="/api/hang-ve")
+app.include_router(loai_chuyen_di.router, prefix="/api/loai-chuyen-di")
 
 if __name__ == "__main__":
     import uvicorn

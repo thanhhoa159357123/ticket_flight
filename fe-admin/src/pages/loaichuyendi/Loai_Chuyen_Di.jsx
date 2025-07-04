@@ -12,7 +12,7 @@ const Loai_Chuyen_Di = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:8000/api-loai-chuyen-di/get")
+      .get("http://localhost:8000/api/loai-chuyen-di")
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
   };
