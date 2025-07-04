@@ -1,22 +1,31 @@
 from fastapi import APIRouter, HTTPException, Body, Path
 from fastapi.responses import JSONResponse
 from utils.spark import get_spark
+from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from utils.logger import logger
+import os
 from datetime import datetime, timezone
 
 
 router = APIRouter()
-client = MongoClient("mongodb://localhost:27017")
-khach_hang_collection = client["flightApp"]["khach_hang"]
+client = MongoClient(MONGO_URI)
+khach_hang_collection = client[MONGO_DB]["khach_hang"]
+
+def load_khach_hang_df():
+    spark = get_spark()
+    return (
+        spark.read.format("com.mongodb.spark.sql.DefaultSource")
+        .option("uri", os.getenv("MONGO_URI"))
+        .option("database", MONGO_DB)
+        .option("collection", "khach_hang")
+        .load()
+    )
 
 @router.get("/khachhang", tags=["khach_hang"])
 def get_all_khach_hang():
     try:
-        spark = get_spark()
-        df = spark.read.format("com.mongodb.spark.sql.DefaultSource") \
-            .option("uri", "mongodb://localhost:27017/flightApp.khach_hang") \
-            .load()
+        df = load_khach_hang_df()
 
         print("✅ Đã đọc dữ liệu khách hàng từ MongoDB bằng Spark")
 
@@ -33,10 +42,7 @@ def get_all_khach_hang():
 @router.get("/khachhang/{ma_khach_hang}", tags=["khach_hang"])
 def get_khach_hang(ma_khach_hang: str):
     try:
-        spark = get_spark()
-        df = spark.read.format("com.mongodb.spark.sql.DefaultSource") \
-            .option("uri", "mongodb://localhost:27017/flightApp.khach_hang") \
-            .load()
+        df = load_khach_hang_df()
 
         print(f"🔍 Tìm kiếm khách hàng với mã: {ma_khach_hang}")
         filtered = df.filter((df["ma_khach_hang"] == ma_khach_hang) & (df["deleted_at"] == ""))

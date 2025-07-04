@@ -2,25 +2,31 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.hang_ban_ve import HangBanVe
 from utils.spark import get_spark
+from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
-import json
+import os
 
 router = APIRouter()
-client = MongoClient("mongodb://localhost:27017")
-hang_ban_ve_collection = client["flightApp"]["hang_ban_ve"]
+client = MongoClient(MONGO_URI)
+hang_ban_ve_collection = client[MONGO_DB]["hang_ban_ve"]
 
+def load_hang_ban_ve_df():
+    spark = get_spark()
+
+    return (
+        spark.read.format("com.mongodb.spark.sql.DefaultSource")
+        .option("uri", os.getenv("MONGO_URI"))
+        .option("database", MONGO_DB)
+        .option("collection", "hang_ban_ve")
+        .load()
+    )
 
 @router.post("/add", tags=["hang_ban_ve"])
 def add_hang_ban_ve(hang_ban_ve: HangBanVe):
     try:
         print("📥 Dữ liệu nhận từ client:", hang_ban_ve.dict())
 
-        spark = get_spark()
-        df = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.hang_ban_ve")
-            .load()
-        )
+        df = load_hang_ban_ve_df()
         print("✅ Đã load dữ liệu từ MongoDB bằng Spark")
 
         if (
@@ -49,10 +55,7 @@ def add_hang_ban_ve(hang_ban_ve: HangBanVe):
 @router.get("/get", tags=["hang_ban_ve"])
 def get_all_hang_ban_ve():
     try:
-        spark = get_spark()
-        df = spark.read.format("com.mongodb.spark.sql.DefaultSource") \
-            .option("uri", "mongodb://localhost:27017/flightApp.hang_ban_ve") \
-            .load()
+        df = load_hang_ban_ve_df()
         
         print("✅ Đã đọc dữ liệu hãng bay từ MongoDB bằng Spark")
         df.printSchema()

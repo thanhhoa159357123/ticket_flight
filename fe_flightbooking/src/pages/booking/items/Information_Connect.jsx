@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Information_Connect = () => {
   return (
@@ -8,9 +9,11 @@ const Information_Connect = () => {
         <span className="text-lg font-semibold">
           Thông tin liên hệ (nhận vé/phiếu thanh toán)
         </span>
-        <button className="bg-[#4fc3f7] transition duration-200 ease cursor-pointer hover:bg-[#03a9f4] text-white font-medium py-2 px-4 rounded">
-          Đăng nhập hoặc Đăng ký
-        </button>
+        <Link to="/login">
+          <button className="bg-[#4fc3f7] transition duration-200 ease cursor-pointer hover:bg-[#03a9f4] text-white font-medium py-2 px-4 rounded">
+            Đăng nhập hoặc Đăng ký
+          </button>
+        </Link>
       </div>
 
       {/* Grid Form */}

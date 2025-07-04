@@ -89,7 +89,7 @@ const Hang_Bay = () => {
           <div className="mt-4">
             <button
               onClick={handleAdd}
-              className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+              className="bg-green-600 text-white px-4 py-2 rounded transition-all duration-300 ease-in-out hover:bg-green-700"
             >
               Xác nhận thêm
             </button>

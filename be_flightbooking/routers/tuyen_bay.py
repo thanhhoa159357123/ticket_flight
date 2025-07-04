@@ -2,13 +2,36 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.tuyen_bay import TuyenBay
 from utils.spark import get_spark
+from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 
 router = APIRouter()
-client = MongoClient("mongodb://localhost:27017")
-db = client["flightApp"]
+client = MongoClient(MONGO_URI)
+db = client[MONGO_DB]
 tuyen_bay_collection = db["tuyen_bay"]
 san_bay_collection = db["san_bay"]
+
+def load_tuyen_bay_df():
+    spark = get_spark()
+
+    return (
+        spark.read.format("com.mongodb.spark.sql.DefaultSource")
+        .option("uri", MONGO_URI)
+        .option("database", MONGO_DB)
+        .option("collection", "tuyen_bay")
+        .load()
+    )
+
+def load_san_bay_df():
+    spark = get_spark()
+
+    return (
+        spark.read.format("com.mongodb.spark.sql.DefaultSource")
+        .option("uri", MONGO_URI)
+        .option("database", MONGO_DB)
+        .option("collection", "san_bay")
+        .load()
+    )
 
 @router.post("/add", tags=["tuyen_bay"])
 def add_tuyen_bay(tuyen_bay: TuyenBay):
@@ -25,11 +48,7 @@ def add_tuyen_bay(tuyen_bay: TuyenBay):
             raise HTTPException(status_code=400, detail="Không được chọn cùng một sân bay")
 
 
-        # ✅ Kiểm tra mã tuyến bay đã tồn tại chưa
-        spark = get_spark()
-        df = spark.read.format("com.mongodb.spark.sql.DefaultSource") \
-            .option("uri", "mongodb://localhost:27017/flightApp.tuyen_bay") \
-            .load()
+        df = load_tuyen_bay_df()
 
         if "ma_tuyen_bay" in df.columns and df.filter(df["ma_tuyen_bay"] == tuyen_bay.ma_tuyen_bay).count() > 0:
             raise HTTPException(status_code=400, detail="Mã tuyến bay đã tồn tại")
@@ -59,12 +78,8 @@ def get_all_tuyen_bay():
     try:
         spark = get_spark()
 
-        df_tuyen = spark.read.format("com.mongodb.spark.sql.DefaultSource") \
-            .option("uri", "mongodb://localhost:27017/flightApp.tuyen_bay") \
-            .load()
-        df_san_bay = spark.read.format("com.mongodb.spark.sql.DefaultSource") \
-            .option("uri", "mongodb://localhost:27017/flightApp.san_bay") \
-            .load()
+        df_tuyen = load_tuyen_bay_df()
+        df_san_bay = load_san_bay_df()
 
         df_tuyen.createOrReplaceTempView("tuyen_bay")
         df_san_bay.createOrReplaceTempView("san_bay")

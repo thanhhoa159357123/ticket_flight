@@ -1,67 +1,19 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import clouds from "../assets/clouds.jpg"; // Chứa keyframes fadeInUp nếu bạn muốn dùng cách 1
+import { useAuth } from "../hooks/useAuth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [passwordError, setPasswordError] = useState("");
+  const { handleLogin, errors } = useAuth();
 
-  const handleLogin = async (e) => {
+  const onSubmit = (e) => {
     e.preventDefault();
-
-    // Reset lỗi cũ
-    setEmailError("");
-    setPasswordError("");
-
-    let hasError = false;
-
-    if (!email.trim()) {
-      setEmailError("Vui lòng nhập Email.");
-      hasError = true;
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setEmailError("Email không đúng định dạng.");
-      hasError = true;
-    }
-
-    if (!password.trim()) {
-      setPasswordError("Vui lòng nhập Mật khẩu.");
-      hasError = true;
-    }
-
-    if (hasError) return;
-
-    try {
-      const response = await fetch(
-        `http://localhost:8000/auth/login?email=${encodeURIComponent(
-          email
-        )}&matkhau=${encodeURIComponent(password)}`,
-        { method: "POST" }
-      );
-
-      const data = await response.json();
-      console.log("✅ Phản hồi ĐĂNG NHẬP từ server:", data);
-
-      if (response.ok) {
-        alert("🎉 " + data.message);
-        localStorage.setItem(
-          "user",
-          JSON.stringify({
-            ten_khach_hang: data.ten_khach_hang,
-            email: data.email,
-            so_dien_thoai: data.so_dien_thoai,
-            matkhau: data.matkhau,
-          })
-        );
-        window.location.href = "/";
-      } else {
-        alert("❌ " + (data.detail || "Đăng nhập thất bại"));
-      }
-    } catch (error) {
-      console.error("🚫 Lỗi khi kết nối tới API:", error);
-      alert("🚫 Lỗi kết nối máy chủ");
-    }
+    handleLogin(email, password, () => {
+      alert("🎉 Đăng nhập thành công");
+      window.location.href = "/";
+    });
   };
 
   return (
@@ -87,8 +39,8 @@ const Login = () => {
       {/* Form wrapper */}
       <div className="flex justify-center items-center flex-1 p-8 z-10">
         <form
-          className="bg-white rounded-[20px] shadow-xl px-10 py-5 w-full max-w-[500px] animate-[fadeInUp_0.5s_ease-out]"
-          onSubmit={handleLogin}
+          className="bg-white rounded-[20px] shadow-xl px-10 py-5 w-full max-w-[500px] animate-[fadeInUp_0.3s_ease-out]"
+          onSubmit={onSubmit}
         >
           <div className="mb-4 text-center">
             <h1 className="text-[2rem] font-bold text-[#2c3e50] mb-2">
@@ -104,13 +56,13 @@ const Login = () => {
               type="text"
               placeholder="Nhập Email"
               className={`w-full px-3 py-4 border border-[#e0e0e0] rounded-xl text-base transition focus:border-[#3a86ff] focus:outline-none caret-[#2c3e50] ${
-                emailError ? "border-red-500" : ""
+                errors.email ? "border-red-500" : ""
               }`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            {emailError && (
-              <p className="text-red-500 text-sm mt-1">{emailError}</p>
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
             )}
           </div>
 
@@ -122,13 +74,13 @@ const Login = () => {
               type="password"
               placeholder="Nhập Mật khẩu"
               className={`w-full px-3 py-4 border border-[#e0e0e0] rounded-xl text-base transition focus:border-[#3a86ff] focus:outline-none caret-[#2c3e50] ${
-                passwordError ? "border-red-500" : ""
+                errors.password ? "border-red-500" : ""
               }`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            {passwordError && (
-              <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+            {errors.password && (
+              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
             )}
           </div>
 

@@ -89,7 +89,7 @@ const Footer = () => {
               decoding="async"
               alt="QR Download App"
               src="https://d1785e74lyxkqq.cloudfront.net/_next/static/v3/f/f519939e72eccefffb6998f1397901b7.svg"
-              className="w-[120px] h-auto rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-in-out hover:scale-[1.02]"
+              className="w-[120px] h-auto rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
             />
             <img
               importance="low"
@@ -97,7 +97,7 @@ const Footer = () => {
               decoding="async"
               alt="QR Download App"
               src="https://d1785e74lyxkqq.cloudfront.net/_next/static/v3/1/18339f1ae28fb0c49075916d11b98829.svg"
-              className="w-[120px] h-auto rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-in-out hover:scale-[1.02]"
+              className="w-[120px] h-auto rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
             />
             <span className="text-[13px] font-medium text-[#666]">
               Quét mã để tải ứng dụng

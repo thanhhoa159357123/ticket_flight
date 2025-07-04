@@ -2,17 +2,50 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.chuyen_bay import ChuyenBay
 from utils.spark import get_spark
+from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 import pandas as pd
 import pytz
 
 router = APIRouter()
-client = MongoClient("mongodb://localhost:27017")
-db = client["flightApp"]
+client = MongoClient(MONGO_URI)
+db = client[MONGO_DB]
 chuyen_bay_collection = db["chuyen_bay"]
 tuyen_bay_collection = db["tuyen_bay"]
 hang_bay_collection = db["hang_bay"]
 
+def load_chuyen_bay_df():
+    spark = get_spark()
+
+    return (
+        spark.read.format("com.mongodb.spark.sql.DefaultSource")
+        .option("uri", MONGO_URI)
+        .option("database", MONGO_DB)
+        .option("collection", "chuyen_bay")
+        .load()
+    )
+
+def load_tuyen_bay_df():
+    spark = get_spark()
+
+    return (
+        spark.read.format("com.mongodb.spark.sql.DefaultSource")
+        .option("uri", MONGO_URI)
+        .option("database", MONGO_DB)
+        .option("collection", "tuyen_bay")
+        .load()
+    )
+
+def load_hang_bay_df():
+    spark = get_spark()
+
+    return (
+        spark.read.format("com.mongodb.spark.sql.DefaultSource")
+        .option("uri", MONGO_URI)
+        .option("database", MONGO_DB)
+        .option("collection", "hang_bay")
+        .load()
+    )
 
 @router.post("/add", tags=["chuyen_bay"])
 def add_chuyen_bay(chuyen_bay: ChuyenBay):
@@ -27,12 +60,7 @@ def add_chuyen_bay(chuyen_bay: ChuyenBay):
             print(f"❌ Mã tuyến bay {chuyen_bay.ma_tuyen_bay} không tồn tại")
             raise HTTPException(status_code=400, detail="Mã tuyến bay không tồn tại")
 
-        spark = get_spark()
-        df = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.chuyen_bay")
-            .load()
-        )
+        df = load_chuyen_bay_df()
 
         if (
             "ma_chuyen_bay" in df.columns
@@ -71,22 +99,10 @@ def get_all_chuyen_bay():
     try:
         spark = get_spark()
 
-        df_chuyen_bay = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.chuyen_bay")
-            .load()
-        )
-        df_hang_bay = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.hang_bay")
-            .load()
-        )
+        df_chuyen_bay = load_chuyen_bay_df()
+        df_hang_bay = load_hang_bay_df()
 
-        df_tuyen_bay = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.tuyen_bay")
-            .load()
-        )
+        df_tuyen_bay = load_tuyen_bay_df()
 
         df_chuyen_bay.createOrReplaceTempView("chuyen_bay")
         df_hang_bay.createOrReplaceTempView("hang_bay")

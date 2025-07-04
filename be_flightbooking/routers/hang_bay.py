@@ -2,12 +2,25 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.hang_bay import HangBay
 from utils.spark import get_spark
+from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 import json
 
 router = APIRouter()
-client = MongoClient("mongodb://localhost:27017")
-hang_bay_collection = client["flightApp"]["hang_bay"]
+client = MongoClient(MONGO_URI)
+hang_bay_collection = client[MONGO_DB]["hang_bay"]
+
+def load_hang_bay_df():
+    spark = get_spark()
+
+    return (
+        spark.read.format("com.mongodb.spark.sql.DefaultSource")
+        # .schema(schema)
+        .option("uri", MONGO_URI)
+        .option("database", MONGO_DB)
+        .option("collection", "hang_bay")
+        .load()
+    )
 
 
 @router.post("/add", tags=["hang_bay"])
@@ -15,12 +28,7 @@ def add_hang_bay(hang_bay: HangBay):
     try:
         print("📥 Dữ liệu nhận từ client:", hang_bay.dict())
 
-        spark = get_spark()
-        df = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.hang_bay")
-            .load()
-        )
+        df = load_hang_bay_df()
         print("✅ Đã load dữ liệu từ MongoDB bằng Spark")
 
         if (
@@ -49,10 +57,7 @@ def add_hang_bay(hang_bay: HangBay):
 @router.get("/get", tags=["hang_bay"])
 def get_all_hang_bay():
     try:
-        spark = get_spark()
-        df = spark.read.format("com.mongodb.spark.sql.DefaultSource") \
-            .option("uri", "mongodb://localhost:27017/flightApp.hang_bay") \
-            .load()
+        df = load_hang_bay_df()
         
         print("✅ Đã đọc dữ liệu hãng bay từ MongoDB bằng Spark")
         df.printSchema()
