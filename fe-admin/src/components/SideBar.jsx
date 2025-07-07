@@ -25,7 +25,7 @@ const menuItems = [
   { label: "Chuyến bay", icon: <FlightIcon />, path: "/chuyen-bay" },
   { label: "Hạng vé", icon: <ClassIcon />, path: "/hang-ve" },
   { label: "Loại chuyến đi", icon: <FlightTakeoffIcon />, path: "/loai-chuyen-di" },
-  // { label: "Giá vé", icon: <MonetizationOnIcon />, path: "#" },
+  { label: "Giá vé", icon: <MonetizationOnIcon />, path: "/ve" },
   // { label: "Đặt vé", icon: <AssignmentIcon />, path: "#" },
   // {
   //   label: "Chi tiết vé đặt",

@@ -30,14 +30,14 @@ const Item_Information = ({ user, onEditField }) => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowPassword(!showPassword)}
-              className="text-[#718096] hover:text-[#4299e1] text-[18px] transition-colors duration-200"
+              className="text-[#718096] hover:text-[#4299e1] text-[18px] transition-colors duration-300 ease-in-out cursor-pointer"
               aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
             >
               {showPassword ? "👁️" : "👁‍🗨️"}
             </button>
             <button
               onClick={() => onEditField("matkhau")}
-              className="bg-[#4299e1] text-white px-3 py-[10px] rounded-md text-sm font-medium shadow-md hover:bg-[#3182ce] hover:-translate-y-[1px] hover:shadow-lg active:translate-y-0 transition-all"
+              className="bg-[#4299e1] text-white px-3 py-[10px] rounded-md text-sm font-medium shadow-md hover:bg-[#3182ce] hover:-translate-y-[1px] hover:shadow-lg active:translate-y-0 transition-all duration-300 ease-in-out cursor-pointer"
             >
               Chỉnh sửa
             </button>
@@ -58,7 +58,7 @@ const InfoRow = ({ label, value, onEdit }) => (
     </div>
     <button
       onClick={onEdit}
-      className="bg-[#4299e1] text-white px-3 py-[10px] rounded-md text-sm font-medium shadow-md hover:bg-[#3182ce] hover:-translate-y-[1px] hover:shadow-lg active:translate-y-0 transition-all"
+      className="bg-[#4299e1] text-white px-3 py-[10px] rounded-md text-sm font-medium shadow-md hover:bg-[#3182ce] hover:-translate-y-[1px] hover:shadow-lg active:translate-y-0 transition-all duration-300 ease-in-out cursor-pointer"
     >
       Chỉnh sửa
     </button>

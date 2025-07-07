@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
 from routers import (
     auth, khach_hang, hang_bay, hang_ban_ve, san_bay,
-    tuyen_bay, chuyen_bay, hang_ve, loai_chuyen_di
+    tuyen_bay, chuyen_bay, hang_ve, loai_chuyen_di, gia_ve
 )
 from utils.spark import init_spark, load_df
 
@@ -18,6 +18,7 @@ async def lifespan(app: FastAPI):
     load_df("san_bay")
     load_df("tuyen_bay")
     load_df("hang_ve")
+    load_df("gia_ve")
     print("✅ Preload hoàn tất!")
 
     yield  # App tiếp tục chạy
@@ -43,6 +44,7 @@ app.include_router(tuyen_bay.router, prefix="/api/tuyen-bay")
 app.include_router(chuyen_bay.router, prefix="/api/chuyen-bay")
 app.include_router(hang_ve.router, prefix="/api/hang-ve")
 app.include_router(loai_chuyen_di.router, prefix="/api/loai-chuyen-di")
+app.include_router(gia_ve.router, prefix="/api/gia-ve")
 
 if __name__ == "__main__":
     import uvicorn

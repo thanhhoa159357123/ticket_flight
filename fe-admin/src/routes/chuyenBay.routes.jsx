@@ -1,4 +1,4 @@
-import Chuyen_Bay from "../pages/chuyenbay/Chuyen_Bay";
+import Chuyen_Bay from "../pages/Chuyen_Bay";
 
 export const chuyenBayRoutes = [
   {

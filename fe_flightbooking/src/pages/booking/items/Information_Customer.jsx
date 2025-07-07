@@ -46,7 +46,7 @@ const Information_Customer = () => {
           <label className="block text-sm font-medium mb-1">
             Danh xưng <span className="text-red-500">*</span>
           </label>
-          <select className="w-full border border-gray-300 rounded px-3 py-2 bg-white transition duration-200 ease-in-out hover:border-gray-600">
+          <select className="w-full border border-gray-300 rounded px-3 py-2 bg-white transition duration-300 ease-in-out hover:border-gray-600">
             <option value="">Chọn danh xưng</option>
             <option>Ông</option>
             <option>Bà</option>
@@ -64,7 +64,7 @@ const Information_Customer = () => {
           </label>
           <input
             type="text"
-            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-200 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
+            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-300 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
             placeholder=""
           />
           <p className="text-xs text-gray-500 mt-1">
@@ -80,7 +80,7 @@ const Information_Customer = () => {
           </label>
           <input
             type="text"
-            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-200 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
+            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-300 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
             placeholder=""
           />
           <p className="text-xs text-gray-500 mt-1">
@@ -97,17 +97,17 @@ const Information_Customer = () => {
             <input
               type="text"
               placeholder="DD"
-              className="w-1/3 border border-gray-300 rounded px-2 py-2 text-center transition duration-200 ease-in-out hover:border-gray-600"
+              className="w-1/3 border border-gray-300 rounded px-2 py-2 text-center transition duration-300 ease-in-out hover:border-gray-600"
             />
             <input
               type="text"
               placeholder="MMMM"
-              className="w-1/3 border border-gray-300 rounded px-2 py-2 text-center transition duration-200 ease-in-out hover:border-gray-600"
+              className="w-1/3 border border-gray-300 rounded px-2 py-2 text-center transition duration-300 ease-in-out hover:border-gray-600"
             />
             <input
               type="text"
               placeholder="YYYY"
-              className="w-1/3 border border-gray-300 rounded px-2 py-2 text-center transition duration-200 ease-in-out hover:border-gray-600"
+              className="w-1/3 border border-gray-300 rounded px-2 py-2 text-center transition duration-300 ease-in-out hover:border-gray-600"
             />
           </div>
           <p className="text-xs text-gray-500 mt-1">
@@ -120,7 +120,7 @@ const Information_Customer = () => {
           <label className="block text-sm font-medium mb-1">
             Quốc tịch <span className="text-red-500">*</span>
           </label>
-          <select className="w-full border border-gray-300 rounded px-3 py-2 bg-white transition duration-200 ease-in-out hover:border-gray-600">
+          <select className="w-full border border-gray-300 rounded px-3 py-2 bg-white transition duration-300 ease-in-out hover:border-gray-600">
             <option value="">Chọn quốc tịch</option>
             <option value="VN">Việt Nam</option>
             <option value="US">Hoa Kỳ</option>
@@ -135,7 +135,7 @@ const Information_Customer = () => {
           </label>
           <input
             type="text"
-            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-200 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
+            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-300 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
             placeholder=""
           />
           <p className="text-xs text-gray-500 mt-1">

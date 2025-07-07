@@ -10,7 +10,7 @@ const Information_Connect = () => {
           Thông tin liên hệ (nhận vé/phiếu thanh toán)
         </span>
         <Link to="/login">
-          <button className="bg-[#4fc3f7] transition duration-200 ease cursor-pointer hover:bg-[#03a9f4] text-white font-medium py-2 px-4 rounded">
+          <button className="bg-[#4fc3f7] transition duration-300 ease-in-out cursor-pointer hover:bg-[#03a9f4] text-white font-medium py-2 px-4 rounded">
             Đăng nhập hoặc Đăng ký
           </button>
         </Link>
@@ -25,7 +25,7 @@ const Information_Connect = () => {
           </label>
           <input
             type="text"
-            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-200 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
+            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-300 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
             placeholder=""
           />
           <label className="block text-sm font-medium mb-1">
@@ -40,7 +40,7 @@ const Information_Connect = () => {
           </label>
           <input
             type="text"
-            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-200 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
+            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-300 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
             placeholder=""
           />
           <label className="block text-sm font-medium mb-1">
@@ -53,7 +53,7 @@ const Information_Connect = () => {
             Điện thoại di động{" "}
             <span className="font-semibold text-red-500">*</span>
           </label>
-          <div className="flex border border-gray-300 rounded transition duration-200 ease-in-out hover:border-gray-600">
+          <div className="flex border border-gray-300 rounded transition duration-300 ease-in-out hover:border-gray-600">
             <select className="border border-gray-300 px-3 py-2 bg-white">
               <option value="+84">+84</option>
               {/* Bạn có thể thêm các mã quốc gia khác nếu muốn */}
@@ -76,7 +76,7 @@ const Information_Connect = () => {
           </label>
           <input
             type="email"
-            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-200 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
+            className="w-full border border-gray-300 rounded px-3 py-2 transition duration-300 ease-in-out hover:border-gray-600 focus:outline-none focus:ring focus:ring-blue-200"
             placeholder=""
           />
           <label className="block text-sm font-medium mb-1">

@@ -1,4 +1,4 @@
-import San_Bay from "../pages/sanbay/San_Bay";
+import San_Bay from "../pages/San_Bay";
 
 export const sanBayRoutes = [
   {

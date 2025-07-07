@@ -95,21 +95,6 @@ const Chuyen_Bay = () => {
     }
   };
 
-  //   const handleDelete = async (ma_chuyen_bay) => {
-  //     if (!window.confirm(`Bạn có chắc muốn xoá chuyến bay ${ma_chuyen_bay}?`))
-  //       return;
-
-  //     try {
-  //       await axios.delete(
-  //         `http://localhost:8000/api/chuyen-bay/${ma_chuyen_bay}`
-  //       );
-  //       setMessage(`🗑️ Đã xoá chuyến bay ${ma_chuyen_bay}`);
-  //       fetchChuyenBays();
-  //     } catch (err) {
-  //       setMessage(`❌ ${err.response?.data?.detail || "Lỗi không xác định"}`);
-  //     }
-  //   };
-
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <div className="flex justify-between mb-6">

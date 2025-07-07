@@ -6,6 +6,7 @@ import { tuyenBayRoutes } from "./tuyenBay.routes"
 import { chuyenBayRoutes } from "./chuyenBay.routes";
 import { hangVeRoutes } from "./hangVe.routes";
 import { loaiChuyenDiRoutes } from "./loaiChuyenDi.routes";
+import { veRoutes } from "./giaVe.routes";
 
 export const allRoutes = [
   ...hangBayRoutes,
@@ -16,5 +17,6 @@ export const allRoutes = [
   ...chuyenBayRoutes,
   ...hangVeRoutes,
   ...loaiChuyenDiRoutes,
+  ...veRoutes,
   // thêm các routes khác ở đây
 ];

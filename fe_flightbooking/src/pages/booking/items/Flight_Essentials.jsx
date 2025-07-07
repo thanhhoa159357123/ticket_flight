@@ -56,7 +56,7 @@ const Flight_Essentials = ({ onClickSelectLuggage, selectedLuggage }) => {
 
         {/* Chọn hành lý */}
         <div
-          className={`flex items-center justify-between pt-2 border-t border-gray-200 transition-all duration-300 rounded-md ${
+          className={`flex items-center justify-between pt-2 border-t border-gray-200 transition-all duration-300 ease-in-out rounded-md ${
             selectedLuggage ? "bg-green-100 mt-2" : ""
           }`}
         >

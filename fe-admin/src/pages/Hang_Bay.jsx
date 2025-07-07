@@ -1,20 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const Hang_ve = () => {
+const Hang_Bay = () => {
   const [data, setData] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    ma_hang_ve: "",
-    vi_tri_ngoi: "",
-    so_luong_hanh_ly: "",
-    refundable: "",
-    changeable: "",
+    ma_hang_bay: "",
+    ten_hang_bay: "",
+    iata_code: "",
+    quoc_gia: "",
   });
 
   const fetchData = () => {
     axios
-      .get("http://localhost:8000/api/hang-ve")
+      .get("http://localhost:8000/api/hang-bay")
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
   };
@@ -29,79 +28,72 @@ const Hang_ve = () => {
 
   const handleAdd = () => {
     axios
-      .post("http://localhost:8000/api/hang-ve", formData)
+      .post("http://localhost:8000/api/hang-bay", formData)
       .then(() => {
         fetchData();
         setShowForm(false);
         setFormData({
-          ma_hang_ve: "",
-          vi_tri_ngoi: "",
-          so_luong_hanh_ly: "",
-          refundable: "",
-          changeable: "",
+          ma_hang_bay: "",
+          ten_hang_bay: "",
+          iata_code: "",
+          quoc_gia: "",
         });
       })
       .catch((err) => console.error(err));
   };
 
   return (
-    <div className="p-6 bg-white">
-      <div className="flex justify-between mb-6">
-        <h2 className="text-2xl font-bold text-blue-700 pb-2">
-          Danh sách hạng vé
-        </h2>
+    <div className="p-6 bg-white rounded-lg shadow-md">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-blue-700">Danh sách hãng bay</h2>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-blue-500 text-blue-100 px-4 py-2 rounded cursor-pointer transition duration-300 ease-in-out hover:bg-blue-200 hover:text-blue-800"
         >
-          {showForm ? "Đóng" : "Thêm hạng vé"}
+          {showForm ? "Đóng" : "Thêm hãng bay"}
         </button>
       </div>
+
       {showForm && (
         <div className="bg-gray-50 p-4 border rounded-lg mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <input
-              name="ma_hang_ve"
-              value={formData.ma_hang_ve}
+              name="ma_hang_bay"
+              value={formData.ma_hang_bay}
               onChange={handleChange}
-              placeholder="Mã hạng vé"
+              placeholder="Mã hãng bay"
               className="p-2 border rounded"
             />
             <input
-              name="vi_tri_ngoi"
-              value={formData.vi_tri_ngoi}
+              name="ten_hang_bay"
+              value={formData.ten_hang_bay}
               onChange={handleChange}
-              placeholder="Vị trí ngồi"
+              placeholder="Tên hãng bay"
               className="p-2 border rounded"
             />
             <input
-              name="so_luong_hanh_ly"
-              value={formData.so_luong_hanh_ly}
+              name="iata_code"
+              value={formData.iata_code}
               onChange={handleChange}
-              placeholder="Số lượng hành lý"
+              placeholder="IATA Code"
               className="p-2 border rounded"
             />
             <input
-              name="refundable"
-              value={formData.refundable}
+              name="quoc_gia"
+              value={formData.quoc_gia}
               onChange={handleChange}
-              placeholder="Có hoàn tiền (true/false)"
-              className="p-2 border rounded"
-            />
-            <input
-              name="changeable"
-              value={formData.changeable}
-              onChange={handleChange}
-              placeholder="Có thay đổi (true/false)"
+              placeholder="Quốc gia"
               className="p-2 border rounded"
             />
           </div>
-          <button
-            onClick={handleAdd}
-            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-300 ease-in-out"
-          >
-            Xác nhận thêm
-          </button>
+          <div className="mt-4">
+            <button
+              onClick={handleAdd}
+              className="bg-green-500 text-green-100 cursor-pointer transition duration-300 ease-in-out px-4 py-2 rounded hover:bg-green-200 hover:text-green-800"
+            >
+              Xác nhận thêm
+            </button>
+          </div>
         </div>
       )}
 
@@ -111,19 +103,16 @@ const Hang_ve = () => {
           <thead className="bg-gray-100">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Mã hạng vé
+                Mã hãng bay
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Vị trí ngồi
+                Tên hãng bay
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Số lượng hành lý
+                IATA code
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Hoàn tiền
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Đổi chuyên bay
+                Quốc gia
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Hành động
@@ -131,16 +120,18 @@ const Hang_ve = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {data.map((item) => (
-              <tr key={item.ma_hang_ve} className="transition-colors">
-                <td className="px-6 py-4">{item.ma_hang_ve}</td>
-                <td className="px-6 py-4">{item.vi_tri_ngoi}</td>
-                <td className="px-6 py-4">{item.so_luong_hanh_ly}</td>
-                <td className="px-6 py-4">{String(item.refundable)}</td>
-                <td className="px-6 py-4">{String(item.changeable)}</td>
+            {data.map((hang_bay) => (
+              <tr key={hang_bay.ma_hang_bay} className="transition-colors">
+                <td className="px-6 py-4">{hang_bay.ma_hang_bay}</td>
+                <td className="px-6 py-4">{hang_bay.ten_hang_bay}</td>
+                <td className="px-6 py-4">{hang_bay.iata_code}</td>
+                <td className="px-6 py-4">{hang_bay.quoc_gia}</td>
                 <td className="px-6 py-4">
                   <button className="text-blue-600 hover:text-blue-800 mr-3">
                     Sửa
+                  </button>
+                  <button className="text-red-600 hover:text-red-800">
+                    Xóa
                   </button>
                 </td>
               </tr>
@@ -152,4 +143,4 @@ const Hang_ve = () => {
   );
 };
 
-export default Hang_ve;
+export default Hang_Bay;

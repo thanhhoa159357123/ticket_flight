@@ -1,4 +1,4 @@
-import Hang_ve from "../pages/hangve/Hang_ve";
+import Hang_ve from "../pages/Hang_ve";
 
 export const hangVeRoutes = [
   {

@@ -155,7 +155,7 @@ const Select_Luggage_Weight = ({ onClose, onSelect }) => {
                         <div
                           key={index}
                           onClick={() => setSelectedIndex(index)}
-                          className={`flex justify-between items-center p-3 border rounded-lg cursor-pointer transition-all duration-300 ${
+                          className={`flex justify-between items-center p-3 border rounded-lg cursor-pointer transition-all duration-300 ease-in-out ${
                             selectedIndex === index
                               ? "border-blue-500 bg-blue-50"
                               : "border-gray-300 hover:border-blue-300"
@@ -199,7 +199,7 @@ const Select_Luggage_Weight = ({ onClose, onSelect }) => {
                       {/* Additional options with animation */}
                       <div
                         ref={contentRef}
-                        className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                        className={`overflow-hidden transition-all duration-300 ease-in-out ${
                           showAllOptions ? "max-h-[1000px]" : "max-h-0"
                         }`}
                       >
@@ -208,7 +208,7 @@ const Select_Luggage_Weight = ({ onClose, onSelect }) => {
                             <div
                               key={index + 4}
                               onClick={() => setSelectedIndex(index + 4)}
-                              className={`flex justify-between items-center p-3 border rounded-lg cursor-pointer transition-all duration-300 ${
+                              className={`flex justify-between items-center p-3 border rounded-lg cursor-pointer transition-all duration-300 ease-in-out ${
                                 selectedIndex === index + 4
                                   ? "border-blue-500 bg-blue-50"
                                   : "border-gray-300 hover:border-blue-300"
@@ -254,7 +254,7 @@ const Select_Luggage_Weight = ({ onClose, onSelect }) => {
                       {luggageOptions.length > 4 && (
                         <button
                           onClick={toggleOptions}
-                          className="text-sm text-blue-600 hover:text-blue-800 font-medium mt-2 text-left transition-colors duration-300 flex items-center"
+                          className="text-sm text-blue-600 hover:text-blue-800 font-medium mt-2 text-left transition-colors duration-300 ease-in-out flex items-center"
                         >
                           {showAllOptions ? (
                             <>

@@ -94,12 +94,12 @@ const Check_Information_Booking = ({ onClose }) => {
         {/* Footer */}
         <div className="border-t border-gray-200 px-6 py-4 flex justify-end gap-4 bg-white">
           <button
-            className="px-6 py-2 min-w-[120px] font-semibold text-gray-700 bg-gray-100 rounded-lg transition duration-200 ease cursor-pointer hover:bg-gray-200"
+            className="px-6 py-2 min-w-[120px] font-semibold text-gray-700 bg-gray-100 rounded-lg transition duration-300 ease-in-out cursor-pointer hover:bg-gray-200"
             onClick={handleClose}
           >
             Trở lại
           </button>
-          <button className="px-6 py-2 min-w-[120px] font-semibold text-white bg-blue-600 rounded-lg transition duration-200 ease cursor-pointer hover:bg-blue-700">
+          <button className="px-6 py-2 min-w-[120px] font-semibold text-white bg-blue-600 rounded-lg transition duration-300 ease-in-out cursor-pointer hover:bg-blue-700">
             Xác nhận
           </button>
         </div>

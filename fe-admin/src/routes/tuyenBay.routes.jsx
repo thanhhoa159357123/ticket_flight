@@ -1,4 +1,4 @@
-import Tuyen_bay from "../pages/tuyenbay/Tuyen_bay";
+import Tuyen_bay from "../pages/Tuyen_bay";
 
 export const tuyenBayRoutes = [
   {

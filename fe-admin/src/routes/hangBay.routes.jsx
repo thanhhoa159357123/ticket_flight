@@ -1,4 +1,4 @@
-import Hang_Bay from "../pages/hangbay/Hang_Bay";
+import Hang_Bay from "../pages/Hang_Bay";
 
 export const hangBayRoutes = [
   {

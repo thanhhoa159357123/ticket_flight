@@ -15,7 +15,14 @@ def get_all_hang_ve():
     try:
         df = load_df("hang_ve")
         df = df.select(
-            "ma_hang_ve", "vi_tri_ngoi", "so_luong_hanh_ly", "refundable", "changeable"
+            "ma_hang_ve",
+            "vi_tri_ngoi",
+            "so_kg_hanh_ly_ky_gui",
+            "so_kg_hanh_ly_xach_tay",
+            "so_do_ghe",
+            "khoang_cach_ghe",
+            "refundable",
+            "changeable",
         )
         result = df.toPandas().to_dict(orient="records")
         return JSONResponse(content=result)
@@ -28,14 +35,16 @@ def get_all_hang_ve():
 @router.post("", tags=["hang_ve"])
 def add_hang_ve(hang_ve: HangVe):
     try:
+        print("📥 Dữ liệu nhận từ client:", hang_ve.dict())
         df = load_df("hang_ve")
 
-        if df.where(df["ma_hang_ve"] == hang_ve.ma_hang_ve).count() > 0:
+        if (
+            "ma_hang_ve" in df.columns
+            and df.where(df["ma_hang_ve"] == hang_ve.ma_hang_ve).count() > 0
+        ):
             raise HTTPException(status_code=400, detail="Mã hạng vé đã tồn tại")
 
         inserted = hang_ve_collection.insert_one(hang_ve.dict())
-
-        # 🔁 Làm mới cache sau khi thêm
         invalidate_cache("hang_ve")
 
         return JSONResponse(

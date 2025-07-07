@@ -42,7 +42,7 @@ const Booking = () => {
       <div className="w-full flex justify-center pb-5">
         <button
           onClick={() => setShowPopUpCheckInformation(true)}
-          className="bg-[#007bff] text-white font-semibold px-6 py-3 rounded-[20px] transition-all duration-200 ease-in-out cursor-pointer hover:bg-[#025cbd]"
+          className="bg-[#007bff] text-white font-semibold px-6 py-3 rounded-[20px] transition-all duration-300 ease-in-out cursor-pointer hover:bg-[#025cbd]"
         >
           Tiếp tục đến phần thanh toán
         </button>

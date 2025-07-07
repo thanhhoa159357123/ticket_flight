@@ -1,4 +1,4 @@
-import Loai_Chuyen_Di from "../pages/loaichuyendi/Loai_Chuyen_Di";
+import Loai_Chuyen_Di from "../pages/Loai_Chuyen_Di";
 
 export const loaiChuyenDiRoutes = [
   {

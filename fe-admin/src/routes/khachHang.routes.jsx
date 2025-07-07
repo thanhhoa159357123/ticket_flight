@@ -1,4 +1,4 @@
-import Khach_Hang from "../pages/khachhang/Khach_Hang";
+import Khach_Hang from "../pages/Khach_Hang";
 
 export const khachHangRoutes = [
   {

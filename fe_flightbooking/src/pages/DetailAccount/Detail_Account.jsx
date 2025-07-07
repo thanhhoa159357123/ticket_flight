@@ -65,7 +65,7 @@ const Detail_Account = () => {
             <span
               key={i}
               onClick={() => setActiveTab(name)}
-              className={`relative px-6 py-3 cursor-pointer font-semibold text-sm uppercase tracking-wide transition-all duration-300
+              className={`relative px-6 py-3 cursor-pointer font-semibold text-sm uppercase tracking-wide transition-all duration-300 hover:text-blue-600
     ${activeTab === name ? "text-blue-600" : "text-slate-500"}
   `}
             >
