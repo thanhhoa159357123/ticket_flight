@@ -7,3 +7,4 @@ class GiaVe(BaseModel):
     ma_chuyen_bay: str
     ma_hang_ban_ve: str
     ma_chuyen_di: str
+    goi_ve: str

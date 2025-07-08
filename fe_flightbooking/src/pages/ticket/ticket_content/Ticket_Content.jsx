@@ -1,21 +1,23 @@
 import React, { useState } from "react";
 import HeaderContent from "./HeaderContent";
-import FilterContent from "./FilterContent";
 import ItemContent from "./item_content/ItemContent";
 import TicketOptionsPanel from "../../../components/ticketbook/TicketOptionalsPanel";
 
-const Ticket_Content = () => {
-  const itemList = Array.from({ length: 5 });
+const Ticket_Content = ({ flights }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [, setShowTicketDetail] = useState(false);
-  
+
   return (
     <div className="flex flex-col gap-[20px]">
       <HeaderContent />
-      <FilterContent />
-      {itemList.map((_, index) => (
-        <ItemContent key={index} onOpenOptions={() => setShowOptions(true)} />
-      ))}
+      {Array.isArray(flights) &&
+        flights.map((flight, index) => (
+          <ItemContent
+            key={index}
+            flight={flight}
+            onOpenOptions={() => setShowOptions(true)}
+          />
+        ))}
 
       {showOptions && (
         <TicketOptionsPanel

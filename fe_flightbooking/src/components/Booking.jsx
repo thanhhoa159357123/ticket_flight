@@ -48,9 +48,7 @@ const Booking = () => {
   useEffect(() => {
     const fetchWays = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:8000/api/loai-chuyen-di"
-        );
+        const res = await axios.get("http://localhost:8000/api/loai-chuyen-di");
         const uniqueWays = res.data.map((item) => item.ten_chuyen_di);
         setWays(uniqueWays);
         setSelectedWay(uniqueWays[0] || "");
@@ -64,9 +62,7 @@ const Booking = () => {
   useEffect(() => {
     const fetchLoai = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:8000/api/loai-chuyen-di"
-        );
+        const res = await axios.get("http://localhost:8000/api/loai-chuyen-di");
         const label = selectedWay === "Nhiều chặng" ? "Đa chặng" : selectedWay;
         const found = res.data.find((item) => item.ten_chuyen_di === label);
         setSelectedLoai(found || null);
@@ -182,15 +178,19 @@ const Booking = () => {
           </div>
         </div>
 
-        <SearchTable
-          selectedWay={selectedWay}
-          selectedLoai={selectedLoai}
-          returnDate={returnDate}
-          setReturnDate={setReturnDate}
-          multiCityRoutes={multiCityRoutes}
-          removeMultiCityRoute={removeMultiCityRoute}
-          addMultiCityRoute={addMultiCityRoute}
-        />
+        <div className="overflow-visible z-0">
+          <SearchTable
+            selectedWay={selectedWay}
+            selectedLoai={selectedLoai}
+            returnDate={returnDate}
+            selected={selected}
+            setReturnDate={setReturnDate}
+            setMultiCityRoutes={setMultiCityRoutes}
+            multiCityRoutes={multiCityRoutes}
+            removeMultiCityRoute={removeMultiCityRoute}
+            addMultiCityRoute={addMultiCityRoute}
+          />
+        </div>
       </div>
     </div>
   );

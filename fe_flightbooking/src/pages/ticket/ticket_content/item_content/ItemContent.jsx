@@ -3,6 +3,9 @@ import DetailContent from "./DetailContent";
 import TicketOptionsPanel from "../../../../components/ticketbook/TicketOptionalsPanel";
 import TicketDetail from "../../../../components/ticketbook/TicketDetail";
 import TicketMoreDetail from "../../../../components/ticketbook/TicketMoreDetail";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+dayjs.extend(duration);
 
 const TABS = [
   "Chi tiết",
@@ -12,7 +15,7 @@ const TABS = [
   "Khuyến mãi ✈️",
 ];
 
-const ItemContent = () => {
+const ItemContent = ({ flight }) => {
   const [activeTab, setActiveTab] = useState(null);
   const [hoveredTab, setHoveredTab] = useState(null);
   const [showOptions, setShowOptions] = useState(false);
@@ -33,6 +36,12 @@ const ItemContent = () => {
     setShowMoreDetail(true);
   };
 
+  const gioDi = dayjs(flight.gio_di);
+  const gioDen = dayjs(flight.gio_den);
+  const diff = gioDen.diff(gioDi, "minute"); // tổng số phút
+
+  const durationFormatted = `${Math.floor(diff / 60)}h ${diff % 60}m`;
+
   return (
     <>
       <div
@@ -51,10 +60,10 @@ const ItemContent = () => {
             {/* Giờ đi */}
             <div className="flex flex-col items-center w-[80px]">
               <span className="text-[20px] font-bold text-[#1e293b]">
-                20:05
+                {flight.gio_di?.substring(11, 16) || "--:--"}
               </span>
               <span className="text-[14px] text-[#64748b] font-medium">
-                SGN
+                {flight.ma_san_bay_di || "---"}
               </span>
             </div>
 
@@ -62,7 +71,9 @@ const ItemContent = () => {
             <div className="flex items-center gap-2 flex-1">
               <div className="flex-1 h-px bg-gray-300"></div>
               <div className="flex flex-col items-center min-w-[90px]">
-                <span className="text-xs text-gray-500">2h 5m</span>
+                <span className="text-xs text-gray-500">
+                  {durationFormatted}
+                </span>
                 <div className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full mt-1 font-medium">
                   Bay thẳng
                 </div>
@@ -73,10 +84,10 @@ const ItemContent = () => {
             {/* Giờ đến */}
             <div className="flex flex-col items-center w-[80px]">
               <span className="text-[20px] font-bold text-[#1e293b]">
-                22:10
+                {flight.gio_den?.substring(11, 16) || "--:--"}
               </span>
               <span className="text-[14px] text-[#64748b] font-medium">
-                HAN
+                {flight.ma_san_bay_den || "---"}
               </span>
             </div>
           </div>
@@ -84,13 +95,12 @@ const ItemContent = () => {
           {/* Phần phải: giá tiền */}
           <div className="text-right ml-4">
             <span className="text-[18px] font-bold text-[#dc2626]">
-              1.830.413 VND
+              {Number(flight.gia).toLocaleString()} VND/Khách
             </span>
-            <span className="text-[12px] text-[#6b7280] ml-1">/khách</span>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 px-4 py-3 bg-white border-b border-gray-200">
+        {/* <div className="flex flex-wrap gap-2 px-4 py-3 bg-white border-b border-gray-200">
           <span className="text-xs px-[10px] py-1 rounded-full font-medium whitespace-nowrap bg-blue-50 text-blue-600 border border-blue-400">
             ✈ BAYMEGA66NOIDIA giảm đến 66K
           </span>
@@ -100,7 +110,7 @@ const ItemContent = () => {
           <span className="text-xs px-[10px] py-1 rounded-full font-medium whitespace-nowrap bg-red-100 text-red-700 border border-red-400">
             📄 Có thể cung cấp hóa đơn VAT
           </span>
-        </div>
+        </div> */}
 
         <div
           className="flex justify-between items-center px-2.5 py-1 border-b-[1px] border-b-solid border-[#e2e8f0] text-[14px]"
@@ -151,7 +161,10 @@ ${activeTab === tab ? "text-[#2563eb] font-semibold after:w-full" : ""} ${
   `}
           style={{ willChange: "transform, opacity, max-height" }}
         >
-          <DetailContent />
+          <DetailContent
+            flight={flight}
+            durationFormatted={durationFormatted}
+          />
         </div>
       </div>
 
@@ -161,6 +174,8 @@ ${activeTab === tab ? "text-[#2563eb] font-semibold after:w-full" : ""} ${
         onClose={() => setShowOptions(false)}
         onShowDetail={() => setShowTicketDetail(true)}
         onShowMoreDetail={handleShowMoreDetail}
+        flight={flight}
+        durationFormatted={durationFormatted}
       />
 
       {/* Panel chi tiết vé */}
@@ -184,7 +199,11 @@ ${activeTab === tab ? "text-[#2563eb] font-semibold after:w-full" : ""} ${
       max-md:w-[85%] max-md:right-[7.5%] max-md:top-[7.5vh] max-md:h-[85vh] max-md:rounded-[15px]
       ${showTicketDetail ? "translate-x-0" : "translate-x-full"}`}
         >
-          <TicketDetail onClose={() => setShowTicketDetail(false)} />
+          <TicketDetail
+            onClose={() => setShowTicketDetail(false)}
+            flight={flight}
+            durationFormatted={durationFormatted}
+          />
         </div>
       </>
 

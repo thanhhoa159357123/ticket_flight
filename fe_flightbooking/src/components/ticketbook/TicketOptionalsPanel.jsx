@@ -8,12 +8,15 @@ import BlockIcon from "@mui/icons-material/Block";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Link } from "react-router-dom";
+import dayjs from "dayjs";
 
 const TicketOptionsPanel = ({
   onClose,
   onShowDetail,
   onShowMoreDetail,
   show,
+  flight,
+  durationFormatted,
 }) => {
   const optionListRef = useRef(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -99,7 +102,7 @@ const TicketOptionsPanel = ({
             </div>
 
             <span className="text-[1.1rem] font-bold text-[#1d4ed8]">
-              VietJet Air
+              {flight?.hang_bay?.ten_hang_bay || "Tên hãng bay"}
             </span>
             <div className="relative flex items-center justify-between gap-4 py-3">
               {/* Đường kẻ ngang dưới background */}
@@ -108,14 +111,20 @@ const TicketOptionsPanel = ({
               {/* Giờ đi */}
               <div className="z-[2] flex flex-col items-center bg-[#f8fafc] px-3 text-center">
                 <strong className="text-[1.3rem] font-bold text-gray-900">
-                  20:00
+                  {flight?.gio_di
+                    ? dayjs(flight.gio_di).format("HH:mm")
+                    : "--:--"}
                 </strong>
-                <span className="text-sm text-gray-500 mt-1">SGN</span>
+                <span className="text-sm text-gray-500 mt-1">
+                  {flight?.san_bay_di || "SGN"}
+                </span>
               </div>
 
               {/* Thời lượng + thông tin chuyến bay */}
               <div className="z-[2] bg-[#f8fafc] px-4 text-center flex flex-col items-center">
-                <span className="text-gray-600 font-medium">2h 10m</span>
+                <span className="text-gray-600 font-medium">
+                  {durationFormatted}
+                </span>
                 <span className="bg-blue-700 text-white text-xs px-[10px] py-[4px] rounded-full mt-1 inline-block">
                   Bay thẳng
                 </span>
@@ -124,9 +133,13 @@ const TicketOptionsPanel = ({
               {/* Giờ đến */}
               <div className="z-[2] flex flex-col items-center bg-[#f8fafc] px-3 text-center">
                 <strong className="text-[1.3rem] font-bold text-gray-900">
-                  22:10
+                  {flight?.gio_den
+                    ? dayjs(flight.gio_den).format("HH:mm")
+                    : "--:--"}
                 </strong>
-                <span className="text-sm text-gray-500 mt-1">HAN</span>
+                <span className="text-sm text-gray-500 mt-1">
+                  {flight?.san_bay_den || "HAN"}
+                </span>
               </div>
             </div>
 
@@ -193,20 +206,20 @@ const TicketOptionsPanel = ({
                 Nguyên bản
               </h3>
               <span className="flex flex-col items-end font-bold text-[#f97316]">
-                1.200.000 VND/khách
+                {Number(flight.gia).toLocaleString()} VND/khách
               </span>
             </div>
             <ul className="flex-1 mb-6 pr-2 overflow-y-auto">
               <li className="flex items-start py-2">
                 <LuggageIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
-                  Hành lý xách tay 7 kg
+                  Hành lý xách tay {flight.so_kg_hanh_ly_xach_tay} kg
                 </span>
               </li>
               <li className="flex items-start py-2">
                 <LuggageIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
-                  Hành lý ký gửi 0 kg
+                  Hành lý ký gửi {flight.so_kg_hanh_ly_ky_gui} kg
                 </span>
               </li>
               <li className="flex items-start py-2">
@@ -218,7 +231,7 @@ const TicketOptionsPanel = ({
               <li className="flex items-start py-2">
                 <BlockIcon className="text-blue-700 text-[1.2rem] min-w-[24px] text-center mt-[2px] mr-[14px]" />
                 <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
-                  Không hoàn vé
+                  {flight.refundable ? "Hoàn vé" : "Không hoàn vé"}
                 </span>
               </li>
               <li className="flex items-start py-2 border-0">
