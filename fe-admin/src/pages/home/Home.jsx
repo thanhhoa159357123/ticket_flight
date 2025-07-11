@@ -24,7 +24,7 @@ const StatCard = ({ icon: Icon, label, value, color }) => (
   </div>
 );
 
-const Dashboard = () => {
+const Home = () => {
   const [date, setDate] = useState(new Date());
   const { revenueData, topDestinations, bookings, loading } = useDashboardData();
 
@@ -180,4 +180,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default Home ;

@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
 import { allRoutes } from "./routes";
-import Dashboard from "./pages/home/Home"; 
+import Home from "./pages/home/Home"; 
 import loginRoutes from "./routes/login.routes";
 import Auth from "./components/Auth"; 
 
@@ -24,7 +24,7 @@ const App = () => {
             </Auth>
           }
         >
-          <Route index element={<Dashboard />} />
+          <Route index element={<Home />} />
           {allRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
           ))}
