@@ -14,6 +14,7 @@ const DetailContent = ({ flight, durationFormatted }) => {
     gio_den,
     ma_san_bay_di,
     ma_san_bay_den,
+    ten_chuyen_di,
     ten_hang_bay,
     so_kg_hanh_ly_ky_gui,
     so_kg_hanh_ly_xach_tay,
@@ -33,8 +34,11 @@ const DetailContent = ({ flight, durationFormatted }) => {
     }
   };
 
-  const formatTime = (iso) => dayjs(iso).format("HH:mm");
-  const formatDate = (iso) => dayjs(iso).format("DD [thg] M");
+  const gioDiVN = dayjs(gio_di).subtract(7, "hour");
+  const gioDenVN = dayjs(gio_den).subtract(7, "hour");
+
+  const formatTime = (d) => d.format("HH:mm");
+  const formatDate = (d) => d.format("DD [thg] M");
 
   return (
     <div className="flex bg-white rounded-lg shadow-sm p-4 text-gray-800">
@@ -42,26 +46,26 @@ const DetailContent = ({ flight, durationFormatted }) => {
       <div className="flex flex-col items-center justify-between pr-4 min-w-[100px]">
         <div className="flex flex-col items-center mb-2">
           <strong className="text-xl font-bold text-blue-800">
-            {formatTime(gio_di)}
+            {formatTime(gioDiVN)}
           </strong>
           <span className="text-sm text-gray-500 mt-1">
-            {formatDate(gio_di)}
+            {formatDate(gioDiVN)}
           </span>
         </div>
 
         <div className="flex flex-col items-center mx-2 relative before:absolute before:content-[''] before:w-px before:h-12 before:bg-gray-200 before:top-[-3rem] after:absolute after:content-[''] after:w-px after:h-12 after:bg-gray-200 after:bottom-[-3rem]">
           <span className="text-xs text-gray-500">{durationFormatted}</span>
           <div className="text-xs bg-blue-50 text-blue-600 px-1 py-0.5 rounded-full mt-1 font-medium">
-            Bay thẳng
+            {ten_chuyen_di || "Bay thẳng"}
           </div>
         </div>
 
         <div className="flex flex-col items-center mb-2">
           <strong className="text-xl font-bold text-blue-800">
-            {formatTime(gio_den)}
+            {formatTime(gioDenVN)}
           </strong>
           <span className="text-sm text-gray-500 mt-1">
-            {formatDate(gio_den)}
+            {formatDate(gioDenVN)}
           </span>
         </div>
       </div>

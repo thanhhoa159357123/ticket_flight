@@ -134,7 +134,7 @@ const SearchTable = ({
             />
           </div>
 
-          <div className="col-span-2">
+          <div className="col-span-2 cursor-pointer">
             <DateSelectorPopup
               departureDate={departureDate}
               setDepartureDate={setDepartureDate}

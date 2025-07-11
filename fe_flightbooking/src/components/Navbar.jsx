@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const [tenKhachHang, setTenKhachHang] = useState("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem("user"));
@@ -31,12 +32,14 @@ const Navbar = () => {
         >
           Chuyến bay
         </Link>
-        <Link
-          to="/flight-ticket"
-          className="flex items-center h-[100%] text-[16px] font-semibold no-underline px-2 py-3 rounded-lg relative transition duration-300 ease hover:text-[#007bff] hover:after:w-[100%] after:content-[''] after:absolute after:bottom-[20px] after:left-0 after:w-0 after:h-[2px] after:bg-[#007bff] after:transition-width after:duration-300 after:ease"
+        <span
+          onClick={() =>
+            navigate("/flight-ticket", { state: { showAll: true } })
+          }
+          className="flex items-center h-[100%] text-[16px] font-semibold no-underline px-2 py-3 rounded-lg cursor-pointer relative transition duration-300 ease hover:text-[#007bff] hover:after:w-[100%] after:content-[''] after:absolute after:bottom-[20px] after:left-0 after:w-0 after:h-[2px] after:bg-[#007bff] after:transition-width after:duration-300 after:ease"
         >
           Vé máy bay
-        </Link>
+        </span>
 
         {tenKhachHang ? (
           <div className="relative flex items-center h-full group">

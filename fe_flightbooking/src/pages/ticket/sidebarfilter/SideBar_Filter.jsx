@@ -1,11 +1,15 @@
 import React from "react";
-import NumberOfStops from "./items/NumberOfStops";
+import TicketClassFilter from "./items/TicketClassFilter";
 import AirlineFilter from "./items/AirlineFilter";
 import Time_Line from "./items/Time_Line";
 import Utilities from "./items/Utilities";
 import Price_Ticket from "./items/Price_Ticket";
 
-const SideBar_Filter = () => {
+const SideBar_Filter = ({
+  selectedAirlines,
+  setSelectedAirlines,
+  onSeatClassChange,
+}) => {
   return (
     <div className="w-[400px] min-w-[280px] p-5">
       <div className="flex justify-between items-center pb-4 text-[16px] font-semibold text-[#333]">
@@ -20,8 +24,11 @@ const SideBar_Filter = () => {
         </div>
       </div>
 
-      <NumberOfStops />
-      <AirlineFilter />
+      <TicketClassFilter onFilterChange={onSeatClassChange} />
+      <AirlineFilter
+        selectedAirlines={selectedAirlines}
+        setSelectedAirlines={setSelectedAirlines}
+      />
       <Time_Line />
       <Utilities />
       <Price_Ticket />

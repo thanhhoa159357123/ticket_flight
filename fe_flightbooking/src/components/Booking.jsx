@@ -6,7 +6,7 @@ import BabyChangingStationIcon from "@mui/icons-material/BabyChangingStation";
 import axios from "axios";
 import SearchTable from "./SearchTable";
 
-const Booking = () => {
+const Booking = ({ onSearchDone }) => {
   const people = [
     { type: "Adult", icon: <PersonIcon /> },
     { type: "Children", icon: <ChildCareIcon /> },
@@ -27,11 +27,16 @@ const Booking = () => {
   ]);
   const [returnDate, setReturnDate] = useState(true);
 
+  const handleSearchSubmit = async () => {
+    if (onSearchDone) onSearchDone();
+  };
+
   useEffect(() => {
     const fetchOptions = async () => {
       try {
         const res = await axios.get("http://localhost:8000/api/hang-ve");
         const uniqueOptions = res.data
+          .filter((item) => !item.ma_hang_ve.includes("+"))
           .map((item) => item.vi_tri_ngoi)
           .filter((value, index, self) => self.indexOf(value) === index); // loại trùng
 
@@ -94,8 +99,8 @@ const Booking = () => {
   };
 
   return (
-    <div className="flex justify-center items-center w-full py-[1rem] bg-[linear-gradient(135deg,#f5f7fa_0%,#e4e8eb_100%)]">
-      <div className="bg-white rounded-md p-[2rem] w-full max-w-[1700px] shadow-md">
+    <div className="flex justify-center items-center w-full py-[1rem]">
+      <div className="bg-white rounded-md p-[2rem] w-full max-w-[1700px]">
         <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-start mb-[1.2rem]">
           <div className="flex items-center bg-[#f8f9fa] rounded-[50px] p-[0.5rem] gap-[0.5rem]">
             {ways.length > 0 ? (
@@ -189,6 +194,7 @@ const Booking = () => {
             multiCityRoutes={multiCityRoutes}
             removeMultiCityRoute={removeMultiCityRoute}
             addMultiCityRoute={addMultiCityRoute}
+            onSubmit={handleSearchSubmit}
           />
         </div>
       </div>
