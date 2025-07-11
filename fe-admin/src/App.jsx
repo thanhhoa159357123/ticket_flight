@@ -2,20 +2,38 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
 import { allRoutes } from "./routes";
+<<<<<<< Updated upstream
 import Khach_Hang from "./pages/khachhang/Khach_Hang";
 import Dashboard from "./pages/home/Home"; // nếu vẫn giữ trang chào mừng admin
 import Hang_Bay from "./pages/hangbay/Hang_Bay";
+=======
+import Dashboard from "./pages/home/Home"; 
+import loginRoutes from "./routes/login.routes";
+import Auth from "./components/Auth"; 
+>>>>>>> Stashed changes
 
 const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        {/* Render login routes (không cần đăng nhập) */}
+        {loginRoutes.map((route, idx) => (
+          <Route key={idx} path={route.path} element={route.element} />
+        ))}
+
+        {/* Các route còn lại cần đăng nhập */}
+        <Route
+          path="/"
+          element={
+            <Auth>
+              <Layout />
+            </Auth>
+          }
+        >
           <Route index element={<Dashboard />} />
           {allRoutes.map((route, index) => (
             <Route key={index} path={route.path} element={route.element} />
           ))}
-          {/* Thêm route khác tại đây */}
         </Route>
       </Routes>
     </Router>
