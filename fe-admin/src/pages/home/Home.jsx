@@ -8,60 +8,7 @@ import {
 import { Calendar } from "react-calendar";
 import 'react-calendar/dist/Calendar.css';
 
-<<<<<<< Updated upstream
-// Dữ liệu mẫu
-const revenueData = [
-  { month: "T1", revenue: 20 },
-  { month: "T2", revenue: 25 },
-  { month: "T3", revenue: 22 },
-  { month: "T4", revenue: 30 },
-  { month: "T5", revenue: 28 },
-  { month: "T6", revenue: 35 },
-  { month: "T7", revenue: 40 },
-];
-
-const topDestinations = [
-  { city: "Hà Nội", percent: 30 },
-  { city: "TP.HCM", percent: 25 },
-  { city: "Paris", percent: 20 },
-  { city: "Tokyo", percent: 15 },
-];
-
-const bookings = [
-  {
-    id: "BK001",
-    name: "Nguyễn Văn A",
-    flight: "VN123",
-    Airport: "Hà Nội",
-    destination: "TP.HCM",
-    seat: "12A",
-    time: "2025-07-10 08:00",
-    price: 2200000,
-  },
-  {
-    id: "BK002",
-    name: "Trần Thị B",
-    flight: "VJ456",
-    Airport: "TP.HCM",
-    destination: "Đà Nẵng",
-    seat: "7C",
-    time: "2025-07-12 15:30",
-    price: 1800000,
-  },
-  {
-    id: "BK003",
-    name: "Lê Minh C",
-    flight: "QH789",
-    Airport: "Đà Nẵng",
-    destination: "Hà Nội",
-    seat: "3B",
-    time: "2025-07-15 19:45",
-    price: 2100000,
-  },
-];
-=======
 import { useDashboardData } from "../../hooks/useDashboardData";
->>>>>>> Stashed changes
 
 const COLORS = ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#fbbf24'];
 
@@ -79,12 +26,9 @@ const StatCard = ({ icon: Icon, label, value, color }) => (
 
 const Dashboard = () => {
   const [date, setDate] = useState(new Date());
-<<<<<<< Updated upstream
-=======
   const { revenueData, topDestinations, bookings, loading } = useDashboardData();
 
   if (loading) return <div className="text-center py-10 text-lg text-blue-600">Đang tải dữ liệu...</div>;
->>>>>>> Stashed changes
 
   return (
     <div className="flex-1 flex flex-col bg-gradient-to-br from-blue-50 to-white min-h-screen">

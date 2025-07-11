@@ -2,15 +2,9 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
 import { allRoutes } from "./routes";
-<<<<<<< Updated upstream
-import Khach_Hang from "./pages/khachhang/Khach_Hang";
-import Dashboard from "./pages/home/Home"; // nếu vẫn giữ trang chào mừng admin
-import Hang_Bay from "./pages/hangbay/Hang_Bay";
-=======
 import Dashboard from "./pages/home/Home"; 
 import loginRoutes from "./routes/login.routes";
 import Auth from "./components/Auth"; 
->>>>>>> Stashed changes
 
 const App = () => {
   return (
