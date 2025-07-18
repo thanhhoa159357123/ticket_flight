@@ -1,14 +1,25 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import auth
+from app.routers import ( auth , hangBay) 
 
+from utils.spark import init_spark, load_df 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+
+    # Initialize Spark session
+    init_spark()
+
+    #Preload Spark DataFrames improve performance
+    load_df("hang_bay")
+    print("✅ Spark DataFrames đã được preload")
+
     # Initialize any resources needed at startup
     print("🚀 App is starting up...")
     
     yield  # App continues running
+
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -23,6 +34,8 @@ app.add_middleware(
 
 # ✅ Routers
 app.include_router(auth.router, prefix="/auth")
+# Add other routers here as neede
+app.include_router(hangBay.router, prefix="/hang_bay")
 
 if __name__ == "__main__":
     import uvicorn

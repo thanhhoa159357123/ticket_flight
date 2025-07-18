@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from config.db import admin_collection
 from passlib.hash import bcrypt
 from jose import jwt
 import os

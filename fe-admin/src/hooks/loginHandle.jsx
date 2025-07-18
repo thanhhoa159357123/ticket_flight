@@ -10,6 +10,7 @@ const useLogin = () => {
 
   const handleChange = (e) => {
     setForm({
+      
       ...form,
       [e.target.name]: e.target.value,
     });
@@ -26,7 +27,7 @@ const useLogin = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/auth/login",
+        "http://127.0.0.1:8080/auth/login",
         qs.stringify({
           username: form.username,
           password: form.password,
@@ -40,6 +41,10 @@ const useLogin = () => {
 
       if (response.data?.access_token) {
         localStorage.setItem("token", response.data.access_token);
+
+        //lưu trạng thái đăng nhập
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("username", form.username);
         navigate("/"); // đường dẫn sau đăng nhập
       } else {
         setError("Đăng nhập thất bại. Vui lòng thử lại.");
