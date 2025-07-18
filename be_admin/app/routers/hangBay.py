@@ -2,16 +2,15 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from app.models.hang_bay import HangBay
 from utils.spark import load_df, invalidate_cache
-#from utils.env_loader import MONGO_DB, MONGO_URI    # cái này thì nó đọc được dữ liệu
-from utils.data_env_loader import MONGO_DB, MONGO_URI  # cái này thì ko
+from utils.env_loader import MONGO_DB, MONGO_URI    # cái này thì nó đọc được dữ liệu
+from utils.data_env_loader import MONGODA_DB, MONGODA_URI  # cái này thì ko
 from pymongo import MongoClient
 import json
 import traceback
 from fastapi import Body
 router = APIRouter()
-client = MongoClient(MONGO_URI)
-hang_bay_collection = client[MONGO_DB]["hang_bay"]
-
+client = MongoClient(MONGODA_URI)
+hang_bay_collection = client[MONGODA_DB]["hang_bay"]
 
 
 @router.post("", tags=["hang_bay"])

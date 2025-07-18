@@ -19,7 +19,7 @@ const Hang_Bay = () => {
 // Fetch data from the server and set it to state
   const fetchData = () => {
     axios
-      .get("http://localhost:8000/hang_bay")
+      .get("http://localhost:8080/hang_bay")
       .then((res) => {
         setData(Array.isArray(res.data) ? res.data : []);
       })
@@ -62,7 +62,7 @@ const Hang_Bay = () => {
 
   const handleAdd = () => {
     axios
-      .post("http://localhost:8000/hang_bay", formData)
+      .post("http://localhost:8080/hang_bay", formData)
       .then(() => {
         fetchData();
         setShowForm(false);
@@ -76,7 +76,7 @@ const Hang_Bay = () => {
 
   const handleUpdate = () => {
     axios
-      .put(`http://localhost:8000/hang_bay/${editingId}`, formData, {
+      .put(`http://localhost:8080/hang_bay/${editingId}`, formData, {
         headers:{
           "Content-Type": "application/json",
         }
@@ -96,7 +96,7 @@ const Hang_Bay = () => {
   const handleDelete = (ma_hang_bay) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa hãng bay này?")) return;
     axios
-      .delete(`http://localhost:8000/hang_bay/${ma_hang_bay}`)
+      .delete(`http://localhost:8080/hang_bay/${ma_hang_bay}`)
       .then(() => {
         fetchData();
         setMessage("Xóa thành công.");

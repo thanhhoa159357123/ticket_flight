@@ -1,11 +1,25 @@
 import os
-
+import findspark
 os.environ["PYSPARK_SUBMIT_ARGS"] = (
     "--jars jars/mongo-spark-connector_2.12-3.0.1.jar,"
     "jars/bson-4.2.3.jar,"
     "jars/mongo-java-driver-3.12.10.jar pyspark-shell"
 )
 
+# # 1) Đặt SPARK_HOME trước khi init findspark
+# os.environ["SPARK_HOME"] = r"C:\spark\spark-3.3.2-bin-hadoop3"
+# os.environ["JAVA_HOME"]  = r"C:\Java\jdk-11"
+
+# # 2) Khởi findspark (tự thêm pyspark & py4j vào sys.path)
+# findspark.init()
+# # Ép JAVA_HOME và SPARK_HOME rõ ràng
+# os.environ["JAVA_HOME"] = r"C:\Java\jdk-11"
+# os.environ["SPARK_HOME"] = r"C:\spark\spark-3.3.2-bin-hadoop3"
+# os.environ["PATH"] = (
+#     r"C:\Java\jdk-11\bin;" +
+#     r"C:\spark\spark-3.3.2-bin-hadoop3\bin;" +
+#     os.environ["PATH"]
+# )
 from pyspark.sql import SparkSession
 from pyspark import SparkConf
 
