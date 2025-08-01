@@ -1,37 +1,38 @@
 import React from "react";
-import TicketClassFilter from "./items/TicketClassFilter";
 import AirlineFilter from "./items/AirlineFilter";
-import Time_Line from "./items/Time_Line";
-import Utilities from "./items/Utilities";
 import Price_Ticket from "./items/Price_Ticket";
 
 const SideBar_Filter = ({
+  flights,
   selectedAirlines,
   setSelectedAirlines,
-  onSeatClassChange,
+  priceRange,
+  setPriceRange,
 }) => {
   return (
-    <div className="w-[400px] min-w-[280px] p-5">
-      <div className="flex justify-between items-center pb-4 text-[16px] font-semibold text-[#333]">
-        <div>Bộ lọc :</div>
-        <div
-          className="relative font-bold text-[#007bff] cursor-pointer transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
-        hover:text-[#0056b3] after:content-[''] after:absolute after:bottom-[-2px] after:left-0
-        after:h-[2px] after:w-0 after:bg-current after:transition-all after:duration-300 after:ease-[cubic-bezier(0.4,0,0.2,1)]
-        hover:after:w-full"
+    <div className="w-72 min-w-[280px] p-4 sticky top-24 self-start bg-white rounded-xl shadow-sm border border-gray-100">
+      <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+        <h3 className="text-lg font-semibold text-gray-800">Bộ lọc</h3>
+        <button 
+          // onClick={handleReset}
+          className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
         >
           Đặt lại
-        </div>
+        </button>
       </div>
 
-      <TicketClassFilter onFilterChange={onSeatClassChange} />
-      <AirlineFilter
-        selectedAirlines={selectedAirlines}
-        setSelectedAirlines={setSelectedAirlines}
-      />
-      <Time_Line />
-      <Utilities />
-      <Price_Ticket />
+      <div className="space-y-3 mt-4">
+        <AirlineFilter
+          selectedAirlines={selectedAirlines}
+          setSelectedAirlines={setSelectedAirlines}
+        />
+        
+        <Price_Ticket
+          flights={flights}
+          priceRange={priceRange}
+          setPriceRange={setPriceRange}
+        />
+      </div>
     </div>
   );
 };

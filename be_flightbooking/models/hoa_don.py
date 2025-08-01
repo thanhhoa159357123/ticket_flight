@@ -1,11 +1,11 @@
-from pydantic import BaseModel# type: ignore
-from typing import Optional
-from datetime import date
+from pydantic import BaseModel
+from datetime import datetime
 
 class HoaDon(BaseModel):
     ma_hoa_don: str
-    ngay_thanh_toan: date
+    ngay_thanh_toan: datetime
     tong_tien: float
     phuong_thuc: str
     ghi_chu: str
     ma_dat_ve: str
+    

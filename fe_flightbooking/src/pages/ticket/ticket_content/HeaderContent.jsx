@@ -8,8 +8,8 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
 const HeaderContent = () => {
   return (
-    <div className="relative w-full h-auto shadow-[0_4px_20px_rgba(0,0,0,0.15)] overflow-hidden">
-      <div className="relative z-2 rounded-[10px_10px_0_0] bg-white flex flex-col">
+    <div className="relative w-full h-auto shadow-[0_4px_20px_rgba(0,0,0,0.15)] rounded-lg overflow-hidden">
+      <div className="relative z-2 bg-white flex flex-col">
         <div className="flex items-center bg-white px-[16px] py-[20px] w-fit max-w-full">
           <div className="flex-1 flex flex-col gap-2">
             <div className="flex items-center gap-2 text-[18px] font-semibold">

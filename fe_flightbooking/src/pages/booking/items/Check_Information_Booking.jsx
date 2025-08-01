@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 
-const Check_Information_Booking = ({ onClose }) => {
+const Check_Information_Booking = ({ onClose, onConfirm, passengers }) => {
+  console.log(passengers);
   const [animateIn, setAnimateIn] = useState(false);
 
   useEffect(() => {
@@ -53,41 +54,44 @@ const Check_Information_Booking = ({ onClose }) => {
 
           {/* Passenger Section */}
           <div className="px-6 py-5 space-y-4">
-            {/* Passenger Title */}
-            <div className="flex items-center gap-3">
-              <span className="bg-gray-200 text-sm font-semibold rounded-full px-3 py-1">
-                1
-              </span>
-              <span className="font-semibold text-gray-800">
-                Bà Nguyen Thi Ngoc Anh
-              </span>
-            </div>
+            {passengers.map((p, idx) => (
+              <div key={idx} className="space-y-3">
+                {/* Title */}
+                <div className="flex items-center gap-3">
+                  <span className="bg-gray-200 text-sm font-semibold rounded-full px-3 py-1">
+                    {idx + 1}
+                  </span>
+                  <span className="font-semibold text-gray-800">
+                    {p.danh_xung || p.gioi_tinh || ""} {p.ho_hanh_khach}{" "}
+                    {p.ten_hanh_khach}
+                  </span>
+                </div>
 
-            {/* Passenger Info */}
-            <div className="bg-gray-100 rounded-lg p-5 grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-gray-500 mb-1">Họ (vd: Nguyen)</p>
-                <p className="font-semibold text-gray-800">Nguyen</p>
+                {/* Info */}
+                <div className="bg-gray-100 rounded-lg p-5 grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-gray-500 mb-1">Họ (vd: Nguyen)</p>
+                    <p className="font-semibold text-gray-800">
+                      {p.ho_hanh_khach}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 mb-1">Tên Đệm & Tên</p>
+                    <p className="font-semibold text-gray-800">
+                      {p.ten_hanh_khach}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 mb-1">Ngày sinh</p>
+                    <p className="font-semibold text-gray-800">{p.dd}/{p.mm}/{p.yyyy}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 mb-1">Quốc tịch</p>
+                    <p className="font-semibold text-gray-800">{p.quoc_tich}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-gray-500 mb-1">
-                  Tên Đệm & Tên (Thi Ngoc Anh)
-                </p>
-                <p className="font-semibold text-gray-800">Thi Ngoc Anh</p>
-              </div>
-              <div>
-                <p className="text-gray-500 mb-1">Ngày sinh</p>
-                <p className="font-semibold text-gray-800">12 tháng 10 1990</p>
-              </div>
-              <div>
-                <p className="text-gray-500 mb-1">Quốc tịch</p>
-                <p className="font-semibold text-gray-800">Việt Nam</p>
-              </div>
-              <div>
-                <p className="text-gray-500 mb-1">Số căn cước công dân</p>
-                <p className="font-semibold text-gray-800">123456789</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -99,7 +103,10 @@ const Check_Information_Booking = ({ onClose }) => {
           >
             Trở lại
           </button>
-          <button className="px-6 py-2 min-w-[120px] font-semibold text-white bg-blue-600 rounded-lg transition duration-300 ease-in-out cursor-pointer hover:bg-blue-700">
+          <button
+            className="px-6 py-2 min-w-[120px] font-semibold text-white bg-blue-600 rounded-lg transition duration-300 ease-in-out cursor-pointer hover:bg-blue-700"
+            onClick={onConfirm}
+          >
             Xác nhận
           </button>
         </div>

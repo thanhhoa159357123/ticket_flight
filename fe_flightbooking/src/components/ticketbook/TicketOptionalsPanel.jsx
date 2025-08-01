@@ -1,14 +1,10 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import CloseIcon from "@mui/icons-material/Close";
-import LuggageIcon from "@mui/icons-material/Luggage";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import ReceiptIcon from "@mui/icons-material/Receipt";
-import BlockIcon from "@mui/icons-material/Block";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import { Link } from "react-router-dom";
-import dayjs from "dayjs";
-import axios from "axios";
+import { useTicketOptionsPanel } from "./../../hooks/TicketOptionalsPanelHook";
+import TicketPackageCard from "./TicketPackageCard";
+import TicketInfoHeader from "./TicketInfoHeader";
 
 const TicketOptionsPanel = ({
   onClose,
@@ -17,291 +13,202 @@ const TicketOptionsPanel = ({
   show,
   flight,
   durationFormatted,
+  passengers,
+  packages = [],
+  onChoose
 }) => {
-  const optionListRef = useRef(null);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(false);
-  const [ticketPackages, setTicketPackages] = useState([]);
+  const {
+    optionListRef,
+    gioDiVN,
+    gioDenVN,
+    showLeftArrow,
+    showRightArrow,
+    scrollLeft,
+    scrollRight,
+    handleChoosePackage,
+    checkScroll,
+  } = useTicketOptionsPanel(flight, passengers);
+
+  const handlePackageSelection = onChoose || handleChoosePackage;
 
   useEffect(() => {
-    const fetchPackages = async () => {
-      try {
-        if (!flight?.ma_gia_ve) return;
-        const res = await axios.get(
-          `http://localhost:8000/api/gia-ve/chi-tiet-gia-ve?ma_gia_ve=${flight.ma_gia_ve}`
-        );
-        setTicketPackages(res.data || []);
-      } catch (err) {
-        console.error("Lỗi fetch gói vé:", err);
-      }
-    };
-
-    fetchPackages();
-  }, [flight?.ma_gia_ve]);
-
-  const checkScroll = () => {
-    if (optionListRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = optionListRef.current;
-      setShowLeftArrow(scrollLeft > 0);
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth);
+    if (show) {
+      document.body.style.overflow = "hidden";
+      const timer = setTimeout(checkScroll, 100);
+      return () => {
+        clearTimeout(timer);
+        document.body.style.overflow = "unset";
+      };
     }
-  };
-
-  const scrollLeft = () => {
-    if (optionListRef.current) {
-      optionListRef.current.scrollBy({
-        left: -300,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  const scrollRight = () => {
-    if (optionListRef.current) {
-      optionListRef.current.scrollBy({
-        left: 300,
-        behavior: "smooth",
-      });
-    }
-  };
-
-  useEffect(() => {
-    const currentRef = optionListRef.current;
-    if (currentRef) {
-      currentRef.addEventListener("scroll", checkScroll);
-      checkScroll();
-    }
-    return () => {
-      if (currentRef) {
-        currentRef.removeEventListener("scroll", checkScroll);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    checkScroll(); // 👈 Gọi lại khi load xong data
-  }, [ticketPackages]);
-
-  const gioDiVN = flight?.gio_di
-    ? dayjs(flight.gio_di).subtract(7, "hour")
-    : null;
-  const gioDenVN = flight?.gio_den
-    ? dayjs(flight.gio_den).subtract(7, "hour")
-    : null;
+  }, [show, checkScroll]);
 
   return (
     <>
       {/* Overlay */}
       <div
         onClick={onClose}
-        className={`fixed top-0 left-0 w-full h-screen bg-black/60 z-[1000] transition-all duration-300 ease-out ${
-          show
-            ? "opacity-100 visible pointer-events-auto"
-            : "opacity-0 invisible pointer-events-none"
+        className={`fixed inset-0 bg-black/50 z-[1000] transition-opacity duration-300 ${
+          show ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       />
 
-      {/* Sliding Panel */}
+      {/* Panel */}
       <div
-        className={`fixed top-0 right-0 w-full max-w-[1000px] h-screen bg-white z-[1001] flex flex-col transition-transform duration-[400ms] ease-[cubic-bezier(0.23,1,0.32,1)] ${
+        className={`fixed top-0 right-0 h-screen bg-white z-[1001] flex flex-col shadow-2xl transition-transform duration-300 ease-out w-full max-w-[1000px] lg:w-[65%] md:w-[75%] ${
           show ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center px-2 py-3 bg-gradient-to-br from-blue-700 to-blue-500 text-white sticky top-0 z-10">
-          <CloseIcon
+        {/* Header */}
+        <div className="flex items-center px-5 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white sticky top-0 z-10">
+          <button
             onClick={onClose}
-            className="mr-5 cursor-pointer p-2 rounded-full bg-white/15 text-white/90 transition-all duration-200 ease-in-out hover:rotate-90 hover:bg-white/25 hover:text-white flex items-center justify-center"
-          />
-          <h2 className="m-0 text-[1.5rem] font-semibold tracking-[-0.3px]">
-            Chuyến đi của bạn
-          </h2>
-        </div>
-
-        <div className="p-[24px] bg-[#f8fafc] border-b-[1px] border-b-solid border-b-[#e5e7eb]">
-          <div className="flex flex-col gap-3 px-4 py-2 bg-[#f8fafc] rounded-[10px] border-[1px] border-solid border-[#e5e7eb]">
-            <div className="flex items-center flex-wrap gap-5 border-b-[1px] border-b-solid border-b-[#e5e7eb] pb-3">
-              <h3 className="inline-flex items-center bg-green-500 text-white px-[14px] py-[6px] rounded text-sm font-semibold uppercase whitespace-nowrap m-0">
-                Khởi hành
-              </h3>
-              <span className="text-[1.2rem] font-bold text-gray-900 whitespace-nowrap">
-                {flight?.ten_san_bay_di || ""} – {flight?.ten_san_bay_den || ""}
-              </span>
-              <p className="text-gray-500 font-medium flex items-center gap-2 m-0 whitespace-nowrap">
-                Sun, 15 Jun 2025
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between gap-4 py-2">
-              {/* Logo hãng bay nếu có */}
-              <span className="flex w-[50%] text-[1.1rem] font-semibold text-gray-800 mr-4">
-                {flight?.ten_hang_bay || "Tên hãng bay"}
-              </span>
-
-              <div className="relative flex w-[50%] items-center justify-between gap-10 flex-1">
-                {/* Đường kẻ ngang background */}
-                <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-[linear-gradient(90deg,_transparent_0%,_#999a9b_75%,_transparent_100%)] z-[1]" />
-
-                {/* Giờ đi */}
-                <div className="z-[2] flex flex-col items-center bg-[#f8fafc] px-3 text-center">
-                  <strong className="text-[1.3rem] font-bold text-gray-900">
-                    {gioDiVN ? gioDiVN.format("HH:mm") : "--:--"}
-                  </strong>
-                  <span className="text-sm text-gray-500 mt-1">
-                    {flight?.ma_san_bay_di}
-                  </span>
-                </div>
-
-                {/* Thời lượng + label */}
-                <div className="z-[2] bg-[#f8fafc] px-4 text-center flex flex-col items-center">
-                  <span className="text-gray-600 font-medium">
-                    {durationFormatted}
-                  </span>
-                  <span className="bg-blue-700 text-white text-xs px-[10px] py-[4px] rounded-full mt-1 inline-block">
-                    {flight?.ten_chuyen_di || "Bay thẳng"}
-                  </span>
-                </div>
-
-                {/* Giờ đến */}
-                <div className="z-[2] flex flex-col items-center bg-[#f8fafc] px-3 text-center">
-                  <strong className="text-[1.3rem] font-bold text-gray-900">
-                    {gioDenVN ? gioDenVN.format("HH:mm") : "--:--"}
-                  </strong>
-                  <span className="text-sm text-gray-500 mt-1">
-                    {flight?.ma_san_bay_den}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end mt-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onShowDetail();
-                }}
-                className="inline-flex items-center gap-2 px-4 py-[10px] rounded-lg bg-blue-100 text-blue-700 font-semibold text-[0.95rem] shadow-[0_2px_6px_rgba(29,78,216,0.1)] cursor-pointer transition-all duration-300 hover:bg-blue-200 hover:shadow-[0_4px_10px_rgba(29,78,216,0.15)] active:translate-y-0 group"
-              >
-                Chi tiết
-                <span className="transition-transform duration-200 group-hover:translate-x-[5px] font-bold">
-                  →
-                </span>
-              </button>
-            </div>
+            className="mr-3 p-1.5 rounded-full hover:bg-white/20 transition-colors"
+            aria-label="Đóng"
+          >
+            <CloseIcon className="w-5 h-5" />
+          </button>
+          <div>
+            <h2 className="text-xl font-bold">Chọn gói vé</h2>
+            <p className="text-sm text-blue-100 opacity-90">
+              Chọn loại vé phù hợp với nhu cầu của bạn
+            </p>
           </div>
         </div>
 
-        <div className="flex justify-between items-center px-[20px] py-3 bg-white sticky top-0 z-[5] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-          <span className="text-[1.1rem] font-semibold text-[#111827]">
-            Chọn loại vé của bạn
-          </span>
-          <div className="flex gap-3">
-            <button
-              onClick={scrollLeft}
-              disabled={!showLeftArrow}
-              aria-label="Scroll left"
-              className={`w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-[0_2px_6px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer
-      ${
-        showLeftArrow
-          ? "hover:bg-gray-100 hover:border-gray-300 hover:text-blue-700 hover:scale-105"
-          : "opacity-50 cursor-not-allowed"
-      }`}
-            >
-              <ArrowBackIcon />
-            </button>
+        {/* Flight Info */}
+        <TicketInfoHeader
+          flight={flight}
+          gioDiVN={gioDiVN}
+          gioDenVN={gioDenVN}
+          durationFormatted={durationFormatted}
+          onShowDetail={onShowDetail}
+        />
 
-            <button
-              onClick={scrollRight}
-              disabled={!showRightArrow}
-              aria-label="Scroll right"
-              className={`w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-[0_2px_6px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer
-      ${
-        showRightArrow
-          ? "hover:bg-gray-100 hover:border-gray-300 hover:text-blue-700 hover:scale-105"
-          : "opacity-50 cursor-not-allowed"
-      }`}
-            >
-              <ArrowForwardIcon />
-            </button>
-          </div>
-        </div>
-
-        <div
-          className="flex gap-6 px-6 py-4 overflow-x-auto scroll-smooth scroll-snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-          ref={optionListRef}
-        >
-          {ticketPackages.map((pkg, idx) => (
-            <div
-              key={idx}
-              className="scroll-snap-start min-w-[340px] border border-[#e5e7eb] rounded-[16px] p-6 bg-white shadow-sm transition-all duration-300 ease flex flex-col"
-            >
-              <div className="mb-5 pb-4 text-[15px] flex items-center justify-between border-b border-dashed border-[#e5e7eb]">
-                <h3 className="m-0 text-[#1d4ed8] font-bold tracking-tight leading-[1.4]">
-                  {pkg.goi_ve}
-                </h3>
-                <span className="flex flex-col items-end font-bold text-[#f97316]">
-                  {Number(pkg.gia).toLocaleString()} VND/khách
-                </span>
+        {/* Packages section */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Packages header */}
+          <div className="sticky top-0 z-10 bg-white px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"
+                  />
+                </svg>
               </div>
-              <ul className="flex-1 mb-6 pr-2 overflow-y-auto">
-                <li className="flex items-start py-2">
-                  <LuggageIcon className="text-blue-700 text-[1.2rem] mr-3 mt-[2px]" />
-                  <span className="text-[0.97rem] leading-[1.5] text-gray-700">
-                    Hành lý xách tay {pkg.so_kg_hanh_ly_xach_tay || 0} kg
-                  </span>
-                </li>
-
-                <li className="flex items-start py-2">
-                  <LuggageIcon className="text-blue-700 text-[1.2rem] mr-3 mt-[2px]" />
-                  <span className="text-[0.97rem] leading-[1.5] text-gray-700">
-                    Hành lý ký gửi {pkg.so_kg_hanh_ly_ky_gui || 0} kg
-                  </span>
-                </li>
-
-                <li className="flex items-start py-2">
-                  <SwapHorizIcon className="text-blue-700 text-[1.2rem] mr-3 mt-[2px]" />
-                  <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
-                    {pkg.changeable
-                      ? "Đổi lịch miễn phí"
-                      : "Phí đổi lịch 378.000 VND"}
-                  </span>
-                </li>
-                <li className="flex items-start py-2">
-                  <BlockIcon className="text-blue-700 text-[1.2rem] mr-3 mt-[2px]" />
-                  <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
-                    {pkg.refundable ? "Hoàn vé" : "Không hoàn vé"}
-                  </span>
-                </li>
-                <li className="flex items-start py-2 border-0">
-                  <ReceiptIcon className="text-blue-700 text-[1.2rem] mr-3 mt-[2px]" />
-                  <span className="text-[0.97rem] text-gray-700 leading-[1.5]">
-                    Có hóa đơn VAT
-                  </span>
-                </li>
-              </ul>
-
               <div>
+                <h3 className="text-lg font-bold text-gray-800">
+                  Các gói vé có sẵn
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {packages.length > 0
+                    ? `${packages.length} gói lựa chọn`
+                    : "Đang tải gói vé..."}
+                </p>
+              </div>
+            </div>
+
+            {/* Navigation buttons - only show when packages exist */}
+            {packages.length > 0 && (
+              <div className="flex gap-2">
                 <button
-                  className="w-full bg-[rgba(29, 78, 216, 0.05)] text-[#1d4ed8] border-none rounded-[8px] p-3.5 font-medium mb-3 transition-all duration-200 text-[0.95rem] hover:bg-[rgba(29, 78, 216, 0.1)] cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShowMoreDetail && onShowMoreDetail(pkg);
+                  onClick={scrollLeft}
+                  disabled={!showLeftArrow}
+                  className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all cursor-pointer ${
+                    showLeftArrow
+                      ? "border-gray-300 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-400"
+                      : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                  }`}
+                  aria-label="Cuộn trái"
+                >
+                  <ArrowBackIcon className="w-5 h-5" />
+                </button>
+
+                <button
+                  onClick={scrollRight}
+                  disabled={!showRightArrow}
+                  className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-all cursor-pointer ${
+                    showRightArrow
+                      ? "border-gray-300 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-400"
+                      : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+                  }`}
+                  aria-label="Cuộn phải"
+                >
+                  <ArrowForwardIcon className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Packages list */}
+          <div className="px-5 py-4">
+            {packages.length > 0 ? (
+              <div className="relative">
+                <div
+                  className="flex gap-5 pb-2 overflow-x-auto scroll-smooth"
+                  ref={optionListRef}
+                  style={{
+                    scrollbarWidth: "none" /* Firefox */,
+                    msOverflowStyle: "none" /* IE 10+ */,
                   }}
                 >
-                  Tìm hiểu thêm
-                </button>
-                <Link
-                  to="/booking"
-                  className="relative block w-full bg-gradient-to-r from-blue-700 to-blue-500 text-white rounded-[8px] p-4 text-[1.05rem] font-semibold text-center no-underline shadow-md hover:shadow-lg transition"
-                >
-                  <span className="relative z-[1]">Chọn</span>
-                </Link>
+                  {packages.map((pkg, idx) => (
+                    <TicketPackageCard
+                      key={`${pkg.ma_gia_ve}_${idx}`}
+                      pkg={pkg}
+                      onShowMoreDetail={onShowMoreDetail}
+                      onChoose={handlePackageSelection}
+                    />
+                  ))}
+                </div>
+                {/* Thêm pseudo-element để ẩn scrollbar trên WebKit */}
+                <style jsx>{`
+                  div[ref="${optionListRef?.current?.id ||
+                    ""}"]::-webkit-scrollbar {
+                    display: none;
+                  }
+                `}</style>
               </div>
-            </div>
-          ))}
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-8 w-8 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h4 className="text-lg font-medium text-gray-700 mb-1">
+                  Không có gói vé nào
+                </h4>
+                <p className="text-gray-500 max-w-xs">
+                  Hiện không có gói vé nào khả dụng cho chuyến bay này
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>
   );
 };
 
-export default TicketOptionsPanel;
+export default React.memo(TicketOptionsPanel);

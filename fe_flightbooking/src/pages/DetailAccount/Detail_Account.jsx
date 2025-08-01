@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import Navbar from "../../components/Navbar";
 import Item_Information from "./Item_Information";
 import Item_History_Ticket from "./Item_History_Ticket";
@@ -17,10 +17,10 @@ const Detail_Account = () => {
   const [fieldEditing, setFieldEditing] = useState(null);
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")));
 
-  const handleEdit = (field) => {
+  const handleEdit = useCallback((field) => {
     setFieldEditing(field);
     setShowModal(true);
-  };
+  }, []);
 
   const handleSave = async (newValue) => {
     const currentEmail = user.email;
@@ -54,7 +54,6 @@ const Detail_Account = () => {
 
   return (
     <>
-      <Navbar />
       <div
         className={`bg-[#f8fafc] min-h-[calc(100vh-80px)] px-8 py-5 transition-all duration-300 ease-in-out font-sans relative ${
           showModal ? "filter pointer-events-none select-none" : ""
@@ -83,11 +82,11 @@ const Detail_Account = () => {
           ))}
         </div>
 
-        <div className="w-full max-w-[1500px] mx-auto p-6 bg-white rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
+        <div className="w-full max-w-[1500px] mx-auto p-6 rounded-xl">
           {activeTab === "Thông tin cá nhân" ? (
             <Item_Information user={user} onEditField={handleEdit} />
           ) : (
-            <Item_History_Ticket />
+            <Item_History_Ticket maKhachHang={user?.ma_khach_hang} />
           )}
         </div>
       </div>

@@ -5,19 +5,15 @@ const Feature = () => {
   return (
     <section className="flex justify-center items-center relative min-h-[60vh] px-[100px] py-[20px] overflow-hidden bg-[linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);]">
       <div className="w-[100%] max-w-[1200px] flex flex-col items-center justify-center text-center relative z-10">
-        <h1 className="text-[clamp(2.5rem,5vw,4rem)] font-bold text-[#2c3e50] mb-[20px] tracking-tight">
-          <span className="bg-gradient-to-r from-[#3498db] to-[#2ecc71] bg-clip-text text-transparent">
-            Create Ever-lasting
+        <h1 className="text-[2.5rem] font-bold text-[#2c3e50] mb-[20px] tracking-tight">
+          <span className="bg-gradient-to-r from-[#7E96FF] to-[#E9C1FF] bg-clip-text text-transparent">
+            Gửi trọn trải nghiệm
           </span>
           <br />
-          <span className="bg-gradient-to-r from-[#3498db] to-[#2ecc71] bg-clip-text text-transparent">
-            Memories With Us
+          <span className="bg-gradient-to-r from-[#7E96FF] to-[#E9C1FF] bg-clip-text text-transparent">
+            Bay trọn cảm xúc
           </span>
         </h1>
-
-        <p className="text-[1.25rem] text-[#7f8c8d] mb-[40px] max-w-[600px]">
-          Discover the world with our premium flight experiences
-        </p>
 
         <div
           className="
@@ -43,4 +39,4 @@ const Feature = () => {
   );
 };
 
-export default Feature;
+export default React.memo(Feature);

@@ -6,7 +6,6 @@ const Ve = () => {
   const [hangVeData, setHangVeData] = useState([]);
   const [chuyenBayData, setChuyenBayData] = useState([]);
   const [hangBanVeData, setHangBanVeData] = useState([]);
-  const [loaiChuyenDiData, setLoaiChuyenDiData] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState({
@@ -15,7 +14,7 @@ const Ve = () => {
     ma_hang_ve: "",
     ma_chuyen_bay: "",
     ma_hang_ban_ve: "",
-    ma_chuyen_di: "",
+    goi_ve: "",
   });
 
   const fetchVeData = () => {
@@ -70,25 +69,12 @@ const Ve = () => {
       });
   };
 
-  const fetchLoaiChuyenDiData = () => {
-    axios
-      .get("http://localhost:8000/api/loai-chuyen-di")
-      .then((res) => {
-        console.log("✅ fetchLoaiChuyenDiData:", res.data);
-        setLoaiChuyenDiData(res.data);
-      })
-      .catch((err) => {
-        console.error("❌ fetchLoaiChuyenDiData lỗi:", err);
-        setMessage("❌ Lỗi khi tải danh sách loại chuyến đi");
-      });
-  };
 
   useEffect(() => {
     fetchVeData();
     fetchHangVeData();
     fetchChuyenBayData();
     fetchHangBanVeData();
-    fetchLoaiChuyenDiData();
 
   }, []);
 
@@ -106,7 +92,7 @@ const Ve = () => {
       ma_hang_ve,
       ma_chuyen_bay,
       ma_hang_ban_ve,
-      ma_chuyen_di,
+      goi_ve,
     } = formData;
     if (
       !ma_gia_ve ||
@@ -114,7 +100,7 @@ const Ve = () => {
       !ma_hang_ve ||
       !ma_chuyen_bay ||
       !ma_hang_ban_ve ||
-      !ma_chuyen_di
+      !goi_ve
     ) {
       setMessage("❌ Vui lòng điền đầy đủ thông tin");
       return;
@@ -198,19 +184,13 @@ const Ve = () => {
                 </option>
               ))}
             </select>
-            <select
-              name="ma_chuyen_di"
-              value={formData.ma_chuyen_di}
+            <input
+              name="goi_ve"
+              value={formData.goi_ve}
               onChange={handleChange}
+              placeholder="Gói vé"
               className="p-2 border rounded"
-            >
-              <option value="">Chọn loại chuyến đi</option>
-              {loaiChuyenDiData.map((item) => (
-                <option key={item.ma_chuyen_di} value={item.ma_chuyen_di}>
-                  {item.ten_chuyen_di}
-                </option>
-              ))}
-            </select>
+            />
             <div>
               <button
                 onClick={handleAdd}
@@ -243,7 +223,7 @@ const Ve = () => {
                 Hãng bán vé
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Loại chuyến đi
+                Gói vé
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Hành động
@@ -274,9 +254,7 @@ const Ve = () => {
                   )?.ten_hang_ban_ve || "N/A"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {loaiChuyenDiData.find(
-                    (lcd) => lcd.ma_chuyen_di === ve.ma_chuyen_di
-                  )?.ten_chuyen_di || "N/A"}
+                  {ve.goi_ve}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   {/* Thêm các hành động như sửa, xóa nếu cần */}

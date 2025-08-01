@@ -4,29 +4,44 @@ const Edit_Information = ({ fieldLabel, currentValue, onSave, onCancel }) => {
   const [value, setValue] = useState(currentValue || "");
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-none">
-      <div className="w-[90%] max-w-[500px] bg-white p-8 rounded-xl shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] animate-fade-in-up">
-        <h3 className="mb-6 text-[20px] font-semibold text-[#1a202c]">
-          Chỉnh sửa {fieldLabel}
-        </h3>
-        <input
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          className="w-full mb-6 px-4 py-3 text-[16px] rounded-lg border border-[#e2e8f0] transition-all focus:outline-none focus:border-[#4299e1] focus:ring-2 focus:ring-[#4299e1]/30"
-        />
-        <div className="flex justify-end gap-4">
-          <button
-            onClick={() => onSave(value)}
-            className="px-6 py-3 text-white bg-[#4299e1] hover:bg-[#3182ce] font-medium text-[16px] rounded-lg cursor-pointer transition-all duration-200 ease"
-          >
-            Đồng ý
-          </button>
-          <button
-            onClick={onCancel}
-            className="px-6 py-3 text-[#4a5568] bg-white border border-[#e2e8f0] hover:bg-[#f7fafc] hover:border-[#cbd5e0] font-medium text-[16px] rounded-lg cursor-pointer transition-all duration-200 ease"
-          >
-            Hủy
-          </button>
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/30">
+      <div className="w-[90%] max-w-md bg-white rounded-xl shadow-xl overflow-hidden animate-fade-in-up">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-6 py-4">
+          <h3 className="text-xl font-semibold text-white">
+            Chỉnh sửa {fieldLabel}
+          </h3>
+        </div>
+
+        {/* Body */}
+        <div className="p-6">
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Nhập {fieldLabel} mới
+            </label>
+            <input
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              autoFocus
+            />
+          </div>
+
+          {/* Footer */}
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={onCancel}
+              className="px-5 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium cursor-pointer"
+            >
+              Hủy bỏ
+            </button>
+            <button
+              onClick={() => onSave(value)}
+              className="px-5 py-2.5 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm cursor-pointer"
+            >
+              Lưu thay đổi
+            </button>
+          </div>
         </div>
       </div>
     </div>

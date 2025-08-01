@@ -15,6 +15,7 @@ import BusinessIcon from "@mui/icons-material/Business";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import MenuIcon from "@mui/icons-material/Menu";
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn'; // Icon cho hoàn vé
 
 const menuItems = [
   { label: "Hãng bay", icon: <AirplanemodeActiveIcon />, path: "/hang-bay" },
@@ -26,14 +27,7 @@ const menuItems = [
   { label: "Hạng vé", icon: <ClassIcon />, path: "/hang-ve" },
   { label: "Loại chuyến đi", icon: <FlightTakeoffIcon />, path: "/loai-chuyen-di" },
   { label: "Giá vé", icon: <MonetizationOnIcon />, path: "/ve" },
-  // { label: "Đặt vé", icon: <AssignmentIcon />, path: "#" },
-  // {
-  //   label: "Chi tiết vé đặt",
-  //   icon: <DescriptionIcon />,
-  //   path: "#",
-  // },
-  // { label: "Hành khách", icon: <PersonIcon />, path: "#" },
-  // { label: "Hóa đơn", icon: <ReceiptIcon />, path: "#" },
+  { label: "Xử lý hoàn vé", icon: <AssignmentReturnIcon />, path: "/xu-ly-hoan-ve" }, // 🆕 Menu mới
 ];
 
 const SideBar = () => {
