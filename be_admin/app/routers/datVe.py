@@ -60,3 +60,50 @@ def thong_ke_ve(ma_khach_hang: str = None):
             return {"data": data, "message": "Thống kê theo từng khách hàng"}
     except Exception as e:
         return JSONResponse(status_code=500, content={"message": "Lỗi khi thống kê", "detail": str(e)})
+    
+@router.get("/admin/all", tags=["dat_ve", "admin"])
+def get_all_dat_ve_admin():
+    """Get all booking tickets for admin - no customer filter required"""
+    try:
+        print("🔍 [ADMIN] Getting all tickets from MongoDB...")
+        
+        # Get all tickets from MongoDB directly
+        mongo_results = list(dat_ve_collection.find({}).sort("ngay_dat", -1))
+        
+        if not mongo_results:
+            print("❌ No tickets found in MongoDB")
+            return JSONResponse(content=[])
+        
+        print(f"✅ Found {len(mongo_results)} tickets in MongoDB")
+        
+        # Convert MongoDB data to proper format
+        formatted_results = []
+        for record in mongo_results:
+            # Convert ObjectId to string
+            record["_id"] = str(record["_id"])
+            
+            # Handle datetime conversion
+            if isinstance(record.get("ngay_dat"), datetime):
+                record["ngay_dat"] = record["ngay_dat"].strftime('%Y-%m-%d %H:%M:%S')
+            
+            # Handle other datetime fields if they exist
+            for date_field in ["ngay_yeu_cau_hoan", "ngay_duyet_hoan", "ngay_hoan_ve"]:
+                if date_field in record and isinstance(record[date_field], datetime):
+                    record[date_field] = record[date_field].strftime('%Y-%m-%d %H:%M:%S')
+            
+            # Ensure required fields exist with default values
+            record.setdefault("trang_thai", "Đang xử lý")
+            record.setdefault("loai_chuyen_di", "Một chiều")
+            record.setdefault("ma_hang_ve_di", "N/A")
+            record.setdefault("ma_tuyen_bay_di", "N/A")
+            record.setdefault("ma_hang_ve_ve", None)
+            record.setdefault("ma_tuyen_bay_ve", None)
+            
+            formatted_results.append(record)
+        
+        print(f"✅ [ADMIN] Successfully formatted {len(formatted_results)} tickets")
+        return JSONResponse(content=formatted_results)
+        
+    except Exception as e:
+        print(f"❌ [ADMIN] Error getting all tickets: {e}")
+        raise HTTPException(status_code=500, detail="Lỗi server nội bộ")

@@ -6,8 +6,8 @@ import { tuyenBayRoutes } from "./tuyenBay.routes"
 import { chuyenBayRoutes } from "./chuyenBay.routes";
 import { hangVeRoutes } from "./hangVe.routes";
 import { loaiChuyenDiRoutes } from "./loaiChuyenDi.routes";
-//import { VeRoutes } from "./giaVe.routes";
-//import { DatVeRoutes } from "./datVe.routes";
+import { VeRoutes } from "./giaVe.routes";
+import { DatVeRoutes } from "./datVe.routes";
 import { xulyHoanVeRoutes } from "./xulyHoanVe.routes";
 export const allRoutes = [
   ...hangBayRoutes,
@@ -18,8 +18,8 @@ export const allRoutes = [
   ...chuyenBayRoutes,
   ...hangVeRoutes,
   ...loaiChuyenDiRoutes,
-  //...VeRoutes,
-  //...DatVeRoutes,
+  ...VeRoutes,
+  ...DatVeRoutes,
   ...xulyHoanVeRoutes
   // thêm các routes khác ở đây
 ];

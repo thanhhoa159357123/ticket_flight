@@ -47,10 +47,12 @@ const TicketCard = ({ ticket, onSelect }) => (
     <div className="mt-3 flex justify-between items-center">
       <div>
         <div className="text-blue-700 font-medium text-sm">
-          <FaPlaneDeparture className="inline mr-1 text-blue-500" /> {ticket.ma_tuyen_bay_di}
+          <FaPlaneDeparture className="inline mr-1 text-blue-500" />{" "}
+          {ticket.ma_tuyen_bay_di}
         </div>
         <div className="text-blue-700 text-sm">
-          <FaPlaneArrival className="inline mr-1 text-blue-500" /> {ticket.ma_tuyen_bay_ve || "-"}
+          <FaPlaneArrival className="inline mr-1 text-blue-500" />{" "}
+          {ticket.ma_tuyen_bay_ve || "-"}
         </div>
       </div>
       <div className="text-right text-xs text-gray-600">
@@ -79,12 +81,27 @@ const TicketDetailPanel = ({ ticket, onClose }) => {
         Chi tiết vé {ticket.ma_dat_ve}
       </h2>
       <ul className="space-y-2 text-sm text-blue-900">
-        <li><strong>Khách hàng:</strong> {ticket.ma_khach_hang}</li>
-        <li><strong>Ngày đặt:</strong> {new Date(ticket.ngay_dat).toLocaleDateString()}</li>
-        <li><strong>Loại chuyến:</strong> {ticket.loai_chuyen_di}</li>
-        <li><strong>Trạng thái:</strong> {ticket.trang_thai}</li>
-        <li><strong>Chuyến đi:</strong> {ticket.ma_tuyen_bay_di} - {ticket.ma_hang_ve_di}</li>
-        <li><strong>Chuyến về:</strong> {ticket.ma_tuyen_bay_ve || "-"} - {ticket.ma_hang_ve_ve || "-"}</li>
+        <li>
+          <strong>Khách hàng:</strong> {ticket.ma_khach_hang}
+        </li>
+        <li>
+          <strong>Ngày đặt:</strong>{" "}
+          {new Date(ticket.ngay_dat).toLocaleDateString()}
+        </li>
+        <li>
+          <strong>Loại chuyến:</strong> {ticket.loai_chuyen_di}
+        </li>
+        <li>
+          <strong>Trạng thái:</strong> {ticket.trang_thai}
+        </li>
+        <li>
+          <strong>Chuyến đi:</strong> {ticket.ma_tuyen_bay_di} -{" "}
+          {ticket.ma_hang_ve_di}
+        </li>
+        <li>
+          <strong>Chuyến về:</strong> {ticket.ma_tuyen_bay_ve || "-"} -{" "}
+          {ticket.ma_hang_ve_ve || "-"}
+        </li>
       </ul>
     </div>
   );
@@ -97,9 +114,16 @@ const TicketListPage = () => {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    axios.get("http://localhost:8080/dat_ve").then((res) => {
-      setTickets(Array.isArray(res.data) ? res.data : []);
-    });
+    axios
+      .get("http://localhost:8080/dat_ve/admin/all")
+      .then((res) => {
+        console.log("✅ Received data:", res.data);
+        setTickets(Array.isArray(res.data) ? res.data : []);
+      })
+      .catch((error) => {
+        console.error("❌ Error fetching tickets:", error);
+        setTickets([]);
+      });
   }, []);
 
   const filteredTickets = tickets.filter((t) =>
@@ -107,7 +131,9 @@ const TicketListPage = () => {
   );
 
   const total = tickets.length;
-  const daThanhToan = tickets.filter((t) => t.trang_thai === "Đã thanh toán").length;
+  const daThanhToan = tickets.filter(
+    (t) => t.trang_thai === "Đã thanh toán"
+  ).length;
   const daHuy = tickets.filter((t) => t.trang_thai === "Đã hủy").length;
 
   return (
@@ -135,7 +161,9 @@ const TicketListPage = () => {
             </div>
             <div className="bg-white rounded-xl p-4 border border-blue-100 shadow text-center">
               <div className="text-sm text-gray-500">Đã thanh toán</div>
-              <div className="text-lg font-bold text-green-600">{daThanhToan}</div>
+              <div className="text-lg font-bold text-green-600">
+                {daThanhToan}
+              </div>
             </div>
             <div className="bg-white rounded-xl p-4 border border-blue-100 shadow text-center">
               <div className="text-sm text-gray-500">Đã hủy</div>
@@ -146,14 +174,21 @@ const TicketListPage = () => {
 
         <div className="space-y-4">
           {filteredTickets.map((ticket) => (
-            <TicketCard key={ticket.ma_dat_ve} ticket={ticket} onSelect={setSelectedTicket} />
+            <TicketCard
+              key={ticket.ma_dat_ve}
+              ticket={ticket}
+              onSelect={setSelectedTicket}
+            />
           ))}
         </div>
       </div>
 
       {selectedTicket && (
         <>
-          <TicketDetailPanel ticket={selectedTicket} onClose={() => setSelectedTicket(null)} />
+          <TicketDetailPanel
+            ticket={selectedTicket}
+            onClose={() => setSelectedTicket(null)}
+          />
           <div
             className="fixed inset-0 bg-black bg-opacity-30 z-40"
             onClick={() => setSelectedTicket(null)}
