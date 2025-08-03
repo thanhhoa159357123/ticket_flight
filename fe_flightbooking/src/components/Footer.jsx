@@ -9,42 +9,42 @@ const Footer = () => {
   };
 
   return (
-    <div className="bg-[#f5f6fa] flex text-[#333] px-[40px] border-t-[1px] border-solid border-[#e5e5e5] justify-center items-center">
+    <div className="bg-[#f5f6fa] flex px-[40px] border-t-[1px] border-solid border-[#e5e5e5] justify-center items-center">
       <div className="w-full max-w-[1400px] m-0-auto py-[20px]">
         <div className="grid grid-cols-5 gap-[2rem] pb-20px border-b-[1px] border-solid border-[#e0e0e0]">
-          <div className="text-[18px] font-bold text-[#222] pb-[10px]">
+          <div className="text-[18px] font-bold text-[#017EBE] pb-[10px]">
             Về Travelocka
           </div>
-          <div className="text-[18px] font-bold text-[#222] pb-[10px]">
+          <div className="text-[18px] font-bold text-[#017EBE] pb-[10px]">
             Sản phẩm
           </div>
-          <div className="text-[18px] font-bold text-[#222] pb-[10px]">
+          <div className="text-[18px] font-bold text-[#017EBE] pb-[10px]">
             Khác
           </div>
-          <div className="text-[18px] font-bold text-[#222] pb-[10px]">
+          <div className="text-[18px] font-bold text-[#017EBE] pb-[10px]">
             Theo dõi chúng tôi
           </div>
-          <div className="text-[18px] font-bold text-[#222] pb-[10px]">
+          <div className="text-[18px] font-bold text-[#017EBE] pb-[10px]">
             Tải ứng dụng Travelocka
           </div>
         </div>
         <div className="grid grid-cols-5 gap-[2rem] pt-[30px]">
-          <div className="text-[16px] font-medium text-[#555] mb-[12px] relative cursor-pointer transition-all duration-300 ease w-fit h-fit hover:text-[#007bff] hover:after:w-[100%] after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#007bff] after:transition-width after:duration-300 ease ">
+          <div className="text-[16px] font-medium text-[#4A8DFF] mb-[12px] relative cursor-pointer transition-all duration-300 ease w-fit h-fit hover:text-[#4A8DFF] hover:after:w-[100%] after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#4A8DFF] after:transition-width after:duration-300 ease ">
             Cách đặt chỗ
           </div>
-          <div className="text-[16px] font-medium text-[#555] mb-[12px] relative cursor-pointer transition-all duration-300 ease w-fit h-fit hover:text-[#007bff] hover:after:w-[100%] after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#007bff] after:transition-width after:duration-300 ease ">
+          <div className="text-[16px] font-medium text-[#4A8DFF] mb-[12px] relative cursor-pointer transition-all duration-300 ease w-fit h-fit hover:text-[#4A8DFF] hover:after:w-[100%] after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#4A8DFF] after:transition-width after:duration-300 ease ">
             Vé máy bay
           </div>
-          <div className="text-[16px] font-medium text-[#555] mb-[12px] relative cursor-pointer transition-all duration-300 ease w-fit h-fit hover:text-[#007bff] hover:after:w-[100%] after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#007bff] after:transition-width after:duration-300 ease ">
+          <div className="text-[16px] font-medium text-[#4A8DFF] mb-[12px] relative cursor-pointer transition-all duration-300 ease w-fit h-fit hover:text-[#4A8DFF] hover:after:w-[100%] after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[2px] after:bg-[#4A8DFF] after:transition-width after:duration-300 ease ">
             Quy chế hoạt động
           </div>
           <div className="inline-flex flex-col gap-[15px] relative">
             {/* Facebook */}
             <div
-              className="relative inline-flex items-center gap-[10px] cursor-pointer text-[16px] text-[#555] px-[5px] w-fit h-fit transition-all duration-200 ease-in-out
+              className="relative inline-flex font-medium items-center gap-[10px] cursor-pointer text-[16px] text-[#4A8DFF] px-[5px] w-fit h-fit transition-all duration-200 ease-in-out
       hover:text-black group"
             >
-              <FacebookIcon className="text-[22px] text-[#555] transition-all duration-200 ease-in-out group-hover:text-[#3b5998]" />
+              <FacebookIcon className="text-[22px] text-[#4A8DFF] transition-all duration-200 ease-in-out group-hover:text-[#3b5998]" />
               <span>Facebook</span>
               <span
                 className="absolute bottom-[-4px] left-0 h-[2px] w-0 bg-[#3b5998] transition-all duration-300 ease-in-out
@@ -54,10 +54,10 @@ const Footer = () => {
 
             {/* Instagram */}
             <div
-              className="relative inline-flex items-center gap-[10px] cursor-pointer text-[16px] text-[#555] px-[5px] w-fit h-fit transition-all duration-200 ease-in-out
+              className="relative inline-flex font-medium items-center gap-[10px] cursor-pointer text-[16px] text-[#4A8DFF] px-[5px] w-fit h-fit transition-all duration-200 ease-in-out
       hover:text-black group"
             >
-              <InstagramIcon className="text-[22px] text-[#555] transition-all duration-200 ease-in-out group-hover:text-[#e1306c]" />
+              <InstagramIcon className="text-[22px] text-[#4A8DFF] transition-all duration-200 ease-in-out group-hover:text-[#E4405F]" />
               <span>Instagram</span>
               <span
                 className="absolute bottom-[-4px] left-0 h-[2px] w-0 bg-[#e1306c] transition-all duration-300 ease-in-out
@@ -67,10 +67,10 @@ const Footer = () => {
 
             {/* YouTube */}
             <div
-              className="relative inline-flex items-center gap-[10px] cursor-pointer text-[16px] text-[#555] px-[5px] w-fit h-fit transition-all duration-200 ease-in-out
+              className="relative inline-flex font-medium items-center gap-[10px] cursor-pointer text-[16px] text-[#4A8DFF] px-[5px] w-fit h-fit transition-all duration-200 ease-in-out
       hover:text-black group"
             >
-              <YouTubeIcon className="text-[22px] text-[#555] transition-all duration-200 ease-in-out group-hover:text-[#ff0000]" />
+              <YouTubeIcon className="text-[22px] text-[#4A8DFF] transition-all duration-200 ease-in-out group-hover:text-[#ff0000]" />
               <span>Youtube</span>
               <span
                 className="absolute bottom-[-4px] left-0 h-[2px] w-0 bg-[#ff0000] transition-all duration-300 ease-in-out
@@ -89,7 +89,7 @@ const Footer = () => {
               decoding="async"
               alt="QR Download App"
               src="https://d1785e74lyxkqq.cloudfront.net/_next/static/v3/f/f519939e72eccefffb6998f1397901b7.svg"
-              className="w-[120px] h-auto rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-in-out hover:scale-[1.02]"
+              className="w-[120px] h-auto rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
             />
             <img
               importance="low"
@@ -97,7 +97,7 @@ const Footer = () => {
               decoding="async"
               alt="QR Download App"
               src="https://d1785e74lyxkqq.cloudfront.net/_next/static/v3/1/18339f1ae28fb0c49075916d11b98829.svg"
-              className="w-[120px] h-auto rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.1)] transition-transform duration-300 ease-in-out hover:scale-[1.02]"
+              className="w-[120px] h-auto rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
             />
             <span className="text-[13px] font-medium text-[#666]">
               Quét mã để tải ứng dụng
@@ -109,4 +109,4 @@ const Footer = () => {
   );
 };
 
-export default Footer;
+export default React.memo(Footer);

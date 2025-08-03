@@ -8,7 +8,7 @@ const NameGuidePopover = ({ show, onClose }) => {
     <div className="absolute left-full top-0 ml-4 w-[340px] z-30 bg-white shadow-lg border border-gray-200 rounded-lg p-4">
       <div className="flex justify-between items-start mb-2">
         <h3 className="text-sm font-semibold">Hướng dẫn nhập tên</h3>
-        <CloseIcon onClick={onClose} className="text-gray-500 transition duration-200 ease cursor-pointer hover:text-black text-lg leading-none"/>
+        <CloseIcon onClick={onClose} className="text-gray-500 transition duration-300 ease-in-out cursor-pointer hover:text-black text-lg leading-none"/>
       </div>
 
       <img
