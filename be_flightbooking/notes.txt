@@ -1,8 +1,5 @@
 (Chạy BE)
 uvicorn main:app --reload
 
-(Chạy BE Admin)
-uvicorn main:app --reload --port 8080
-
 Kích hoạt môi trường 
 .\.venv\Scripts\activate

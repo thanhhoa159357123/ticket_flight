@@ -1,26 +1,21 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.hang_ban_ve import HangBanVe
-from utils.spark import get_spark
+from utils.spark import load_df, invalidate_cache
+from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
-import json
+import os
 
 router = APIRouter()
-client = MongoClient("mongodb://localhost:27017")
-hang_ban_ve_collection = client["flightApp"]["hang_ban_ve"]
+client = MongoClient(MONGO_URI)
+hang_ban_ve_collection = client[MONGO_DB]["hang_ban_ve"]
 
-
-@router.post("/add", tags=["hang_ban_ve"])
+@router.post("", tags=["hang_ban_ve"])
 def add_hang_ban_ve(hang_ban_ve: HangBanVe):
     try:
         print("📥 Dữ liệu nhận từ client:", hang_ban_ve.dict())
 
-        spark = get_spark()
-        df = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.hang_ban_ve")
-            .load()
-        )
+        df = load_df("hang_ban_ve")
         print("✅ Đã load dữ liệu từ MongoDB bằng Spark")
 
         if (
@@ -36,7 +31,7 @@ def add_hang_ban_ve(hang_ban_ve: HangBanVe):
 
         # Gắn lại _id vào dict theo dạng chuỗi nếu muốn trả về
         data_to_insert["_id"] = str(inserted.inserted_id)
-
+        invalidate_cache("hang_ban_ve")
         return JSONResponse(
             content={"message": "Thêm hãng bán vé thành công", "hang_ban_ve": data_to_insert}
         )
@@ -46,16 +41,10 @@ def add_hang_ban_ve(hang_ban_ve: HangBanVe):
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
 
-@router.get("/get", tags=["hang_ban_ve"])
+@router.get("", tags=["hang_ban_ve"])
 def get_all_hang_ban_ve():
     try:
-        spark = get_spark()
-        df = spark.read.format("com.mongodb.spark.sql.DefaultSource") \
-            .option("uri", "mongodb://localhost:27017/flightApp.hang_ban_ve") \
-            .load()
-        
-        print("✅ Đã đọc dữ liệu hãng bay từ MongoDB bằng Spark")
-        df.printSchema()
+        df = load_df("hang_ban_ve")
 
         # Các cột mong muốn
         df = df.select("ma_hang_ban_ve", "ten_hang_ban_ve", "vai_tro")
@@ -67,7 +56,7 @@ def get_all_hang_ban_ve():
         print("❌ Lỗi trong get_all_hang_ban_ve:", str(e))
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
     
-@router.delete("/delete/{ma_hang_ban_ve}", tags=["hang_ban_ve"])
+@router.delete("/{ma_hang_ban_ve}", tags=["hang_ban_ve"])
 def delete_hang_ban_ve(ma_hang_ban_ve: str):
     try:
         print(f"🗑 Nhận yêu cầu xoá tuyến bay: {ma_hang_ban_ve}")

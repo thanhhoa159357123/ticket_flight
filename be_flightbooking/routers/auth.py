@@ -1,10 +1,9 @@
 from fastapi import APIRouter, HTTPException, Query, Body
 from models.khach_hang import KhachHangCreate
-from utils.spark import get_spark
+from utils.spark import load_df, invalidate_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from datetime import datetime, timezone
-import os
 import json
 import traceback
 
@@ -19,24 +18,15 @@ def generate_next_ma_khach_hang():
     next_number = int(last_code[2:]) + 1
     return f"KH{next_number:03}"
 
-def load_khach_hang_df():
-    spark = get_spark()
-    return (
-        spark.read.format("com.mongodb.spark.sql.DefaultSource")
-        .option("uri", os.getenv("MONGO_URI"))
-        .option("database", MONGO_DB)
-        .option("collection", "khach_hang")
-        .load()
-    )
-
 @router.post("/register", tags=["auth"])
 def register_user(khach_hang: KhachHangCreate):
     try:
         print("📥 Dữ liệu nhận từ client:", json.dumps(khach_hang.dict(), ensure_ascii=False))
 
-        df = load_khach_hang_df()
+        df = load_df("khach_hang")
+        matched_df = df.filter(df["email"] == khach_hang.email)
 
-        if "email" in df.columns and df.filter(df["email"] == khach_hang.email).count() > 0:
+        if matched_df.count() > 0:
             raise HTTPException(status_code=400, detail="Email đã tồn tại")
 
         ma_khach_hang = generate_next_ma_khach_hang()
@@ -53,8 +43,9 @@ def register_user(khach_hang: KhachHangCreate):
         })
 
         khach_hang_collection.insert_one(data_to_insert)
-        print("🎉 Đăng ký thành công:", khach_hang.email)
+        invalidate_cache("khach_hang")
 
+        print("🎉 Đăng ký thành công:", khach_hang.email)
         return {"message": "Đăng ký thành công", "ma_khach_hang": ma_khach_hang}
 
     except Exception as e:
@@ -65,19 +56,18 @@ def register_user(khach_hang: KhachHangCreate):
 @router.post("/login", tags=["auth"])
 def login_user(email: str = Query(...), matkhau: str = Query(...)):
     try:
-        df = load_khach_hang_df()
-
-        matched = df.filter(
-            (df.email == email)
-            & (df.matkhau == matkhau)
-            & (df.is_active == True)
-            & (df.deleted_at == "")
+        df = load_df("khach_hang")
+        result_df = df.filter(
+            (df["email"] == email) &
+            (df["matkhau"] == matkhau) &
+            (df["is_active"] == True) &
+            (df["deleted_at"] == "")
         )
 
-        if matched.count() == 0:
+        if result_df.count() == 0:
             raise HTTPException(status_code=401, detail="Sai thông tin đăng nhập")
 
-        row = matched.first()
+        row = result_df.first()
         return {
             "message": "Đăng nhập thành công",
             "ma_khach_hang": row["ma_khach_hang"],
@@ -92,7 +82,7 @@ def login_user(email: str = Query(...), matkhau: str = Query(...)):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-@router.post("/update-info", tags=["auth"])
+@router.patch("/update-info", tags=["auth"])
 def update_user_info(
     current_email: str = Query(...),
     ten_khach_hang: str = Body(None),
@@ -101,7 +91,7 @@ def update_user_info(
     email: str = Body(None),
 ):
     try:
-        df_check = load_khach_hang_df()
+        df_check = load_df("khach_hang")
 
         update_fields = {}
         if ten_khach_hang:
@@ -111,10 +101,10 @@ def update_user_info(
         if matkhau:
             update_fields["matkhau"] = matkhau
         if email:
-            if (
-                df_check.filter((df_check.email == email) & (df_check.email != current_email)).count()
-                > 0
-            ):
+            email_conflict_df = df_check.filter(
+                (df_check["email"] == email) & (df_check["email"] != current_email)
+            )
+            if email_conflict_df.count() > 0:
                 raise HTTPException(status_code=400, detail="Email mới đã tồn tại")
             update_fields["email"] = email
 
@@ -128,9 +118,11 @@ def update_user_info(
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
 
-        df_updated = load_khach_hang_df()
+        invalidate_cache("khach_hang")
+
+        df_updated = load_df("khach_hang")
         final_email = email if email else current_email
-        user_row = df_updated.filter(df_updated.email == final_email).first()
+        user_row = df_updated.filter(df_updated["email"] == final_email).first()
 
         return {
             "message": "Cập nhật thành công",

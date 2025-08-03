@@ -1,125 +1,94 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.chuyen_bay import ChuyenBay
-from utils.spark import get_spark
+from utils.spark import load_df, invalidate_cache
+from utils.spark_views import cached_views
+from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
+from datetime import timedelta
 import pandas as pd
-import pytz
 
 router = APIRouter()
-client = MongoClient("mongodb://localhost:27017")
-db = client["flightApp"]
+client = MongoClient(MONGO_URI)
+db = client[MONGO_DB]
 chuyen_bay_collection = db["chuyen_bay"]
-tuyen_bay_collection = db["tuyen_bay"]
-hang_bay_collection = db["hang_bay"]
 
+# 💡 Hàm kiểm tra mã tồn tại trong DataFrame
+def check_exists(df, field_name, value) -> bool:
+    return df.filter(df[field_name] == value).count() > 0
 
-@router.post("/add", tags=["chuyen_bay"])
+@router.post("", tags=["chuyen_bay"])
 def add_chuyen_bay(chuyen_bay: ChuyenBay):
-    print("🔥 Nhận yêu cầu POST /add")
     try:
-        print(f"🔥 Dữ liệu nhận được: {chuyen_bay}")
+        print("📥 Nhận dữ liệu thêm chuyến bay:", chuyen_bay.dict())
 
-        if not hang_bay_collection.find_one({"ma_hang_bay": chuyen_bay.ma_hang_bay}):
-            print(f"❌ Mã hãng bay {chuyen_bay.ma_hang_bay} không tồn tại")
+        df_hang_bay = cached_views["hang_bay"]
+        df_tuyen_bay = cached_views["tuyen_bay"]
+        df_chuyen_bay = cached_views["chuyen_bay"]
+
+        if not check_exists(df_hang_bay, "ma_hang_bay", chuyen_bay.ma_hang_bay):
             raise HTTPException(status_code=400, detail="Mã hãng bay không tồn tại")
-        if not tuyen_bay_collection.find_one({"ma_tuyen_bay": chuyen_bay.ma_tuyen_bay}):
-            print(f"❌ Mã tuyến bay {chuyen_bay.ma_tuyen_bay} không tồn tại")
+
+        if not check_exists(df_tuyen_bay, "ma_tuyen_bay", chuyen_bay.ma_tuyen_bay):
             raise HTTPException(status_code=400, detail="Mã tuyến bay không tồn tại")
 
-        spark = get_spark()
-        df = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.chuyen_bay")
-            .load()
-        )
-
-        if (
-            "ma_chuyen_bay" in df.columns
-            and df.filter(df["ma_chuyen_bay"] == chuyen_bay.ma_chuyen_bay).count() > 0
-        ):
+        if check_exists(df_chuyen_bay, "ma_chuyen_bay", chuyen_bay.ma_chuyen_bay):
             raise HTTPException(status_code=400, detail="Mã chuyến bay đã tồn tại")
 
-        data_to_insert = chuyen_bay.dict()
-        insert_result = chuyen_bay_collection.insert_one(data_to_insert)
-        
-        # Chuyển datetime thành string để có thể serialize JSON
-        data_to_insert["_id"] = str(insert_result.inserted_id)
-        data_to_insert["gio_di"] = data_to_insert["gio_di"].strftime("%d/%m/%Y, %H:%M:%S")
-        data_to_insert["gio_den"] = data_to_insert["gio_den"].strftime("%d/%m/%Y, %H:%M:%S")
-        
-        print(f"✅ Thêm chuyến bay thành công: {data_to_insert}")
+        inserted = chuyen_bay_collection.insert_one(chuyen_bay.dict())
+        invalidate_cache("chuyen_bay")
 
-        return JSONResponse(
-            content={
-                "message": "Thêm chuyến bay thành công",  # Sửa từ "tuyến bay" thành "chuyến bay"
-                "chuyen_bay": data_to_insert,  # Sửa từ "tuyen_bay" thành "chuyen_bay"
-            }
-        )
+        inserted_data = chuyen_bay.dict()
+        inserted_data["_id"] = str(inserted.inserted_id)
+        inserted_data["gio_di"] = inserted_data["gio_di"].strftime("%d/%m/%Y, %H:%M:%S")
+        inserted_data["gio_den"] = inserted_data["gio_den"].strftime("%d/%m/%Y, %H:%M:%S")
+
+        print("✅ Đã thêm chuyến bay:", inserted_data["ma_chuyen_bay"])
+        return JSONResponse(content={"message": "Thêm chuyến bay thành công", "chuyen_bay": inserted_data})
 
     except HTTPException as he:
         raise he
-
     except Exception as e:
-        print(f"❌ Lỗi khi đọc dữ liệu từ MongoDB: {e}")
-        raise HTTPException(status_code=500, detail="Lỗi khi đọc dữ liệu từ MongoDB")
+        print("❌ Lỗi thêm chuyến bay:", str(e))
+        raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-
-@router.get("/get", tags=["chuyen_bay"])
+@router.get("", tags=["chuyen_bay"])
 def get_all_chuyen_bay():
-    print("🔥 Nhận yêu cầu GET /get")
     try:
-        spark = get_spark()
+        spark = cached_views["chuyen_bay"].sparkSession
 
-        df_chuyen_bay = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.chuyen_bay")
-            .load()
-        )
-        df_hang_bay = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.hang_bay")
-            .load()
-        )
-
-        df_tuyen_bay = (
-            spark.read.format("com.mongodb.spark.sql.DefaultSource")
-            .option("uri", "mongodb://localhost:27017/flightApp.tuyen_bay")
-            .load()
-        )
-
-        df_chuyen_bay.createOrReplaceTempView("chuyen_bay")
-        df_hang_bay.createOrReplaceTempView("hang_bay")
-        df_tuyen_bay.createOrReplaceTempView("tuyen_bay")
+        # Tạo lại Temp View nếu cần JOIN
+        cached_views["chuyen_bay"].createOrReplaceTempView("chuyen_bay")
+        cached_views["tuyen_bay"].createOrReplaceTempView("tuyen_bay")
+        cached_views["hang_bay"].createOrReplaceTempView("hang_bay")
 
         query = """
-        select 
+        SELECT 
             cb.ma_chuyen_bay, 
             cb.ma_tuyen_bay, 
             cb.ma_hang_bay, 
             cb.trang_thai,
-            cast(cb.gio_di as string) as gio_di, 
-            cast(cb.gio_den as string) as gio_den, 
+            CAST(cb.gio_di AS STRING) AS gio_di, 
+            CAST(cb.gio_den AS STRING) AS gio_den, 
             hb.ten_hang_bay
-        from chuyen_bay cb
-        left join tuyen_bay tb on cb.ma_tuyen_bay = tb.ma_tuyen_bay
-        left join hang_bay hb on cb.ma_hang_bay = hb.ma_hang_bay
+        FROM chuyen_bay cb
+        LEFT JOIN tuyen_bay tb ON cb.ma_tuyen_bay = tb.ma_tuyen_bay
+        LEFT JOIN hang_bay hb ON cb.ma_hang_bay = hb.ma_hang_bay
         """
 
-        df_result = spark.sql(query)
-        pdf = df_result.toPandas()
+        df = spark.sql(query)
+        pdf = df.toPandas()
 
-        # Debug: Xem dữ liệu thô
-        print("Dữ liệu thô gio_di:", pdf["gio_di"].iloc[0] if len(pdf) > 0 else "No data")
-        
-        if len(pdf) > 0:
-            # Cách thủ công: Trừ đi 7 tiếng để có giờ đúng
-            pdf["gio_di"] = (pd.to_datetime(pdf["gio_di"]) - pd.Timedelta(hours=7)).dt.strftime("%d/%m/%Y, %H:%M:%S")
-            pdf["gio_den"] = (pd.to_datetime(pdf["gio_den"]) - pd.Timedelta(hours=7)).dt.strftime("%d/%m/%Y, %H:%M:%S")
+        if not pdf.empty:
+            pdf["gio_di"] = (
+                pd.to_datetime(pdf["gio_di"]) - timedelta(hours=7)
+            ).dt.strftime("%d/%m/%Y, %H:%M:%S")
+            pdf["gio_den"] = (
+                pd.to_datetime(pdf["gio_den"]) - timedelta(hours=7)
+            ).dt.strftime("%d/%m/%Y, %H:%M:%S")
 
-        result = pdf.to_dict(orient="records")
-        return JSONResponse(content=result)
+        return JSONResponse(content=pdf.to_dict(orient="records"))
 
     except Exception as e:
-        print(f"❌ Lỗi khi đọc dữ liệu từ MongoDB: {e}")
-        raise HTTPException(status_code=500, detail="Lỗi khi đọc dữ liệu từ MongoDB")
+        print("❌ Lỗi đọc danh sách chuyến bay:", str(e))
+        raise HTTPException(status_code=500, detail="Lỗi server nội bộ")

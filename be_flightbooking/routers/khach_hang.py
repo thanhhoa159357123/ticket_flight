@@ -1,50 +1,42 @@
 from fastapi import APIRouter, HTTPException, Body, Path
 from fastapi.responses import JSONResponse
-from utils.spark import get_spark
+from utils.spark import load_df, invalidate_cache
+from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from utils.logger import logger
 from datetime import datetime, timezone
 
-
 router = APIRouter()
-client = MongoClient("mongodb://localhost:27017")
-khach_hang_collection = client["flightApp"]["khach_hang"]
+client = MongoClient(MONGO_URI)
+khach_hang_collection = client[MONGO_DB]["khach_hang"]
 
-@router.get("/khachhang", tags=["khach_hang"])
+@router.get("", tags=["khach_hang"])
 def get_all_khach_hang():
     try:
-        spark = get_spark()
-        df = spark.read.format("com.mongodb.spark.sql.DefaultSource") \
-            .option("uri", "mongodb://localhost:27017/flightApp.khach_hang") \
-            .load()
+        df = load_df("khach_hang")
+        filtered_df = df.filter((df["deleted_at"] == "") & (df["is_active"] == True))
 
-        print("✅ Đã đọc dữ liệu khách hàng từ MongoDB bằng Spark")
+        selected_df = filtered_df.select(
+            "ma_khach_hang", "ten_khach_hang", "so_dien_thoai", "email", "is_active", "da_dat_ve"
+        )
 
-        df = df.filter("deleted_at == '' AND is_active == true") \
-               .select("ma_khach_hang", "ten_khach_hang", "so_dien_thoai", "email", "is_active", "da_dat_ve")
-        result = df.toPandas().to_dict(orient="records")
-
+        result = selected_df.toPandas().to_dict(orient="records")
         return JSONResponse(content=result)
 
     except Exception as e:
         print("❌ Lỗi trong get_all_khach_hang:", str(e))
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-@router.get("/khachhang/{ma_khach_hang}", tags=["khach_hang"])
+@router.get("/{ma_khach_hang}", tags=["khach_hang"])
 def get_khach_hang(ma_khach_hang: str):
     try:
-        spark = get_spark()
-        df = spark.read.format("com.mongodb.spark.sql.DefaultSource") \
-            .option("uri", "mongodb://localhost:27017/flightApp.khach_hang") \
-            .load()
+        df = load_df("khach_hang")
+        result_df = df.filter((df["ma_khach_hang"] == ma_khach_hang) & (df["deleted_at"] == ""))
 
-        print(f"🔍 Tìm kiếm khách hàng với mã: {ma_khach_hang}")
-        filtered = df.filter((df["ma_khach_hang"] == ma_khach_hang) & (df["deleted_at"] == ""))
-
-        if filtered.count() == 0:
+        if result_df.count() == 0:
             raise HTTPException(status_code=404, detail="Không tìm thấy khách hàng")
 
-        row = filtered.first()
+        row = result_df.first()
         result = {
             "ma_khach_hang": row["ma_khach_hang"],
             "ten_khach_hang": row["ten_khach_hang"],
@@ -61,8 +53,7 @@ def get_khach_hang(ma_khach_hang: str):
         print("❌ Lỗi trong get_khach_hang:", str(e))
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-
-@router.patch("/khachhang/update/{ma_khach_hang}", tags=["khach_hang"])
+@router.patch("/{ma_khach_hang}", tags=["khach_hang"])
 def update_khach_hang_admin(
     ma_khach_hang: str = Path(...),
     ten_khach_hang: str = Body(None),
@@ -72,21 +63,18 @@ def update_khach_hang_admin(
     is_active: bool = Body(None)
 ):
     try:
-        update_fields = {}
-
-        if ten_khach_hang:
-            update_fields["ten_khach_hang"] = ten_khach_hang
-        if so_dien_thoai:
-            update_fields["so_dien_thoai"] = so_dien_thoai
-        if email:
-            update_fields["email"] = email
-        if matkhau:
-            update_fields["matkhau"] = matkhau
-        if is_active is not None:
-            update_fields["is_active"] = is_active
+        update_fields = {
+            key: value for key, value in {
+                "ten_khach_hang": ten_khach_hang,
+                "so_dien_thoai": so_dien_thoai,
+                "email": email,
+                "matkhau": matkhau,
+                "is_active": is_active
+            }.items() if value is not None
+        }
 
         if not update_fields:
-            raise HTTPException(status_code=400, detail="Không có trường hợp nào hợp lệ để cập nhật")
+            raise HTTPException(status_code=400, detail="Không có trường nào hợp lệ để cập nhật")
 
         update_fields["last_active_at"] = datetime.now(timezone.utc).isoformat()
 
@@ -98,8 +86,8 @@ def update_khach_hang_admin(
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Không tìm thấy khách hàng")
 
-        # ✅ GHI LOG
         logger.info(f"[ADMIN UPDATE] Mã KH: {ma_khach_hang} | Thay đổi: {update_fields}")
+        invalidate_cache("khach_hang")
 
         updated_doc = khach_hang_collection.find_one({"ma_khach_hang": ma_khach_hang})
         updated_doc.pop("_id", None)
