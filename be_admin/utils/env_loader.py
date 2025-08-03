@@ -8,3 +8,10 @@ print("✅ Biến môi trường của .env đã được tải thành công!")
 MONGO_URI = os.getenv("MONGO_URI")
 MONGO_DB = os.getenv("MONGO_DB")
 
+
+DATA_MONGO_URI = os.getenv("MONGODA_URI")
+DATA_MONGO_DB = os.getenv("MONGODA_DB")
+
+
+
+

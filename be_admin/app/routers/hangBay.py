@@ -1,17 +1,16 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Body
 from fastapi.responses import JSONResponse
 from app.models.hang_bay import HangBay
-from utils.spark import load_df, invalidate_cache
-from utils.env_loader import MONGO_DB, MONGO_URI    # cái này thì nó đọc được dữ liệu
-from utils.data_env_loader import MONGODA_DB, MONGODA_URI  # cái này thì ko
+from utils.spark import load_df, invalidate_cache, get_spark
+from utils.env_loader import DATA_MONGO_DB, DATA_MONGO_URI
 from pymongo import MongoClient
-import json
 import traceback
-from fastapi import Body
-router = APIRouter()
-client = MongoClient(MONGODA_URI)
-hang_bay_collection = client[MONGODA_DB]["hang_bay"]
 
+router = APIRouter()
+
+# Kết nối MongoDB
+client = MongoClient(DATA_MONGO_URI)
+hang_bay_collection = client[DATA_MONGO_DB]["hang_bay"]
 
 @router.post("", tags=["hang_bay"])
 def add_hang_bay(hang_bay: HangBay):
@@ -114,7 +113,7 @@ def delete_hang_bay(ma_hang_bay: str):
         result = hang_bay_collection.delete_one({"ma_hang_bay": ma_hang_bay})
 
         if result.deleted_count == 0:
-            raise HTTPException(status_code=404, detail="Không tìm thấy tuyến bay cần xoá")
+            raise HTTPException(status_code=404, detail="Không tìm thấy hãng bay cần xoá")
 
         return JSONResponse(content={"message": f"Đã xoá hãng bay {ma_hang_bay} thành công"})
 

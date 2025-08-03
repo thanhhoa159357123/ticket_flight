@@ -1,103 +1,183 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { FaUserEdit, FaSearch } from "react-icons/fa";
+import { FaSearch, FaEdit, FaTrash, FaTimes } from "react-icons/fa";
 
-const Khach_Hang = () => {
-  const [data, setData] = useState([]);
-  const [search, setSearch] = useState("");
+const API_URL = "http://localhost:8080/khach_hang";
+
+function KhachHang() {
+  const [khachHangs, setKhachHangs] = useState([]);
+  const [searchId, setSearchId] = useState("");
+  const [searchResult, setSearchResult] = useState(null);
+  const [message, setMessage] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8000/api/khachhang")
-      .then((res) => setData(res.data))
-      .catch((err) => console.error(err));
+    fetchKhachHangs();
   }, []);
 
-  // Lọc khách hàng theo tên, email, số điện thoại
-  const filteredData = data.filter(
-    (user) =>
-      user.ten_khach_hang.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase()) ||
-      user.so_dien_thoai.includes(search)
-  );
+  const fetchKhachHangs = async () => {
+    try {
+      const res = await axios.get(API_URL);
+      setKhachHangs(res.data);
+    } catch (err) {
+      console.error(err);
+      setMessage("Không thể lấy dữ liệu khách hàng.");
+    }
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setSearchResult(null);
+    try {
+      const res = await axios.get(`${API_URL}/${searchId}`);
+      setSearchResult(res.data);
+    } catch (err) {
+      console.error(err);
+      setMessage("Không tìm thấy khách hàng với mã đã nhập.");
+    }
+  };
+
+  const handleDelete = async (ma_khach_hang) => {
+    if (!window.confirm("Bạn có chắc muốn xóa khách hàng này?")) return;
+    try {
+      await axios.delete(`${API_URL}/${ma_khach_hang}`);
+      fetchKhachHangs();
+      setMessage("Xóa thành công.");
+    } catch (err) {
+      console.error(err);
+      setMessage("Xóa thất bại.");
+    }
+  };
+
+  const toggleSearchForm = () => {
+    setShowSearch(true);
+    setSearchId("");
+    setSearchResult(null);
+    setMessage("");
+  };
+
+  const handleCancel = () => {
+    setShowSearch(false);
+    setSearchId("");
+    setSearchResult(null);
+    setMessage("");
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white py-10 px-4">
+    <div className="p-8 bg-gradient-to-br from-blue-50 to-white min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10 gap-4">
-          <h2 className="text-3xl font-extrabold text-blue-700 tracking-tight drop-shadow">
-            Danh sách khách hàng
-          </h2>
-          <div className="relative w-full md:w-80">
-            <input
-              type="text"
-              placeholder="Tìm kiếm tên, email, SĐT..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full py-2 pl-10 pr-4 rounded-2xl border border-blue-200 shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-            <FaSearch className="absolute left-3 top-2.5 w-5 h-5 text-blue-400" />
-          </div>
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-3xl font-extrabold text-blue-700 drop-shadow">Danh sách khách hàng</h2>
+          <button
+            onClick={toggleSearchForm}
+            className="flex items-center gap-2 px-5 py-2 rounded-full shadow-lg bg-gradient-to-tr from-blue-500 to-cyan-400 text-white font-semibold hover:scale-105 transition"
+          >
+            <FaSearch /> Tìm khách hàng
+          </button>
         </div>
 
-        {/* Grid danh sách khách hàng */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-7">
-          {filteredData.map((user) => (
+        {message && (
+          <div className="mb-6 px-4 py-3 rounded-xl bg-blue-100 text-blue-900 font-semibold shadow">
+            {message}
+          </div>
+        )}
+
+        {showSearch && (
+          <>
+            <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-40" onClick={handleCancel} />
             <div
-              key={user.ma_khach_hang}
-              className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center transition hover:shadow-xl hover:-translate-y-1"
+              className="fixed z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-3xl font-bold mb-4 shadow">
-                {/* Avatar ký tự đầu tên */}
-                {user.ten_khach_hang?.[0]?.toUpperCase() || "?"}
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-blue-600">Tìm khách hàng</h3>
+                <button
+                  onClick={handleCancel}
+                  className="p-2 rounded-full hover:bg-gray-100 transition"
+                >
+                  <FaTimes className="text-xl text-blue-400" />
+                </button>
               </div>
-              <div className="text-lg font-semibold text-gray-800 mb-1">
-                {user.ten_khach_hang}
-              </div>
-              <div className="text-sm text-gray-500 mb-1">
-                <span className="font-medium text-blue-600">Mã KH:</span> {user.ma_khach_hang}
-              </div>
-              <div className="text-sm text-gray-500 mb-1">
-                <span className="font-medium text-blue-600">SĐT:</span> {user.so_dien_thoai}
-              </div>
-              <div className="text-sm text-gray-500 mb-3">
-                <span className="font-medium text-blue-600">Email:</span> {user.email}
-              </div>
-              <button
-                className="flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-400 text-white font-semibold shadow hover:from-blue-600 hover:to-cyan-500 transition"
-                // onClick={() => ...} // Thêm chức năng sửa nếu cần
-              >
-                <FaUserEdit /> Sửa
-              </button>
-            </div>
-          ))}
-          {filteredData.length === 0 && (
-            <div className="col-span-full text-center text-gray-400 py-12 text-lg">
-              Không tìm thấy khách hàng phù hợp.
-            </div>
-          )}
-        </div>
 
-        {/* Pagination mẫu (tĩnh, có thể nâng cấp thành động) */}
-        <div className="mt-10 flex justify-between items-center">
-          <div className="text-sm text-gray-500">
-            Hiển thị {filteredData.length} khách hàng
-          </div>
-          <div className="flex space-x-2">
-            <button className="px-3 py-1 border rounded-full text-gray-600 hover:bg-gray-100">
-              Trước
-            </button>
-            <button className="px-3 py-1 border rounded-full bg-blue-600 text-white">
-              1
-            </button>
-            <button className="px-3 py-1 border rounded-full text-gray-600 hover:bg-gray-100">
-              Sau
-            </button>
+              <form onSubmit={handleSearch} className="space-y-4">
+                <input
+                  name="searchId"
+                  placeholder="Nhập mã khách hàng (VD: KH_1693548392)"
+                  value={searchId}
+                  onChange={(e) => setSearchId(e.target.value)}
+                  className="w-full p-3 border rounded-xl bg-gray-50"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-bold shadow-md"
+                >
+                  Tìm kiếm
+                </button>
+              </form>
+
+              {searchResult && (
+                <div className="mt-6 border-t pt-4 text-sm text-gray-700 space-y-2">
+                  <p><strong>Mã KH:</strong> {searchResult.ma_khach_hang}</p>
+                  <p><strong>Tên:</strong> {searchResult.ten_khach_hang}</p>
+                  <p><strong>Email:</strong> {searchResult.email}</p>
+                  <p><strong>SĐT:</strong> {searchResult.so_dien_thoai}</p>
+                  <p><strong>Ngày tạo:</strong> {new Date(searchResult.created_at).toLocaleString()}</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        <div className={showSearch ? "pointer-events-none blur-[2px] select-none" : ""}>
+          <div className="overflow-x-auto">
+            <table className="min-w-full bg-white shadow-xl rounded-2xl overflow-hidden">
+              <thead className="bg-gradient-to-r from-blue-100 to-cyan-100">
+                <tr>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">Mã KH</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">Tên</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">SĐT</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">Email</th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-blue-700 uppercase">Hành động</th>
+                </tr>
+              </thead>
+              <tbody>
+                {khachHangs.map((kh, idx) => (
+                  <tr key={kh.ma_khach_hang} className={`hover:bg-blue-50 transition ${idx % 2 === 0 ? "bg-white" : "bg-blue-50"}`}>
+                    <td className="px-6 py-4 font-semibold text-blue-800">{kh.ma_khach_hang}</td>
+                    <td className="px-6 py-4">{kh.ten_khach_hang}</td>
+                    <td className="px-6 py-4">{kh.so_dien_thoai}</td>
+                    <td className="px-6 py-4">{kh.email}</td>
+                    <td className="px-6 py-4 flex justify-center gap-2">
+                      <button
+                        disabled
+                        className="flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 cursor-not-allowed shadow"
+                      >
+                        <FaEdit /> Sửa
+                      </button>
+                      <button
+                        onClick={() => handleDelete(kh.ma_khach_hang)}
+                        className="flex items-center gap-1 px-3 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-200 shadow"
+                      >
+                        <FaTrash /> Xóa
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {khachHangs.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="text-center py-6 text-gray-400">
+                      Không có dữ liệu khách hàng
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </div>
   );
-};
+}
 
-export default Khach_Hang;
+export default KhachHang;

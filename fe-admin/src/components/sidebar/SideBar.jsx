@@ -15,6 +15,7 @@ import BusinessIcon from "@mui/icons-material/Business";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import MenuIcon from "@mui/icons-material/Menu";
 import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
+import AssignmentReturnIcon from '@mui/icons-material/AssignmentReturn';
 
 const menuItems = [
   { label: "Trang chủ", icon: <MenuIcon />, path: "/" },
@@ -25,9 +26,9 @@ const menuItems = [
   { label: "Tuyến bay", icon: <AltRouteIcon />, path: "/tuyen-bay" },
   { label: "Chuyến bay", icon: <FlightIcon />, path: "/chuyen-bay" },
   { label: "Hạng vé", icon: <ClassIcon />, path: "/hang-ve" },
-  // { label: "Loại chuyến đi", icon: <FlightTakeoffIcon />, path: "/loai-chuyen-di" },  tạm thời comment lại
   {label : "Vé", icon: <FlightTakeoffIcon />, path : "/ve"},
   { label: "Đặt vé", icon: <AssignmentIcon />, path: "dat-ve" },
+  { label: "Xử lý hoàn vé", icon: <AssignmentReturnIcon />, path: "/xu-ly-hoan-ve" }
   // {
   //   label: "Chi tiết vé đặt",
   //   icon: <DescriptionIcon />,
@@ -39,14 +40,14 @@ const menuItems = [
 
 const SideBar = () => {
   return (
-    <div className="w-64 h-screen bg-white border-r border-gray-200 flex flex-col">
+    <div className="w-64 h-screen bg-[#0A2540] flex flex-col">
       {/* Header Sidebar */}
       <Link
         to="/"
-        className="flex items-center p-5 pb-4 border-b border-gray-200"
+        className="flex items-center p-5 pb-4 border-b border-white/10"
       >
-        <MenuIcon className="text-blue-600 text-2xl mr-3" />
-        <span className="text-blue-600 font-bold text-xl">Travelokaa</span>
+        <MenuIcon className="text-white text-2xl mr-3" />
+        <span className="text-white font-bold text-xl tracking-wide">FlyNow</span>
       </Link>
 
       {/* Menu Items */}
@@ -56,19 +57,19 @@ const SideBar = () => {
             key={item.label}
             to={item.path}
             className="flex items-center py-3 px-4 mx-2 rounded-lg transition-all duration-200 cursor-pointer
-      hover:bg-blue-50 hover:text-blue-600 text-gray-600 hover:font-medium"
+      hover:bg-white/10 hover:text-white text-gray-300"
           >
-            <span className="text-blue-500 mr-3">{item.icon}</span>
+            <span className="text-white mr-3">{item.icon}</span>
             <span>{item.label}</span>
           </Link>
         ))}
       </div>
 
       {/* Footer Sidebar */}
-      <div className="p-4 border-t border-gray-200 bg-blue-50">
-        <div className="flex items-center p-2 rounded-lg bg-white shadow-sm">
-          <AdminPanelSettingsIcon className="text-blue-600 mr-3" />
-          <span className="text-blue-600 font-medium">Admin Panel</span>
+      <div className="p-4 border-t border-white/10 bg-[#0A2540]">
+        <div className="flex items-center p-2 rounded-lg bg-white/10">
+          <AdminPanelSettingsIcon className="text-white mr-3" />
+          <span className="text-white font-medium">Admin Panel</span>
         </div>
       </div>
     </div>

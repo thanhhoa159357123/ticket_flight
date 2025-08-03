@@ -31,7 +31,7 @@ const Home = () => {
   if (loading) return <div className="text-center py-10 text-lg text-blue-600">Đang tải dữ liệu...</div>;
 
   return (
-    <div className="flex-1 flex flex-col bg-gradient-to-br from-blue-50 to-white min-h-screen">
+    <div className="flex-1 flex flex-col bg-[#F4F7FA] min-h-screen">
       <main className="p-8 max-w-[1440px] mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
@@ -43,9 +43,9 @@ const Home = () => {
             <input
               type="text"
               placeholder="Search anything..."
-              className="w-full py-2 pl-10 pr-4 rounded-2xl border border-gray-200 shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full py-2 pl-10 pr-4 rounded-2xl border border-gray-300 shadow focus:outline-none focus:ring-2 focus:ring-[#0A2540]"
             />
-            <Search className="absolute left-3 top-2.5 w-5 h-5 text-blue-400" />
+            <Search className="absolute left-3 top-2.5 w-5 h-5 text-[#0A2540]" />
           </div>
         </div>
 

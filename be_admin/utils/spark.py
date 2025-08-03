@@ -1,5 +1,6 @@
 import os
 import findspark
+
 os.environ["PYSPARK_SUBMIT_ARGS"] = (
     "--jars jars/mongo-spark-connector_2.12-3.0.1.jar,"
     "jars/bson-4.2.3.jar,"
@@ -22,7 +23,7 @@ os.environ["PYSPARK_SUBMIT_ARGS"] = (
 # )
 from pyspark.sql import SparkSession
 from pyspark import SparkConf
-
+from utils.schema_registry import get_schema
 spark = None
 df_cache = {}  # 🔥 Caching DataFrame theo tên collection
 
@@ -69,15 +70,15 @@ def load_df(collection_name: str):
     if collection_name in df_cache:
         print(f"🧠 [CACHE] Dùng lại DataFrame cache: {collection_name}")
         return df_cache[collection_name]
-
+    
     print(f"🔁 [LOAD] Đang load mới từ MongoDB: {collection_name}")
-    df = (
+    schema = get_schema(collection_name)
+    reader = (
         spark.read.format("mongodb")
         .option("database", "ticket_flight_booking")
         .option("collection", collection_name)
-        .load()
-        .persist()
     )
+    df = (reader.schema(schema).load() if schema else reader.load().persist())
     df.count()  # Force trigger load
     df_cache[collection_name] = df
     return df
@@ -88,3 +89,17 @@ def invalidate_cache(collection_name: str):
     if collection_name in df_cache:
         print(f"♻️ [INVALIDATE] Xoá cache DataFrame: {collection_name}")
         del df_cache[collection_name]
+
+
+def save_df_to_mongo(df, collection_name: str, mode : str = "append"):
+    print(f"💾 Đang lưu DataFrame vào MongoDB collection: {collection_name}(mode: {mode})")
+    (
+        df.write
+        .format("mongodb")
+        .option("database", "ticket_flight_booking")
+        .option("collection", collection_name)
+        .mode(mode)
+        .save()
+    )
+    invalidate_cache(collection_name)
+    print(f"✅ Đã lưu DataFrame vào MongoDB collection: {collection_name}")
