@@ -6,6 +6,8 @@ from pymongo import MongoClient
 from datetime import datetime, timezone
 import json
 import traceback
+import re
+from pymongo.errors import DuplicateKeyError
 
 client = MongoClient(MONGO_URI)
 khach_hang_collection = client[MONGO_DB]["khach_hang"]
@@ -13,28 +15,62 @@ khach_hang_collection = client[MONGO_DB]["khach_hang"]
 router = APIRouter()
 
 def generate_next_ma_khach_hang():
-    last = khach_hang_collection.find().sort("ma_khach_hang", -1).limit(1)
-    last_code = next(last, {}).get("ma_khach_hang", "KH000")
-    next_number = int(last_code[2:]) + 1
-    return f"KH{next_number:03}"
+    """Generate unique customer code with better performance"""
+    try:
+        # Tối ưu MongoDB query với projection và regex
+        last = khach_hang_collection.find(
+            {"ma_khach_hang": {"$regex": "^KH\\d{3}$"}}, 
+            {"ma_khach_hang": 1}
+        ).sort("ma_khach_hang", -1).limit(1)
+        
+        last_doc = next(last, None)
+        if last_doc:
+            last_code = last_doc.get("ma_khach_hang", "KH000")
+            next_number = int(last_code[2:]) + 1
+        else:
+            next_number = 1
+            
+        return f"KH{next_number:03d}"
+    except Exception as e:
+        print(f"❌ Lỗi tạo mã khách hàng: {e}")
+        # Fallback: use timestamp-based code
+        import time
+        return f"KH{int(time.time()) % 1000:03d}"
 
 @router.post("/register", tags=["auth"])
 def register_user(khach_hang: KhachHangCreate):
     try:
         print("📥 Dữ liệu nhận từ client:", json.dumps(khach_hang.dict(), ensure_ascii=False))
 
-        df = load_df("khach_hang")
-        matched_df = df.filter(df["email"] == khach_hang.email)
+        # Normalize email để tránh duplicate case-sensitive
+        normalized_email = khach_hang.email.lower().strip()
 
+        # Tối ưu Spark query - cache DataFrame và sử dụng limit
+        df = load_df("khach_hang")
+        
+        # Cache DataFrame nếu chưa được cache để tái sử dụng
+        if not df.is_cached:
+            df = df.cache()
+        
+        # Tối ưu filter: kết hợp điều kiện và sử dụng limit(1) cho performance
+        matched_df = df.filter(
+            (df["email"] == normalized_email) & 
+            ((df["deleted_at"] == "") | (df["deleted_at"].isNull()))
+        ).limit(1)
+
+        # Sử dụng count() với limit để stop ngay khi tìm thấy
         if matched_df.count() > 0:
             raise HTTPException(status_code=400, detail="Email đã tồn tại")
 
+        # Generate mã khách hàng
         ma_khach_hang = generate_next_ma_khach_hang()
         now_str = datetime.now(timezone.utc).isoformat()
 
+        # Chuẩn bị data với normalized email
         data_to_insert = khach_hang.dict()
         data_to_insert.update({
             "ma_khach_hang": ma_khach_hang,
+            "email": normalized_email,  # Use normalized email
             "is_active": True,
             "da_dat_ve": False,
             "deleted_at": "",
@@ -42,14 +78,31 @@ def register_user(khach_hang: KhachHangCreate):
             "created_at": now_str
         })
 
-        khach_hang_collection.insert_one(data_to_insert)
+        # Insert với duplicate key handling
+        try:
+            result = khach_hang_collection.insert_one(data_to_insert)
+            if not result.inserted_id:
+                raise HTTPException(status_code=500, detail="Không thể tạo tài khoản")
+        except DuplicateKeyError:
+            # Handle race condition nếu có 2 request cùng lúc
+            raise HTTPException(status_code=400, detail="Email đã tồn tại")
+
+        # Invalidate cache sau khi insert thành công
         invalidate_cache("khach_hang")
 
-        print("🎉 Đăng ký thành công:", khach_hang.email)
-        return {"message": "Đăng ký thành công", "ma_khach_hang": ma_khach_hang}
+        print(f"🎉 Đăng ký thành công: {normalized_email} - Mã KH: {ma_khach_hang}")
+        
+        return {
+            "message": "Đăng ký thành công", 
+            "ma_khach_hang": ma_khach_hang,
+            "email": normalized_email
+        }
 
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
-        print("❌ Lỗi trong /register:", repr(e))
+        print(f"❌ Lỗi trong /register: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 

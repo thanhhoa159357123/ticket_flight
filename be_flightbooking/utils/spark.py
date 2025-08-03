@@ -75,3 +75,10 @@ def invalidate_cache(collection_name: str):
     if collection_name in df_cache:
         print(f"♻️ [INVALIDATE] Xoá cache DataFrame: {collection_name}")
         del df_cache[collection_name]
+
+def get_cache_status():
+    """Get current cache status for monitoring"""
+    return {
+        "cached_collections": list(df_cache.keys()),
+        "cache_count": len(df_cache)
+    }
