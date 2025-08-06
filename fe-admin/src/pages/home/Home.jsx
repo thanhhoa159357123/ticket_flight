@@ -81,10 +81,10 @@ const Home = () => {
           icon={DollarSign}
           label="Doanh thu"
           value={
-          totalRevenue !== undefined
-              ? totalRevenue.toLocaleString("vi-VN") + " ₫"
+            totalRevenue !== undefined && totalRevenue !== null
+              ? Number(totalRevenue).toLocaleString("vi-VN") + " ₫"
               : "0 ₫"
-          } // Hiển thị doanh thu với định dạng tiền tệ
+          }
         />
       </div>
 

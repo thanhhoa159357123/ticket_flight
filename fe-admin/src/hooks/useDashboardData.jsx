@@ -20,17 +20,16 @@ export const useDashboardData = () => {
           bookingsRes,
           flightsRes,
           usersRes,
-          hoaDonRes,
           recentFlightsRes,
-          recentBookingsRes
+          recentBookingsRes,
+          revenueRes
         ] = await Promise.all([
           axios.get("http://localhost:8080/dashboard/dat_ve/total"),
           axios.get("http://localhost:8080/chuyen_bay"),
           axios.get("http://localhost:8080/khach_hang"),
-          axios.get("http://localhost:8080/tuyen_bay"),
           axios.get("http://localhost:8080/chuyen_bay"),
           axios.get("http://localhost:8080/dat_ve"),
-          axios.get("http://localhost:8080/dashboard/hoa_don/total_revenue")
+          axios.get("http://localhost:8080/dashboard/total_revenue")
         ]);
 
         setTotalBookings(bookingsRes.data.total_bookings);
@@ -38,11 +37,8 @@ export const useDashboardData = () => {
         setNewUsers(usersRes.data.length);
 
         // Tính tổng doanh thu
-        const revenue = hoaDonRes.data.reduce(
-          (sum, item) => sum + (item.tong_tien || 0),
-            0
-          );
-        setTotalRevenue(revenue);
+        setTotalRevenue(revenueRes.data.total_revenue || 0);
+
 
 
 
@@ -108,5 +104,5 @@ export const useDashboardData = () => {
     totalRevenue,
     loading,
   };
-}
+};
 export default useDashboardData;
