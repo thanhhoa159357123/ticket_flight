@@ -7,6 +7,7 @@ from app.schemas.tuyen_bay import tuyen_bay_schema
 from app.schemas.chuyen_bay import chuyen_bay_schema
 from app.schemas.hang_ve import hang_ve_schema
 from app.schemas.dat_ve import dat_ve_schema
+from app.schemas.gia_ve import gia_ve_schema
 
 SCHEMA_REGISTRY = {
     "hang_bay": hang_bay_schema,
@@ -16,7 +17,8 @@ SCHEMA_REGISTRY = {
     "tuyen_bay": tuyen_bay_schema,
     "chuyen_bay": chuyen_bay_schema,
     "hang_ve": hang_ve_schema,
-    "dat_ve": dat_ve_schema
+    "dat_ve": dat_ve_schema,
+    "gia_ve": gia_ve_schema,
     # Thêm các schema khác nếu cần
 }
 

@@ -1,183 +1,140 @@
-import React, { useState } from "react";
-import {
-  DollarSign, Plane, Ticket, UserPlus, Search
-} from "lucide-react";
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
-} from "recharts";
+import React from "react";
+import { Plane, Ticket, UserPlus, DollarSign } from "lucide-react"; // Thêm DollarSign
 import { Calendar } from "react-calendar";
-import 'react-calendar/dist/Calendar.css';
-
+import "react-calendar/dist/Calendar.css";
 import { useDashboardData } from "../../hooks/useDashboardData";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
-const COLORS = ['#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#fbbf24'];
-
-const StatCard = ({ icon: Icon, label, value, color }) => (
-  <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-md flex items-center gap-4">
-    <div className={`bg-${color}-100 text-${color}-600 p-4 rounded-full shadow`}>
-      <Icon className="w-7 h-7" />
+const InfoCard = ({ icon: Icon, label, value }) => (
+  <div className="flex items-center p-4 bg-white rounded-2xl shadow hover:shadow-lg transition">
+    <div className="p-3 bg-blue-100 rounded-full mr-4">
+      <Icon className="w-6 h-6 text-blue-600" />
     </div>
     <div>
-      <h4 className="text-xs text-gray-500 font-semibold mb-1">{label}</h4>
-      <p className="text-3xl font-bold text-gray-900">{value}</p>
+      <h4 className="text-gray-500 text-sm">{label}</h4>
+      <p className="text-xl font-bold text-gray-800">{value}</p>
+    </div>
+  </div>
+);
+
+
+const TripCard = ({ chuyenBay }) => (
+  <div className="bg-white p-4 rounded-2xl shadow text-sm">
+    <div className="flex justify-between items-center">
+      <span className="font-semibold text-blue-600">{chuyenBay.ma_chuyen_bay}</span>
+      <span className="text-blue-700 text-base font-semibold">
+        {chuyenBay.gio_di
+          ? new Date(chuyenBay.gio_di).toLocaleString("vi-VN", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : ""}
+      </span>
+    </div>
+    <div className="mt-2 text-gray-600">
+      {chuyenBay.san_bay_di} → {chuyenBay.san_bay_den}
+    </div>
+  </div>
+);
+
+const BookingCard = ({ booking }) => (
+  <div className="bg-white p-4 rounded-2xl shadow text-sm flex flex-col gap-2">
+    <div className="font-bold text-blue-700 text-base">{booking.ten_khach_hang}</div>
+    <div className="font-semibold text-gray-500">{booking.ma_ve}</div>
+    <div className="text-black text-lg font-semibold">
+      {booking.ngay_dat
+        ? new Date(booking.ngay_dat).toLocaleString("vi-VN", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : ""}
     </div>
   </div>
 );
 
 const Home = () => {
-  const [date, setDate] = useState(new Date());
-  const { revenueData, topDestinations, bookings, loading } = useDashboardData();
+  const {
+    totalBookings,
+    totalFlights,
+    newUsers,
+    totalRevenue, // Thêm biến này từ hook nếu đã có
+    bookingsByMonth,
+    upcomingTrips,
+    recentBookings,
+  } = useDashboardData();
 
-  if (loading) return <div className="text-center py-10 text-lg text-blue-600">Đang tải dữ liệu...</div>;
-
+  const top5UpcomingTrips = upcomingTrips.slice(0, 5);
   return (
-    <div className="flex-1 flex flex-col bg-[#F4F7FA] min-h-screen">
-      <main className="p-8 max-w-[1440px] mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h1 className="text-4xl font-extrabold text-blue-700 mb-2 drop-shadow">Welcome back, Admin 👋</h1>
-            <p className="text-gray-600 text-lg">Here's what's happening with your travel business today.</p>
-          </div>
-          <div className="relative w-72">
-            <input
-              type="text"
-              placeholder="Search anything..."
-              className="w-full py-2 pl-10 pr-4 rounded-2xl border border-gray-300 shadow focus:outline-none focus:ring-2 focus:ring-[#0A2540]"
-            />
-            <Search className="absolute left-3 top-2.5 w-5 h-5 text-[#0A2540]" />
-          </div>
+    <div className="p-6 space-y-8 bg-gray-100 min-h-screen">
+      {/* Top Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <InfoCard icon={Ticket} label="Tổng vé đã đặt" value={totalBookings} />
+        <InfoCard icon={Plane} label="Tổng chuyến bay" value={totalFlights} />
+        <InfoCard icon={UserPlus} label="Người dùng mới" value={newUsers} />
+        <InfoCard
+          icon={DollarSign}
+          label="Doanh thu"
+          value={
+          totalRevenue !== undefined
+              ? totalRevenue.toLocaleString("vi-VN") + " ₫"
+              : "0 ₫"
+          } // Hiển thị doanh thu với định dạng tiền tệ
+        />
+      </div>
+
+      {/* Middle Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Biểu đồ số vé đã đặt 5 tháng gần đây */}
+        <div className="col-span-1 bg-white p-6 rounded-2xl shadow">
+          <h2 className="text-lg font-bold text-gray-700 mb-4">Số Vé Đã Đặt 5 Tháng Gần Đây</h2>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={bookingsByMonth}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="label" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Bar dataKey="count" fill="#2563eb" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-          <StatCard icon={Ticket} label="Total Bookings" value="1,248" color="blue" />
-          <StatCard icon={Plane} label="Total Flights" value="87" color="green" />
-          <StatCard icon={DollarSign} label="Revenue" value="₫120M" color="yellow" />
-          <StatCard icon={UserPlus} label="New Users" value="321" color="rose" />
-        </div>
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-          <div className="bg-white col-span-2 p-7 rounded-2xl shadow-lg h-[400px]">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-blue-700">Revenue Overview</h2>
-            </div>
-            <ResponsiveContainer width="100%" height="85%">
-              <LineChart data={revenueData}>
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(value) => `${value}M`} contentStyle={{ fontSize: '14px' }} />
-                <Line type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} dot={{ r: 5 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="bg-white p-7 rounded-2xl shadow-lg h-[400px] flex flex-col items-center justify-center">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Top Destinations</h2>
-            <PieChart width={250} height={250}>
-              <Pie
-                data={topDestinations}
-                dataKey="percent"
-                nameKey="city"
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                fill="#8884d8"
-                label={({ percent }) => `${(percent).toFixed(0)}%`}
-              >
-                {topDestinations.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-            </PieChart>
-            <ul className="mt-4 space-y-1 text-sm text-gray-600">
-              {topDestinations.map((d, i) => (
-                <li key={i}><span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: COLORS[i % COLORS.length] }}></span>{d.city}</li>
-              ))}
-            </ul>
+        {/* Upcoming Trips - chỉ lấy 5 chuyến gần nhất */}
+        <div className="col-span-2 bg-white p-6 rounded-2xl shadow">
+          <h2 className="text-lg font-bold text-gray-700 mb-4">Chuyến Bay Sắp Tới</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {top5UpcomingTrips.map((trip, index) => (
+              <TripCard key={index} chuyenBay={trip} />
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* Calendar & Upcoming Flights */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-          <div className="bg-white p-7 rounded-2xl shadow-lg">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Calendar</h2>
-            <Calendar onChange={setDate} value={date} className="border-none w-full rounded-xl" />
-          </div>
-
-          <div className="bg-white p-7 rounded-2xl shadow-lg col-span-2">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Upcoming Trip</h2>
-            <table className="w-full text-sm rounded-xl overflow-hidden">
-              <thead className="text-left text-gray-500 border-b">
-                <tr>
-                  <th className="py-2">Flight</th>
-                  <th>From</th>
-                  <th>To</th>
-                  <th>Seats</th>
-                  <th>Time</th>
-                  <th>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bookings.map((f) => (
-                  <tr key={f.id} className="border-b hover:bg-blue-50 transition">
-                    <td className="py-2 font-medium text-blue-700">{f.flight}</td>
-                    <td>{f.Airport}</td>
-                    <td>{f.destination}</td>
-                    <td>{f.seat}</td>
-                    <td>{f.time}</td>
-                    <td className="text-blue-600 font-semibold">{f.price.toLocaleString()}₫</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      {/* Bottom Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Calendar */}
+        <div className="bg-white p-6 rounded-2xl shadow col-span-1">
+          <h2 className="text-lg font-bold text-gray-700 mb-4">Lịch</h2>
+          <Calendar />
         </div>
 
-        {/* Messages + Bookings */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="bg-white p-7 rounded-2xl shadow-lg">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Messages</h2>
-            <div className="space-y-4 text-sm text-gray-700">
-              <div className="p-3 rounded-lg bg-blue-50 border border-blue-100 shadow-sm">
-                <p className="font-semibold">Europia Hotel</p>
-                <p className="text-xs text-gray-500">We are pleased to announce...</p>
-              </div>
-              <div className="p-3 rounded-lg bg-blue-50 border border-blue-100 shadow-sm">
-                <p className="font-semibold">Global Travel Co</p>
-                <p className="text-xs text-gray-500">We have updated our...</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-7 rounded-2xl shadow-lg col-span-2">
-            <h2 className="text-xl font-semibold text-blue-700 mb-4">Recent Bookings</h2>
-            <table className="w-full text-sm rounded-xl overflow-hidden">
-              <thead className="text-left text-gray-500 border-b">
-                <tr>
-                  <th className="py-2">Booking ID</th>
-                  <th>Customer</th>
-                  <th>Flight</th>
-                  <th>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bookings.map((b) => (
-                  <tr key={b.id} className="border-b hover:bg-blue-50 transition">
-                    <td className="py-2 font-medium text-blue-700">{b.id}</td>
-                    <td>{b.name}</td>
-                    <td>{b.flight}</td>
-                    <td className="text-blue-600 font-semibold">{b.price.toLocaleString()}₫</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Recent Bookings */}
+        <div className="bg-white p-6 rounded-2xl shadow col-span-2">
+          <h2 className="text-lg font-bold text-gray-700 mb-4">Đặt Vé Gần Đây</h2>
+          <div className="flex flex-col gap-4">
+            {recentBookings.map((booking, index) => (
+              <BookingCard key={index} booking={booking} />
+            ))}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
 
-export default Home ;
+export default Home;

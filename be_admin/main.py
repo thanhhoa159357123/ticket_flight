@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import ( auth , hangBay, hangBanVe,khachHang,sanBay,tuyenBay,chuyenBay,hangVe,datVe) 
+from app.routers import ( auth , hangBay, hangBanVe,khachHang,sanBay,tuyenBay,chuyenBay,hangVe,datVe,giaVe, dashboard) 
 
 from utils.spark import init_spark, load_df 
 @asynccontextmanager
@@ -19,6 +19,7 @@ async def lifespan(app: FastAPI):
     load_df("chuyen_bay")
     load_df("hang_ve")
     load_df("dat_ve")
+    load_df("gia_ve")
     print("✅ Spark DataFrames đã được preload")
     
 
@@ -42,7 +43,8 @@ app.add_middleware(
 
 # ✅ Routers
 app.include_router(auth.router, prefix="/auth")
-# Add other routers here as neede
+# Add other routers here as needed
+app.include_router(dashboard.router, prefix="/dashboard")
 app.include_router(hangBay.router, prefix="/hang_bay")
 app.include_router(hangBanVe.router, prefix='/hang_ban_ve')
 app.include_router(khachHang.router,prefix='/khach_hang')
@@ -51,6 +53,7 @@ app.include_router(tuyenBay.router,prefix='/tuyen_bay')
 app.include_router(chuyenBay.router,prefix='/chuyen_bay')
 app.include_router(hangVe.router,prefix='/hang_ve')
 app.include_router(datVe.router, prefix='/dat_ve')
+app.include_router(giaVe.router, prefix='/gia_ve')
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="127.0.0.1", port=8080, reload=True)
