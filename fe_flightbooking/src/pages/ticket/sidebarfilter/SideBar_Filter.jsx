@@ -27,11 +27,11 @@ const SideBar_Filter = ({
           setSelectedAirlines={setSelectedAirlines}
         />
         
-        <Price_Ticket
+        {/* <Price_Ticket
           flights={flights}
           priceRange={priceRange}
           setPriceRange={setPriceRange}
-        />
+        /> */}
       </div>
     </div>
   );

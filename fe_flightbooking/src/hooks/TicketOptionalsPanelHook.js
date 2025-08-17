@@ -1,60 +1,120 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import dayjs from "dayjs";
-import { createBooking } from "../services/TicketOptionalsPanelService";
-import { useNavigate } from "react-router-dom";
 
-export const useTicketOptionsPanel = (flight, passengers) => {
-  const navigate = useNavigate();
+export const useTicketOptionsPanel = (flight, passengers, packages = []) => {
   const optionListRef = useRef(null);
-
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(false);
 
-  const gioDiVN = flight?.gio_di
-    ? dayjs(flight.gio_di).subtract(7, "hour")
+  // ✅ Sử dụng tên thuộc tính mới
+  const gioDiVN = flight?.thoi_gian_di
+    ? dayjs(flight.thoi_gian_di).subtract(7, "hour")
     : null;
-  const gioDenVN = flight?.gio_den
-    ? dayjs(flight.gio_den).subtract(7, "hour")
+    
+  const gioDenVN = flight?.thoi_gian_den
+    ? dayjs(flight.thoi_gian_den).subtract(7, "hour")
     : null;
 
-  const checkScroll = () => {
+  // 🆕 Optimize checkScroll với useCallback
+  const checkScroll = useCallback(() => {
     if (optionListRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = optionListRef.current;
       setShowLeftArrow(scrollLeft > 0);
       setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 1);
     }
-  };
+  }, []);
 
-  const scrollLeft = () => {
-    optionListRef.current?.scrollBy({ left: -300, behavior: "smooth" });
-    // Sau khi scroll, kiểm tra lại sau 300ms
-    setTimeout(checkScroll, 300);
-  };
+  // 🆕 Cải thiện scroll functions với immediate feedback
+  const scrollLeft = useCallback(() => {
+    if (!optionListRef.current) return;
+    
+    const { scrollLeft: currentScroll } = optionListRef.current;
+    const newScrollPosition = Math.max(0, currentScroll - 300);
+    
+    // 🔥 Update arrows ngay lập tức cho responsive feel
+    if (newScrollPosition <= 0) {
+      setShowLeftArrow(false);
+    }
+    if (!showRightArrow) {
+      setShowRightArrow(true);
+    }
+    
+    optionListRef.current.scrollTo({ 
+      left: newScrollPosition, 
+      behavior: "smooth" 
+    });
+    
+    // 🔥 Debounced check sau khi animation hoàn thành
+    setTimeout(checkScroll, 350);
+  }, [checkScroll, showRightArrow]);
 
-  const scrollRight = () => {
-    optionListRef.current?.scrollBy({ left: 300, behavior: "smooth" });
-    // Sau khi scroll, kiểm tra lại sau 300ms
-    setTimeout(checkScroll, 300);
-  };
+  const scrollRight = useCallback(() => {
+    if (!optionListRef.current) return;
+    
+    const { scrollLeft: currentScroll, scrollWidth, clientWidth } = optionListRef.current;
+    const maxScroll = scrollWidth - clientWidth;
+    const newScrollPosition = Math.min(maxScroll, currentScroll + 300);
+    
+    // 🔥 Update arrows ngay lập tức cho responsive feel
+    if (newScrollPosition >= maxScroll) {
+      setShowRightArrow(false);
+    }
+    if (!showLeftArrow) {
+      setShowLeftArrow(true);
+    }
+    
+    optionListRef.current.scrollTo({ 
+      left: newScrollPosition, 
+      behavior: "smooth" 
+    });
+    
+    // 🔥 Debounced check sau khi animation hoàn thành
+    setTimeout(checkScroll, 350);
+  }, [checkScroll, showLeftArrow]);
+
+  // 🆕 Throttled scroll event handler
+  const throttledCheckScroll = useCallback(() => {
+    let timeoutId;
+    return () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(checkScroll, 100);
+    };
+  }, [checkScroll]);
 
   useEffect(() => {
     const ref = optionListRef.current;
+    const throttledHandler = throttledCheckScroll();
+    
     if (ref) {
-      ref.addEventListener("scroll", checkScroll);
-      // Thêm resize listener để xử lý khi kích thước thay đổi
+      ref.addEventListener("scroll", throttledHandler);
       window.addEventListener("resize", checkScroll);
     }
+    
     return () => {
-      ref?.removeEventListener("scroll", checkScroll);
+      ref?.removeEventListener("scroll", throttledHandler);
       window.removeEventListener("resize", checkScroll);
     };
-  }, []);
+  }, [checkScroll, throttledCheckScroll]);
+
+  // 🆕 Effect để check scroll khi packages thay đổi
+  useEffect(() => {
+    // Multiple checks để đảm bảo accuracy
+    const timeouts = [
+      setTimeout(checkScroll, 0),
+      setTimeout(checkScroll, 100),
+      setTimeout(checkScroll, 300),
+    ];
+
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
+  }, [packages, checkScroll]);
 
   useEffect(() => {
     // Kiểm tra scroll ngay khi flight thay đổi
     checkScroll();
 
-    // Và kiểm tra lại sau khi render xong (sử dụng double requestAnimationFrame)
+    // Và kiểm tra lại sau khi render xong
     const animationFrame1 = requestAnimationFrame(() => {
       checkScroll();
     });
@@ -62,45 +122,12 @@ export const useTicketOptionsPanel = (flight, passengers) => {
     return () => {
       cancelAnimationFrame(animationFrame1);
     };
-  }, [flight]);
+  }, [flight, checkScroll]);
 
-  const handleChoosePackage = async (pkg) => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const maKhachHang = user?.ma_khach_hang;
-
-    if (!maKhachHang) {
-      alert("Bạn cần đăng nhập để đặt vé.");
-      return;
-    }
-
-    const payload = {
-      ngay_dat: new Date().toISOString().split("T")[0],
-      trang_thai: "Chờ thanh toán",
-      ma_khach_hang: maKhachHang,
-      loai_chuyen_di: flight?.ma_chuyen_di,
-      ma_hang_ve_di: pkg?.ma_hang_ve,
-      ma_tuyen_bay_di: flight?.ma_tuyen_bay,
-    };
-
-    try {
-      const datVe = await createBooking(payload);
-
-      if (datVe?.ma_dat_ve) {
-        navigate("/booking", {
-          state: {
-            flight,
-            passengers,
-            ma_dat_ve: datVe.ma_dat_ve,
-            selected_package: pkg,
-          },
-        });
-      } else {
-        alert("Không thể đặt vé. Vui lòng thử lại.");
-      }
-    } catch (err) {
-      console.error("❌ Lỗi khi tạo đặt vé:", err);
-      alert("Lỗi khi gửi dữ liệu đặt vé.");
-    }
+  // ✅ Bỏ phần tạo đặt vé - chỉ return basic handler
+  const handleChoosePackage = (pkg) => {
+    console.log("📦 Package selected from hook:", pkg);
+    // Hook chỉ log, logic xử lý sẽ ở component
   };
 
   return {
@@ -113,5 +140,6 @@ export const useTicketOptionsPanel = (flight, passengers) => {
     scrollRight,
     handleChoosePackage,
     checkScroll,
+    packages, // ✅ Return packages từ props
   };
 };

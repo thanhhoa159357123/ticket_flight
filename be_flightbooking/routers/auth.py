@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, Body
-from models.khach_hang import KhachHangCreate
-from utils.spark import load_df, invalidate_cache
+from models.khachhang import KhachHangCreate
+from utils.spark import load_df, refresh_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from datetime import datetime, timezone
@@ -9,10 +9,21 @@ import traceback
 import re
 from pymongo.errors import DuplicateKeyError
 
-client = MongoClient(MONGO_URI)
-khach_hang_collection = client[MONGO_DB]["khach_hang"]
+client = MongoClient(MONGO_URI) 
+khach_hang_collection = client[MONGO_DB]["khachhang"]
 
 router = APIRouter()
+
+def load_khach_hang_collection(df = "khachhang"):
+    """Load the khach_hang collection with optimized query"""
+    try:
+        df = load_df("khachhang")
+        if not df.is_cached:
+            df = df.cache()
+        return df
+    except Exception as e:
+        print(f"❌ Lỗi khi tải khach_hang collection: {e}")
+        raise HTTPException(status_code=500, detail="Lỗi tải dữ liệu khách hàng")
 
 def generate_next_ma_khach_hang():
     """Generate unique customer code with better performance"""
@@ -38,36 +49,32 @@ def generate_next_ma_khach_hang():
         return f"KH{int(time.time()) % 1000:03d}"
 
 @router.post("/register", tags=["auth"])
-def register_user(khach_hang: KhachHangCreate):
+def register_user(khachhang: KhachHangCreate):
     try:
-        print("📥 Dữ liệu nhận từ client:", json.dumps(khach_hang.dict(), ensure_ascii=False))
+        print("📥 Dữ liệu nhận từ client:", json.dumps(khachhang.dict(), ensure_ascii=False))
 
         # Normalize email để tránh duplicate case-sensitive
-        normalized_email = khach_hang.email.lower().strip()
+        normalized_email = khachhang.email.lower().strip()
 
         # Tối ưu Spark query - cache DataFrame và sử dụng limit
-        df = load_df("khach_hang")
-        
-        # Cache DataFrame nếu chưa được cache để tái sử dụng
-        if not df.is_cached:
-            df = df.cache()
-        
-        # Tối ưu filter: kết hợp điều kiện và sử dụng limit(1) cho performance
-        matched_df = df.filter(
-            (df["email"] == normalized_email) & 
-            ((df["deleted_at"] == "") | (df["deleted_at"].isNull()))
-        ).limit(1)
+        df = load_khach_hang_collection("khachhang")
+    
+        # # Tối ưu filter: kết hợp điều kiện và sử dụng limit(1) cho performance
+        # matched_df = df.filter(
+        #     (df["email"] == normalized_email) & 
+        #     ((df["deleted_at"] == "") | (df["deleted_at"].isNull()))
+        # ).limit(1)
 
-        # Sử dụng count() với limit để stop ngay khi tìm thấy
-        if matched_df.count() > 0:
-            raise HTTPException(status_code=400, detail="Email đã tồn tại")
+        # # Sử dụng count() với limit để stop ngay khi tìm thấy
+        # if matched_df.count() > 0:
+        #     raise HTTPException(status_code=400, detail="Email đã tồn tại")
 
         # Generate mã khách hàng
         ma_khach_hang = generate_next_ma_khach_hang()
         now_str = datetime.now(timezone.utc).isoformat()
 
         # Chuẩn bị data với normalized email
-        data_to_insert = khach_hang.dict()
+        data_to_insert = khachhang.dict()
         data_to_insert.update({
             "ma_khach_hang": ma_khach_hang,
             "email": normalized_email,  # Use normalized email
@@ -88,7 +95,7 @@ def register_user(khach_hang: KhachHangCreate):
             raise HTTPException(status_code=400, detail="Email đã tồn tại")
 
         # Invalidate cache sau khi insert thành công
-        invalidate_cache("khach_hang")
+        refresh_cache("khachhang")
 
         print(f"🎉 Đăng ký thành công: {normalized_email} - Mã KH: {ma_khach_hang}")
         
@@ -109,7 +116,7 @@ def register_user(khach_hang: KhachHangCreate):
 @router.post("/login", tags=["auth"])
 def login_user(email: str = Query(...), matkhau: str = Query(...)):
     try:
-        df = load_df("khach_hang")
+        df = load_khach_hang_collection("khachhang")
         result_df = df.filter(
             (df["email"] == email) &
             (df["matkhau"] == matkhau) &
@@ -144,7 +151,7 @@ def update_user_info(
     email: str = Body(None),
 ):
     try:
-        df_check = load_df("khach_hang")
+        df_check = load_khach_hang_collection("khachhang")
 
         update_fields = {}
         if ten_khach_hang:
@@ -161,9 +168,6 @@ def update_user_info(
                 raise HTTPException(status_code=400, detail="Email mới đã tồn tại")
             update_fields["email"] = email
 
-        if not update_fields:
-            raise HTTPException(status_code=400, detail="Không có thông tin nào để cập nhật")
-
         update_fields["last_active_at"] = datetime.now(timezone.utc).isoformat()
 
         result = khach_hang_collection.update_one({"email": current_email}, {"$set": update_fields})
@@ -171,9 +175,7 @@ def update_user_info(
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
 
-        invalidate_cache("khach_hang")
-
-        df_updated = load_df("khach_hang")
+        df_updated = refresh_cache("khachhang")
         final_email = email if email else current_email
         user_row = df_updated.filter(df_updated["email"] == final_email).first()
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.hang_bay import HangBay
-from utils.spark import load_df, invalidate_cache
+from utils.spark import load_df, refresh_cache
 from utils.spark_views import get_view
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
@@ -10,17 +10,12 @@ import traceback
 
 router = APIRouter()
 client = MongoClient(MONGO_URI)
-hang_bay_collection = client[MONGO_DB]["hang_bay"]
+hang_bay_collection = client[MONGO_DB]["hangbay"]
 
 def check_hang_bay_exists(ma_hang_bay: str) -> bool:
-    """Optimized function to check if airline exists"""
+    """Optimized function to check if airline exists using cache"""
     try:
-        # Ưu tiên sử dụng cached view
-        df = get_view("hang_bay")
-        if df is None:
-            df = load_df("hang_bay")
-        
-        # Sử dụng limit(1) để tối ưu performance
+        df = load_df("hangbay")
         return df.filter(df["ma_hang_bay"] == ma_hang_bay).limit(1).count() > 0
     except Exception as e:
         print(f"❌ Lỗi check_hang_bay_exists: {e}")
@@ -32,7 +27,7 @@ def add_hang_bay(hang_bay: HangBay):
     try:
         print(f"🔥 Nhận yêu cầu POST /add: {hang_bay.ma_hang_bay}")
         print(f"📥 Dữ liệu: {hang_bay.dict()}")
-
+        
         # Input validation
         if not hang_bay.ma_hang_bay or not hang_bay.ma_hang_bay.strip():
             raise HTTPException(status_code=400, detail="Mã hãng bay không được để trống")
@@ -40,7 +35,7 @@ def add_hang_bay(hang_bay: HangBay):
         if not hang_bay.ten_hang_bay or not hang_bay.ten_hang_bay.strip():
             raise HTTPException(status_code=400, detail="Tên hãng bay không được để trống")
 
-        # Tối ưu duplicate check
+        # Tối ưu duplicate check với cached DataFrame
         if check_hang_bay_exists(hang_bay.ma_hang_bay):
             raise HTTPException(status_code=400, detail="Mã hãng bay đã tồn tại")
 
@@ -53,8 +48,8 @@ def add_hang_bay(hang_bay: HangBay):
         except DuplicateKeyError:
             raise HTTPException(status_code=400, detail="Mã hãng bay đã tồn tại")
 
-        # Invalidate cache sau khi insert thành công
-        invalidate_cache("hang_bay")
+        # Refresh cache để có dữ liệu mới ngay lập tức
+        refresh_cache("hangbay")
 
         print(f"🎉 Thêm hãng bay thành công: {hang_bay.ma_hang_bay}")
         return JSONResponse(
@@ -77,10 +72,7 @@ def add_hang_bay(hang_bay: HangBay):
 def get_all_hang_bay():
     """Get all airlines with optimized query"""
     try:
-        # Sử dụng cached view nếu có
-        df = get_view("hang_bay")
-        if df is None:
-            df = load_df("hang_bay")
+        df = load_df("hangbay")
 
         # Debug: Kiểm tra columns available
         available_columns = df.columns
@@ -104,7 +96,7 @@ def get_all_hang_bay():
         result_df = selected_df.orderBy("ma_hang_bay")
         result = result_df.toPandas().to_dict(orient="records")
 
-        print(f"✅ Lấy danh sách hãng bay thành công: {len(result)} records")
+        print(f"✅ Lấy danh sách hãng bay thành công từ cache: {len(result)} records")
         return JSONResponse(content=result)
 
     except Exception as e:
@@ -163,7 +155,7 @@ def update_hang_bay(ma_hang_bay: str, hang_bay: HangBay):
             raise HTTPException(status_code=404, detail="Không tìm thấy hãng bay")
 
         # Invalidate cache
-        invalidate_cache("hang_bay")
+        refresh_cache("hang_bay")
 
         print(f"✅ Cập nhật hãng bay thành công: {ma_hang_bay}")
         return JSONResponse(content={"message": "Cập nhật hãng bay thành công"})
@@ -199,7 +191,7 @@ def delete_hang_bay(ma_hang_bay: str):
             raise HTTPException(status_code=404, detail="Không tìm thấy hãng bay")
 
         # Invalidate cache
-        invalidate_cache("hang_bay")
+        refresh_cache("hang_bay")
 
         print(f"✅ Xóa hãng bay thành công: {ma_hang_bay}")
         return JSONResponse(content={"message": f"Xóa hãng bay {ma_hang_bay} thành công"})

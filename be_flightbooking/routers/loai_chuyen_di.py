@@ -1,48 +1,62 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from models.loai_chuyen_di import LoaiChuyenDi
+from models.loaichuyendi import LoaiChuyenDi
 from pymongo import MongoClient
-from utils.spark import load_df, invalidate_cache
+from utils.spark import load_df, refresh_cache
 from utils.env_loader import MONGO_URI, MONGO_DB
 
 router = APIRouter()
 client = MongoClient(MONGO_URI)
-loai_chuyen_di_collection = client[MONGO_DB]["loai_chuyen_di"]
+loaichuyendi_collection = client[MONGO_DB]["loaichuyendi"]
 
 
-@router.get("", tags=["loai_chuyen_di"])
-def get_all_loai_chuyen_di():
+@router.get("", tags=["loaichuyendi"])
+def get_all_loaichuyendi():
     try:
-        df = load_df("loai_chuyen_di")
+        df = load_df("loaichuyendi")
         df = df.select("ma_chuyen_di", "ten_chuyen_di", "mo_ta")
         result = df.toPandas().to_dict(orient="records")
+
+        print(f"✅ Lấy danh sách loại chuyến đi thành công: {len(result)} records")
         return JSONResponse(content=result)
 
     except Exception as e:
-        print("❌ Lỗi trong get_all_loai_chuyen_di:", str(e))
+        print("❌ Lỗi trong get_all_loaichuyendi:", str(e))
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
 
-@router.post("", tags=["loai_chuyen_di"])
-def add_loai_chuyen_di(loai_chuyen_di: LoaiChuyenDi):
+@router.post("", tags=["loaichuyendi"])
+def add_loaichuyendi(loaichuyendi: LoaiChuyenDi):
     try:
-        df = load_df("loai_chuyen_di")
-
+        print(f"📥 Dữ liệu nhận từ client: {loaichuyendi.dict()}")
+        
+        # Kiểm tra tồn tại với cached DataFrame
+        df = load_df("loaichuyendi")
         if (
             "ma_chuyen_di" in df.columns
-            and df.filter(df["ma_chuyen_di"] == loai_chuyen_di.ma_chuyen_di).count() > 0
+            and df.filter(df["ma_chuyen_di"] == loaichuyendi.ma_chuyen_di).count() > 0
         ):
             raise HTTPException(status_code=400, detail="Mã loại chuyến đi đã tồn tại")
 
-        data_to_insert = loai_chuyen_di.dict()
-        inserted = loai_chuyen_di_collection.insert_one(data_to_insert)
+        # Insert vào MongoDB
+        data_to_insert = loaichuyendi.dict()
+        inserted = loaichuyendi_collection.insert_one(data_to_insert)
         data_to_insert["_id"] = str(inserted.inserted_id)
 
-        # 🔁 Làm mới cache Spark sau khi thêm mới
-        invalidate_cache("loai_chuyen_di")
+        # Refresh cache để có dữ liệu mới ngay lập tức
+        refresh_cache("loaichuyendi")
+        
+        print(f"✅ Thêm loại chuyến đi thành công: {loaichuyendi.ma_chuyen_di}")
+        return JSONResponse(
+            content={
+                "message": "Thêm loại chuyến đi thành công",
+                "data": data_to_insert
+            }, 
+            status_code=201
+        )
 
-        return JSONResponse(content=data_to_insert, status_code=201)
-
+    except HTTPException:
+        raise
     except Exception as e:
-        print("❌ Lỗi trong /add:", str(e))
+        print("❌ Lỗi trong add_loaichuyendi:", str(e))
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")

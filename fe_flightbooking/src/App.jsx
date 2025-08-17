@@ -1,7 +1,6 @@
 import "./App.scss";
 import { lazy, Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { SearchProvider } from "./contexts/SearchContext";
 
 const Home = lazy(() => import("./pages/home/Home"));
 const Login = lazy(() => import("./pages/Login"));
@@ -23,14 +22,7 @@ function App() {
       <Suspense fallback={<div>Đang tải trang...</div>}>
         <Routes>
           {/* Các route dùng chung layout */}
-          <Route
-            path="/"
-            element={
-              <SearchProvider>
-                <MainLayout />
-              </SearchProvider>
-            }
-          >
+          <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
             <Route path="booking" element={<Booking />} />
             <Route path="flight-ticket" element={<Ticket />} />

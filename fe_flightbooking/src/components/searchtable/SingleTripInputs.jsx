@@ -29,7 +29,7 @@ const SingleTripInputs = ({
           value={from} 
           onChange={setFrom} 
           options={safeSelectedLocation} 
-          placeholder="Select departure"
+          placeholder="Chọn nơi đi"
           disabledValue={to}
         />
       </div>
@@ -47,7 +47,7 @@ const SingleTripInputs = ({
           value={to} 
           onChange={setTo} 
           options={safeSelectedLocation} 
-          placeholder="Select arrival"
+          placeholder="Chọn nơi đến"
           disabledValue={from}
         />
       </div>

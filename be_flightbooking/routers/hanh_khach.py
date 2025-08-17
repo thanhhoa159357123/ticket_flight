@@ -12,7 +12,7 @@ from datetime import datetime, date
 router = APIRouter()
 client = MongoClient(MONGO_URI)
 db = client[MONGO_DB]
-hanh_khach_collection = db["hanh_khach"]
+hanh_khach_collection = db["hanhkhach"]
 
 # ✅ Request model cho /get-multiple
 class MaHanhKhachRequest(BaseModel):

@@ -5,80 +5,76 @@ from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from contextlib import asynccontextmanager
 from fastapi.middleware.cors import CORSMiddleware
-import asyncio
 import concurrent.futures
 from routers import (
-    auth, khach_hang, hang_bay, hang_ban_ve, san_bay, tuyen_bay,
-    chuyen_bay, hang_ve, loai_chuyen_di, gia_ve, dat_ve, hanh_khach,
-    chi_tiet_ve_dat, hoa_don, notifications
+    auth, khach_hang, hang_bay, hang_ban_ve, san_bay,
+    chuyen_bay, hang_ve, loai_chuyen_di, dat_ve, hanh_khach,
+    chi_tiet_ve_dat, hoa_don, notifications, ve
 )
-from utils.spark import init_spark, load_df, get_cache_status
-from utils.spark_views import init_spark_views
+from utils.spark import (
+    init_spark, get_cache_status, preload_collections, clear_all_cache
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Optimized application lifespan with parallel loading"""
-    print("🚀 Starting application initialization...")
+    """Application startup with optimized cache preloading"""
+    print("🚀 Starting Flight Booking API...")
     
-    # Initialize Spark first
+    # Initialize Spark
+    print("⚙️ Initializing Spark...")
     init_spark()
     
-    # Priority collections for faster startup
-    priority_collections = ["khach_hang", "chuyen_bay", "san_bay"]
-    secondary_collections = ["hang_bay", "hang_ban_ve", "loai_chuyen_di", "tuyen_bay", "hang_ve", "gia_ve"]
+    # Define collections to preload (using actual MongoDB collection names)
+    priority_collections = ["khachhang", "chuyenbay", "sanbay", "hangbay"]
+    secondary_collections = ["hangbanve", "hangve", "loaichuyendi", "ve", "datve"]
     
-    def preload_collection(collection_name):
-        """Preload a single collection"""
+    def preload_batch(collections, batch_name):
+        if not collections:
+            return {}
+        print(f"📦 Preloading {batch_name}...")
+        return preload_collections(collections)
+    
+    # Preload priority collections first
+    print("🎯 Loading priority data...")
+    priority_results = preload_batch(priority_collections, "priority collections")
+    
+    # Preload secondary collections in parallel
+    print("📚 Loading secondary data...")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        secondary_future = executor.submit(preload_batch, secondary_collections, "secondary collections")
         try:
-            df = load_df(collection_name)
-            count = df.count()  # Trigger materialization
-            print(f"✅ Preloaded {collection_name}: {count} records")
-            return collection_name, True
-        except Exception as e:
-            print(f"❌ Failed to preload {collection_name}: {e}")
-            return collection_name, False
-
-    # Preload priority collections first (synchronously)
-    print("🔥 Preloading priority collections...")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-        priority_futures = [executor.submit(preload_collection, col) for col in priority_collections]
-        for future in concurrent.futures.as_completed(priority_futures):
-            collection, success = future.result()
-            if success:
-                print(f"⚡ Priority collection ready: {collection}")
-
-    # Preload secondary collections (in background)
-    print("📦 Preloading secondary collections...")
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-        secondary_futures = [executor.submit(preload_collection, col) for col in secondary_collections]
-        concurrent.futures.wait(secondary_futures, timeout=30)  # Wait max 30s
-
-    # Initialize Spark views
-    print("🔧 Initializing Spark views...")
-    init_spark_views()
+            secondary_results = secondary_future.result(timeout=15)
+        except concurrent.futures.TimeoutError:
+            print("⚠️ Secondary preload timeout - continuing...")
+            secondary_results = {}
     
-    # Print cache status
+    # Display final status
     cache_status = get_cache_status()
-    print(f"📊 Cache status: {cache_status}")
-    print("✅ Application startup completed!")
+    total_records = sum(
+        details.get('record_count', 0) for details in cache_status['cache_details'].values()
+        if isinstance(details.get('record_count'), int)
+    )
+    
+    print(f"✅ Cache ready: {cache_status['cache_count']} collections, {total_records} total records")
+    print("🎯 Flight Booking API is ready for high-speed queries!")
     
     yield  # Application runs here
     
-    # Cleanup on shutdown
-    print("🛑 Shutting down application...")
+    print("🛑 Shutting down...")
+    clear_all_cache()
 
 app = FastAPI(
     lifespan=lifespan,
     title="Flight Booking API",
-    description="Optimized Flight Booking System with PySpark",
+    description="High-Performance Flight Booking System",
     version="2.0.0"
 )
 
-# Health check endpoint
+# Health check
 @app.get("/health")
 async def health_check():
-    """Health check endpoint with cache status"""
+    """API health status with cache info"""
     cache_status = get_cache_status()
     return {
         "status": "healthy",
@@ -88,16 +84,6 @@ async def health_check():
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    print("❌ Validation error:")
-    for error in exc.errors():
-        print(f"  - {error}")
-    
-    try:
-        payload = await request.json()
-        print(f"📦 Request payload: {payload}")
-    except Exception:
-        print("📦 Could not read request payload")
-
     return JSONResponse(
         status_code=422,
         content=jsonable_encoder({
@@ -106,7 +92,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         }),
     )
 
-# CORS middleware
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -115,23 +101,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include routers (using actual collection names as endpoints)
 routers_config = [
     (auth.router, "/auth"),
-    (khach_hang.router, "/api/khach-hang"),
-    (hang_bay.router, "/api/hang-bay"),
-    (hang_ban_ve.router, "/api/hang-ban-ve"),
-    (san_bay.router, "/api/san-bay"),
-    (tuyen_bay.router, "/api/tuyen-bay"),
-    (chuyen_bay.router, "/api/chuyen-bay"),
-    (hang_ve.router, "/api/hang-ve"),
-    (loai_chuyen_di.router, "/api/loai-chuyen-di"),
-    (gia_ve.router, "/api/gia-ve"),
-    (dat_ve.router, "/api/dat-ve"),
-    (hanh_khach.router, "/api/hanh-khach"),
-    (chi_tiet_ve_dat.router, "/api/chi-tiet-ve-dat"),
-    (hoa_don.router, "/api/hoa-don"),
-    (notifications.router, "/api/notifications"),
+    (khach_hang.router, "/khachhang"),
+    (hang_bay.router, "/hangbay"),
+    (hang_ban_ve.router, "/hangbanve"),
+    (san_bay.router, "/sanbay"),
+    (chuyen_bay.router, "/chuyenbay"),
+    (hang_ve.router, "/hangve"),
+    (loai_chuyen_di.router, "/loaichuyendi"),
+    (ve.router, "/ve"),
+    (dat_ve.router, "/datve"),
+    (hanh_khach.router, "/hanhkhach"),
+    (chi_tiet_ve_dat.router, "/chitietdatve"),
+    (hoa_don.router, "/hoadon"),
+    (notifications.router, "/notifications"),
 ]
 
 for router, prefix in routers_config:
@@ -145,5 +130,6 @@ if __name__ == "__main__":
         port=8000, 
         reload=True,
         reload_dirs=["routers", "models", "utils"],
-        access_log=False  # Disable access log for better performance
+        access_log=False,
+        workers=1
     )

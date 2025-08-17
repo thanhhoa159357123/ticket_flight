@@ -77,7 +77,7 @@ const Login = () => {
               className={`w-full px-3 py-4 border-b-2 text-base font-medium rounded-none
                 transition-all duration-300
                 caret-[#017EBE] text-[#1F2937] placeholder-[#9CA3AF]
-                border-[#d1d5db] focus:border-[#4A8DFF] focus:outline-none
+                border-[#d1d5db] focus:border-[#d9e2f3] focus:outline-none
                 ${errors.password ? "border-red-500 text-red-500 placeholder-red-400" : ""}`}
               value={password}
               onChange={(e) => setPassword(e.target.value)}

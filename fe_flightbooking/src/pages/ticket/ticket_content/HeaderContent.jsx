@@ -6,7 +6,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 
-const HeaderContent = () => {
+const HeaderContent = ({ flight }) => {
   return (
     <div className="relative w-full h-auto shadow-[0_4px_20px_rgba(0,0,0,0.15)] rounded-lg overflow-hidden">
       <div className="relative z-2 bg-white flex flex-col">

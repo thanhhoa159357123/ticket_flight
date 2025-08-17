@@ -17,7 +17,7 @@ const AirlineFilter = ({ selectedAirlines, setSelectedAirlines }) => {
   useEffect(() => {
     const fetchAirlines = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/api/hang-bay");
+        const response = await axios.get("http://localhost:8000/hangbay");
         const fetchedAirlines = response.data.map((item) => item.ten_hang_bay);
         setAllAirlines(fetchedAirlines);
         setSelectedAirlines(fetchedAirlines);

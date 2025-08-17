@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from models.san_bay import SanBay
-from utils.spark import load_df, invalidate_cache
+from models.sanbay import SanBay
+from utils.spark import load_df, refresh_cache
 from utils.spark_views import get_view
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
@@ -10,56 +10,51 @@ import traceback
 
 router = APIRouter()
 client = MongoClient(MONGO_URI)
-san_bay_collection = client[MONGO_DB]["san_bay"]
+sanbay_collection = client[MONGO_DB]["sanbay"]
 
-def check_san_bay_exists(ma_san_bay: str) -> bool:
-    """Optimized function to check if airport exists"""
+def check_sanbay_exists(ma_san_bay: str) -> bool:
+    """Optimized function to check if airport exists using cache"""
     try:
-        # Ưu tiên sử dụng cached view
-        df = get_view("san_bay")
-        if df is None:
-            df = load_df("san_bay")
-        
-        # Sử dụng limit(1) để tối ưu performance
+        df = load_df("sanbay")
         return df.filter(df["ma_san_bay"] == ma_san_bay).limit(1).count() > 0
     except Exception as e:
-        print(f"❌ Lỗi check_san_bay_exists: {e}")
+        print(f"❌ Lỗi check_sanbay_exists: {e}")
         return False
 
-@router.post("", tags=["san_bay"])
-def add_san_bay(san_bay: SanBay):
+@router.post("", tags=["sanbay"])
+def add_sanbay(sanbay: SanBay):
     """Add new airport with optimized validation"""
     try:
-        print(f"📥 Dữ liệu nhận từ client: {san_bay.dict()}")
+        print(f"📥 Dữ liệu nhận từ client: {sanbay.dict()}")
 
         # Input validation
-        if not san_bay.ma_san_bay or not san_bay.ma_san_bay.strip():
+        if not sanbay.ma_san_bay or not sanbay.ma_san_bay.strip():
             raise HTTPException(status_code=400, detail="Mã sân bay không được để trống")
 
-        if not san_bay.ten_san_bay or not san_bay.ten_san_bay.strip():
+        if not sanbay.ten_san_bay or not sanbay.ten_san_bay.strip():
             raise HTTPException(status_code=400, detail="Tên sân bay không được để trống")
 
-        # Tối ưu duplicate check
-        if check_san_bay_exists(san_bay.ma_san_bay):
+        # Tối ưu duplicate check với cached DataFrame
+        if check_sanbay_exists(sanbay.ma_san_bay):
             raise HTTPException(status_code=400, detail="Mã sân bay đã tồn tại")
 
         # Insert với duplicate key handling
         try:
-            data_to_insert = san_bay.dict()
-            result = san_bay_collection.insert_one(data_to_insert)
+            data_to_insert = sanbay.dict()
+            result = sanbay_collection.insert_one(data_to_insert)
             if not result.inserted_id:
                 raise HTTPException(status_code=500, detail="Không thể thêm sân bay")
         except DuplicateKeyError:
             raise HTTPException(status_code=400, detail="Mã sân bay đã tồn tại")
 
-        # Invalidate cache sau khi insert thành công
-        invalidate_cache("san_bay")
+        # Refresh cache để có dữ liệu mới ngay lập tức
+        refresh_cache("sanbay")
 
-        print(f"✅ Thêm sân bay thành công: {san_bay.ma_san_bay}")
+        print(f"✅ Thêm sân bay thành công: {sanbay.ma_san_bay}")
         return JSONResponse(
             content={
                 "message": "Thêm sân bay thành công",
-                "ma_san_bay": san_bay.ma_san_bay,
+                "ma_san_bay": sanbay.ma_san_bay,
                 "_id": str(result.inserted_id)
             },
             status_code=201
@@ -68,18 +63,16 @@ def add_san_bay(san_bay: SanBay):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Lỗi trong add_san_bay: {repr(e)}")
+        print(f"❌ Lỗi trong add_sanbay: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-@router.get("", tags=["san_bay"])
-def get_all_san_bay():
+@router.get("", tags=["sanbay"])
+def get_all_sanbay():
     """Get all airports with optimized query"""
     try:
-        # Sử dụng cached view nếu có
-        df = get_view("san_bay")
-        if df is None:
-            df = load_df("san_bay")
+        # Sử dụng cached DataFrame
+        df = load_df("sanbay")
 
         # Select chỉ những field cần thiết và sắp xếp
         selected_df = df.select(
@@ -88,26 +81,26 @@ def get_all_san_bay():
             "thanh_pho",
             "ma_quoc_gia",
             "iata_code"
-        )
+        ).orderBy("ten_san_bay")
 
         # Tối ưu conversion sang dictionary
         result = selected_df.toPandas().to_dict(orient="records")
         
-        print(f"✅ Lấy danh sách sân bay thành công: {len(result)} records")
+        print(f"✅ Lấy danh sách sân bay thành công từ cache: {len(result)} records")
         return JSONResponse(content=result)
 
     except Exception as e:
-        print(f"❌ Lỗi trong get_all_san_bay: {repr(e)}")
+        print(f"❌ Lỗi trong get_all_sanbay: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-@router.get("/{ma_san_bay}", tags=["san_bay"])
-def get_san_bay_by_id(ma_san_bay: str):
+@router.get("/{ma_san_bay}", tags=["sanbay"])
+def get_sanbay_by_id(ma_san_bay: str):
     """Get airport by ma_san_bay with optimized query"""
     try:
-        df = get_view("san_bay")
+        df = get_view("sanbay")
         if df is None:
-            df = load_df("san_bay")
+            df = load_df("sanbay")
 
         # Filter với limit để tối ưu performance
         filtered_df = df.filter(df["ma_san_bay"] == ma_san_bay).limit(1)
@@ -121,29 +114,29 @@ def get_san_bay_by_id(ma_san_bay: str):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Lỗi trong get_san_bay_by_id: {repr(e)}")
+        print(f"❌ Lỗi trong get_sanbay_by_id: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-@router.put("/{ma_san_bay}", tags=["san_bay"])
-def update_san_bay(ma_san_bay: str, san_bay: SanBay):
+@router.put("/{ma_san_bay}", tags=["sanbay"])
+def update_sanbay(ma_san_bay: str, sanbay: SanBay):
     """Update airport with validation"""
     try:
         print(f"🔄 Cập nhật sân bay: {ma_san_bay}")
 
         # Check if airport exists
-        if not check_san_bay_exists(ma_san_bay):
+        if not check_sanbay_exists(ma_san_bay):
             raise HTTPException(status_code=404, detail="Không tìm thấy sân bay")
 
         # Input validation
-        if not san_bay.ten_san_bay or not san_bay.ten_san_bay.strip():
+        if not sanbay.ten_sanbay or not sanbay.ten_sanbay.strip():
             raise HTTPException(status_code=400, detail="Tên sân bay không được để trống")
 
         # Update document
-        update_data = san_bay.dict()
+        update_data = sanbay.dict()
         update_data["ma_san_bay"] = ma_san_bay  # Ensure ma_san_bay matches URL param
 
-        result = san_bay_collection.update_one(
+        result = sanbay_collection.update_one(
             {"ma_san_bay": ma_san_bay},
             {"$set": update_data}
         )
@@ -152,7 +145,7 @@ def update_san_bay(ma_san_bay: str, san_bay: SanBay):
             raise HTTPException(status_code=404, detail="Không tìm thấy sân bay")
 
         # Invalidate cache
-        invalidate_cache("san_bay")
+        refresh_cache("sanbay")
 
         print(f"✅ Cập nhật sân bay thành công: {ma_san_bay}")
         return JSONResponse(content={"message": "Cập nhật sân bay thành công"})
@@ -160,18 +153,18 @@ def update_san_bay(ma_san_bay: str, san_bay: SanBay):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Lỗi trong update_san_bay: {repr(e)}")
+        print(f"❌ Lỗi trong update_sanbay: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-@router.delete("/{ma_san_bay}", tags=["san_bay"])
-def delete_san_bay(ma_san_bay: str):
+@router.delete("/{ma_san_bay}", tags=["sanbay"])
+def delete_sanbay(ma_san_bay: str):
     """Delete airport with validation"""
     try:
         print(f"🗑 Nhận yêu cầu xóa sân bay: {ma_san_bay}")
 
         # Check if airport exists before deleting
-        if not check_san_bay_exists(ma_san_bay):
+        if not check_sanbay_exists(ma_san_bay):
             raise HTTPException(status_code=404, detail="Không tìm thấy sân bay")
 
         # TODO: Kiểm tra xem sân bay có đang được sử dụng trong tuyến bay không
@@ -185,13 +178,13 @@ def delete_san_bay(ma_san_bay: str):
         #         raise HTTPException(status_code=400, detail="Không thể xóa sân bay đang được sử dụng trong tuyến bay")
 
         # Delete document
-        result = san_bay_collection.delete_one({"ma_san_bay": ma_san_bay})
+        result = sanbay_collection.delete_one({"ma_san_bay": ma_san_bay})
 
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Không tìm thấy sân bay")
 
         # Invalidate cache
-        invalidate_cache("san_bay")
+        refresh_cache("sanbay")
 
         print(f"✅ Xóa sân bay thành công: {ma_san_bay}")
         return JSONResponse(content={"message": f"Xóa sân bay {ma_san_bay} thành công"})
@@ -199,32 +192,32 @@ def delete_san_bay(ma_san_bay: str):
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Lỗi trong delete_san_bay: {repr(e)}")
+        print(f"❌ Lỗi trong delete_sanbay: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
-@router.get("/search/{keyword}", tags=["san_bay"])
-def search_san_bay(keyword: str):
+@router.get("/search/{keyword}", tags=["sanbay"])
+def search_sanbay(keyword: str):
     """Search airports by keyword (name, city, or code)"""
     try:
-        df = get_view("san_bay")
+        df = get_view("sanbay")
         if df is None:
-            df = load_df("san_bay")
+            df = load_df("sanbay")
 
         # Search in multiple fields
         keyword_lower = keyword.lower()
         filtered_df = df.filter(
-            (df["ten_san_bay"].contains(keyword)) |
+            (df["ten_sanbay"].contains(keyword)) |
             (df["thanh_pho"].contains(keyword)) |
             (df["ma_san_bay"].contains(keyword.upper())) |
             (df["iata_code"].contains(keyword.upper()))
         ).select(
             "ma_san_bay",
-            "ten_san_bay",
+            "ten_sanbay",
             "thanh_pho", 
             "ma_quoc_gia",
             "iata_code"
-        ).orderBy("ten_san_bay")
+        ).orderBy("ten_sanbay")
 
         result = filtered_df.toPandas().to_dict(orient="records")
         
@@ -232,6 +225,6 @@ def search_san_bay(keyword: str):
         return JSONResponse(content=result)
 
     except Exception as e:
-        print(f"❌ Lỗi trong search_san_bay: {repr(e)}")
+        print(f"❌ Lỗi trong search_sanbay: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")

@@ -26,7 +26,7 @@ const Payment = () => {
       };
 
       await axios.post(
-        "http://localhost:8000/api/hoa-don/thanh-toan",
+        "http://localhost:8000/hoadon/thanh-toan",
         hoaDonPayload
       );
 

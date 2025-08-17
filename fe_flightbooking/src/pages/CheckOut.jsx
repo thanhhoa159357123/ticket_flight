@@ -3,70 +3,103 @@ import React from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import dayjs from "dayjs";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 const CheckOut = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const state = location.state || {};
-  
-  // Destructure dữ liệu từ Booking (hỗ trợ cả vé một chiều và khứ hồi)
+  const { booking = {} } = location.state || {};
   const {
-    isRoundTrip,
-    dat_ve,
-    dat_ve_return,
+    passengers,
+    chiTietVeDat,
+    datVeOutbound,
+    datVeReturn,
+    selectedPackage,
     flight,
     returnFlight,
-    selectedPackage,
     returnPackage,
-    passengers,
+    isRoundTrip,
     selectedLuggage,
-  } = state;
+  } = booking;
+  const state = { booking };
 
-  console.log("CheckOut data:", state);
+  const [loading, setLoading] = React.useState(false);
 
   const handleCancelBooking = async () => {
-    if (!dat_ve?.ma_dat_ve) {
+    if (!datVeOutbound?.ma_dat_ve) {
       alert("Không tìm thấy mã đặt vé.");
       return;
     }
-
     const confirmCancel = window.confirm("Bạn có chắc muốn hủy vé?");
     if (!confirmCancel) return;
-
+    setLoading(true);
     try {
-      // Hủy đơn đặt vé chính
       await axios.delete(
-        `http://localhost:8000/api/dat-ve/${dat_ve.ma_dat_ve}`
+        `http://localhost:8000/api/dat-ve/${datVeOutbound.ma_dat_ve}`
       );
-
-      // Hủy đơn đặt vé chuyến về nếu có (cho trường hợp có 2 đơn riêng)
-      if (dat_ve_return?.ma_dat_ve && dat_ve_return.ma_dat_ve !== dat_ve.ma_dat_ve) {
+      if (
+        datVeReturn?.ma_dat_ve &&
+        datVeReturn.ma_dat_ve !== datVeOutbound.ma_dat_ve
+      ) {
         await axios.delete(
-          `http://localhost:8000/api/dat-ve/${dat_ve_return.ma_dat_ve}`
+          `http://localhost:8000/api/dat-ve/${datVeReturn.ma_dat_ve}`
         );
       }
-
       alert("Đã hủy vé thành công.");
       navigate("/");
     } catch (error) {
       console.error("Lỗi khi hủy vé:", error);
       alert("Hủy vé thất bại.");
     }
+    setLoading(false);
   };
 
+  // Tính tổng tiền (giống logic Payment)
   const calculateTotal = () => {
-    const outboundPrice = selectedPackage?.gia || flight?.gia || 0;
-    const returnPrice = isRoundTrip ? (returnPackage?.gia || returnFlight?.gia || 0) : 0;
+    const outboundPrice = selectedPackage?.gia_ve || flight?.gia_ve || 0;
+    const returnPrice = isRoundTrip
+      ? returnPackage?.gia_ve || returnFlight?.gia_ve || 0
+      : 0;
     const luggagePrice = selectedLuggage?.price || 0;
     const totalFlightPrice = outboundPrice + returnPrice;
     return (totalFlightPrice + luggagePrice) * (passengers?.length || 1);
+  };
+
+  // Hàm gọi API tạo hóa đơn khi thanh toán PayPal thành công
+  const onPaymentSuccess = async (details) => {
+    try {
+      const hoaDonPayload = {
+        ma_hoa_don: "", // tạo ở backend
+        ngay_thanh_toan: new Date().toISOString().split('T')[0],
+        tong_tien: calculateTotal(),
+        phuong_thuc: "PayPal",
+        ghi_chu: `Thanh toán bởi ${details.payer.name.given_name}`,
+        ma_dat_ve: datVeOutbound?.ma_dat_ve,
+      };
+
+      await axios.post(
+        "http://localhost:8000/hoadon/thanh-toan",
+        hoaDonPayload
+      );
+
+      alert("🎉 Thanh toán thành công!");
+      navigate("/success");
+    } catch (error) {
+      console.error("❌ Lỗi khi cập nhật thanh toán:", error);
+      alert("Thanh toán thành công nhưng cập nhật thất bại.");
+    }
   };
 
   const formatTime = (datetime) => dayjs(datetime).format("HH:mm");
   const formatDate = (datetime) => dayjs(datetime).format("DD/MM/YYYY");
 
   // Component hiển thị thông tin chuyến bay
-  const FlightInfoCard = ({ flightData, packageData, title, bgColor = "bg-blue-600" }) => (
+  const FlightInfoCard = ({
+    flightData,
+    packageData,
+    title,
+    bgColor = "bg-blue-600",
+  }) => (
     <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 mb-4">
       <div className={`${bgColor} px-6 py-3`}>
         <h3 className="text-lg font-semibold text-white">{title}</h3>
@@ -78,42 +111,52 @@ const CheckOut = () => {
             <p className="font-medium">{flightData?.ten_hang_bay || "--"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Số hiệu</p>
-            <p className="font-medium">{flightData?.so_hieu || "--"}</p>
-          </div>
-          <div>
             <p className="text-sm text-gray-500">Điểm đi</p>
-            <p className="font-medium">{flightData?.ten_san_bay_di || flightData?.ma_san_bay_di || "--"}</p>
+            <p className="font-medium">
+              Sân bay {flightData?.ten_san_bay_di || "--"}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Điểm đến</p>
-            <p className="font-medium">{flightData?.ten_san_bay_den || flightData?.ma_san_bay_den || "--"}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Giờ đi</p>
             <p className="font-medium">
-              {formatTime(flightData?.gio_di)} - {formatDate(flightData?.gio_di)}
+              Sân bay {flightData?.ten_san_bay_den || "--"}
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-500">Giờ đến</p>
+            <p className="text-sm text-gray-500">Thời gian đi</p>
             <p className="font-medium">
-              {formatTime(flightData?.gio_den)} - {formatDate(flightData?.gio_den)}
+              {formatTime(flightData?.thoi_gian_di)} -{" "}
+              {formatDate(flightData?.thoi_gian_di)}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Thời gian đến</p>
+            <p className="font-medium">
+              {formatTime(flightData?.thoi_gian_den)} -{" "}
+              {formatDate(flightData?.thoi_gian_den)}
             </p>
           </div>
         </div>
-        
         {/* Thông tin gói vé */}
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="flex justify-between items-center">
             <div>
               <p className="text-sm text-gray-500">Gói vé</p>
-              <p className="font-medium">{packageData?.goi_ve || flightData?.vi_tri_ngoi || "--"}</p>
+              <p className="font-medium">
+                {selectedPackage?.package_display ||
+                  flightData?.ten_hang_ve ||
+                  "--"}
+              </p>
             </div>
             <div className="text-right">
               <p className="text-sm text-gray-500">Giá vé</p>
               <p className="text-lg font-bold text-blue-600">
-                {(packageData?.gia || flightData?.gia || 0).toLocaleString()}đ
+                {(
+                  packageData?.gia_ve ||
+                  flightData?.gia_ve ||
+                  0
+                ).toLocaleString()}
+                đ
               </p>
             </div>
           </div>
@@ -125,15 +168,6 @@ const CheckOut = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-5xl mx-auto px-4 py-8">
-        {/* <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Xác nhận đặt vé {isRoundTrip ? "khứ hồi" : "một chiều"}
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Vui lòng kiểm tra lại thông tin trước khi thanh toán
-          </p>
-        </div> */}
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-6">
@@ -148,29 +182,37 @@ const CheckOut = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-500">Mã đặt vé chính</p>
-                    <p className="font-medium">{dat_ve?.ma_dat_ve || "--"}</p>
+                    <p className="font-medium">
+                      {datVeOutbound?.ma_dat_ve || "--"}
+                    </p>
                   </div>
-                  {dat_ve_return && (
+                  {datVeReturn && (
                     <div>
                       <p className="text-sm text-gray-500">Mã đặt vé phụ</p>
-                      <p className="font-medium">{dat_ve_return?.ma_dat_ve || "--"}</p>
+                      <p className="font-medium">
+                        {datVeReturn?.ma_dat_ve || "--"}
+                      </p>
                     </div>
                   )}
                   <div>
                     <p className="text-sm text-gray-500">Loại chuyến</p>
-                    <p className="font-medium">{isRoundTrip ? "Khứ hồi" : "Một chiều"}</p>
+                    <p className="font-medium">
+                      {isRoundTrip ? "Khứ hồi" : "Một chiều"}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-500">Số hành khách</p>
-                    <p className="font-medium">{passengers?.length || 0} người</p>
+                    <p className="font-medium">
+                      {passengers?.length || 0} người
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Flight Info - Chuyến đi */}
-            <FlightInfoCard 
-              flightData={flight} 
+            <FlightInfoCard
+              flightData={flight}
               packageData={selectedPackage}
               title="Chuyến đi"
               bgColor="bg-blue-600"
@@ -178,8 +220,8 @@ const CheckOut = () => {
 
             {/* Flight Info - Chuyến về (chỉ hiển thị khi là vé khứ hồi) */}
             {isRoundTrip && returnFlight && (
-              <FlightInfoCard 
-                flightData={returnFlight} 
+              <FlightInfoCard
+                flightData={returnFlight}
                 packageData={returnPackage}
                 title="Chuyến về"
                 bgColor="bg-orange-600"
@@ -210,7 +252,10 @@ const CheckOut = () => {
                           {p.ten_hanh_khach}
                         </p>
                         <p className="text-sm text-gray-600">
-                          Ngày sinh: {p.ngay_sinh}
+                          Ngày sinh:{" "}
+                          {p.ngay_sinh
+                            ? dayjs(p.ngay_sinh).format("DD/MM/YYYY")
+                            : "--"}
                         </p>
                         <p className="text-sm text-gray-600">
                           Quốc tịch: {p.quoc_tich}
@@ -261,8 +306,12 @@ const CheckOut = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Vé chuyến đi</span>
                     <span className="font-medium">
-                      {(selectedPackage?.gia || flight?.gia || 0).toLocaleString()}đ ×{" "}
-                      {passengers?.length || 1}
+                      {(
+                        selectedPackage?.gia_ve ||
+                        flight?.gia_ve ||
+                        0
+                      ).toLocaleString()}
+                      đ × {passengers?.length || 1}
                     </span>
                   </div>
 
@@ -271,8 +320,12 @@ const CheckOut = () => {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Vé chuyến về</span>
                       <span className="font-medium">
-                        {(returnPackage?.gia || returnFlight?.gia || 0).toLocaleString()}đ ×{" "}
-                        {passengers?.length || 1}
+                        {(
+                          returnPackage?.gia_ve ||
+                          returnFlight?.gia_ve ||
+                          0
+                        ).toLocaleString()}
+                        đ × {passengers?.length || 1}
                       </span>
                     </div>
                   )}
@@ -301,7 +354,7 @@ const CheckOut = () => {
                 <div className="mt-8 space-y-4">
                   <Link
                     to="/booking"
-                    state={state} // Truyền lại toàn bộ state
+                    state={state}
                     className="block text-center text-blue-600 hover:text-blue-800 px-4 py-3 rounded-xl font-semibold cursor-pointer border border-blue-600 hover:border-blue-800 transition"
                   >
                     Quay lại
@@ -310,20 +363,41 @@ const CheckOut = () => {
                   <button
                     className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-xl font-semibold cursor-pointer transition"
                     onClick={handleCancelBooking}
+                    disabled={loading}
                   >
-                    Hủy vé
+                    {loading ? "Đang hủy..." : "Hủy vé"}
                   </button>
 
-                  <button
-                    className="w-full bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl font-semibold cursor-pointer transition"
-                    onClick={() =>
-                      navigate("/payment", {
-                        state: state, // Truyền toàn bộ state cho Payment
-                      })
-                    }
+                  {/* PayPal thanh toán trực tiếp */}
+                  <PayPalScriptProvider
+                    options={{
+                      "client-id":
+                        "AcvhFjNIUde_7EnHDF0OI8LUAtBjd3OjEsohahEYWiJayGSt5BFW7NsPkC6QzpS8yM4tN63GY83JJOP7",
+                      currency: "USD",
+                    }}
                   >
-                    Thanh toán {calculateTotal().toLocaleString()}đ
-                  </button>
+                    <PayPalButtons
+                      style={{ layout: "vertical" }}
+                      createOrder={(data, actions) => {
+                        return actions.order.create({
+                          purchase_units: [
+                            {
+                              amount: {
+                                value: (calculateTotal() / 24000).toFixed(0), // VNĐ sang USD
+                              },
+                            },
+                          ],
+                        });
+                      }}
+                      onApprove={(data, actions) => {
+                        return actions.order.capture().then(onPaymentSuccess);
+                      }}
+                      onError={(err) => {
+                        console.error("❌ PayPal Error:", err);
+                        alert("Thanh toán thất bại.");
+                      }}
+                    />
+                  </PayPalScriptProvider>
                 </div>
               </div>
             </div>

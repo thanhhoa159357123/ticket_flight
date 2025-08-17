@@ -1,6 +1,6 @@
 // hooks/TicketHook.js
 import { useEffect, useState } from "react";
-import { TicketService } from "../services/TicketService";
+import { ticketService } from "../services/TicketService";
 import { useLocation } from "react-router-dom";
 
 export const Tickets = () => {
@@ -11,22 +11,41 @@ export const Tickets = () => {
   useEffect(() => {
     const fetchAllTickets = async () => {
       try {
-        const data = await TicketService();
-        setFlightResults(data);
+        setLoading(true);
+
+        // ✅ Ưu tiên dùng kết quả search từ navigation
+        if (location.state?.results || location.state?.outboundFlights) {
+          console.log("📍 Using search results from navigation");
+          const results =
+            location.state.results || location.state.outboundFlights || [];
+          console.log("📍 Search results count:", results.length);
+          console.log("📍 Sample result:", results[0]); // Debug first item
+          setFlightResults(results);
+          setLoading(false);
+          return;
+        }
+
+        // ✅ Fallback: lấy tất cả vé (tạm bỏ filter)
+        console.log("📍 No search results, fetching all tickets...");
+        const data = await ticketService.getTicketPrices();
+        console.log("📍 All tickets count:", data?.length);
+        setFlightResults(data || []);
       } catch (err) {
-        console.error("Lỗi fetch toàn bộ vé:", err);
+        console.error("❌ TicketHook error:", err);
+        setFlightResults([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (location.state?.results) {
-      setFlightResults(location.state.results);
-      setLoading(false);
-    } else {
-      fetchAllTickets();
-    }
+    fetchAllTickets();
   }, [location.state]);
+
+  console.log("📍 TicketHook final:", {
+    flightResultsCount: flightResults?.length,
+    loading,
+    hasLocationState: !!location.state,
+  });
 
   return { flightResults, loading };
 };

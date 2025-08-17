@@ -16,7 +16,7 @@ def init_spark_views():
 
         tables = [
             "khach_hang", "chuyen_bay", "san_bay", "hang_bay", 
-            "hang_ban_ve", "loai_chuyen_di", "tuyen_bay", "hang_ve", 
+            "hang_ban_ve", "loai_chuyen_di", "hang_ve", 
             "gia_ve", "dat_ve"  # Removed duplicate "gia_ve"
         ]
         

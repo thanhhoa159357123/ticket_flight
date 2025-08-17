@@ -3,10 +3,10 @@ import HeaderRow from "./HeaderRow";
 import SingleTripInputs from "./SingleTripInputs";
 import SearchButton from "./SearchButton";
 import { useSearchTableData } from "../../hooks/hooksFindTicket/SearchTableHook";
-import { useSearchContext } from "../../contexts/SearchContext";
 
-const SearchTable = () => {
+const SearchTable = ({ selectedWay, selected, passengers, onSubmit }) => {
   const {
+    selectedLocation,
     from,
     setFrom,
     to,
@@ -15,29 +15,16 @@ const SearchTable = () => {
     setDepartureDate,
     returnDate,
     setReturnDate,
-    selectedWay,
-    selected,
-    passengers,
-    swapFromTo,
-  } = useSearchContext();
-
-  const {
-    selectedLocation,
-    isOneWay,
-    isRoundTrip,
+    handleSwapLocation,
     handleSearch,
-  } = useSearchTableData({
-    selectedWay,
-    selected,
-    passengers,
-    setFrom,
-    setTo,
-    from,
-    to,
-  });
+  } = useSearchTableData();
+
+  const isOneWay = selectedWay === "Một chiều";
+  const isRoundTrip = selectedWay === "Khứ hồi";
 
   const handleSearchClick = () => {
-    handleSearch(from, to);
+    handleSearch(selectedWay, selected, passengers);
+    if (onSubmit) onSubmit();
   };
 
   return (
@@ -54,7 +41,7 @@ const SearchTable = () => {
         returnDate={returnDate}
         setDepartureDate={setDepartureDate}
         setReturnDate={setReturnDate}
-        handleSwapLocation={swapFromTo}
+        handleSwapLocation={handleSwapLocation}
         isRoundTrip={isRoundTrip}
       />
 

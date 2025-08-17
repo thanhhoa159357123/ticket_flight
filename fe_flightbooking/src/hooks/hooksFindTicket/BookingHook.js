@@ -15,23 +15,9 @@ export const useBookingData = () => {
     Children: 0,
     Infant: 0,
   });
-  const [returnDate, setReturnDate] = useState(true);
 
   useEffect(() => {
-    const loadOptions = async () => {
-      try {
-        const res = await fetchSeatPositions();
-        const unique = res
-          .filter((item) => !item.ma_hang_ve.includes("+"))
-          .map((item) => item.vi_tri_ngoi)
-          .filter((value, index, self) => self.indexOf(value) === index);
-        setOptions(unique);
-        setSelected(unique[0] || "");
-      } catch (err) {
-        console.error("Lỗi fetch vị trí ngồi:", err);
-      }
-    };
-
+    // Hàm lấy loại chuyến đi
     const loadWays = async () => {
       try {
         const res = await fetchTripTypes();
@@ -46,6 +32,20 @@ export const useBookingData = () => {
       }
     };
 
+    const loadOptions = async () => {
+      try {
+        const res = await fetchSeatPositions();
+        // Lọc trước khi map để tránh lỗi logic
+        const filtered = res.filter((item) => !item.ma_hang_ve.includes("+"));
+        const unique = filtered
+          .map((item) => item.ten_hang_ve)
+          .filter((value, index, self) => self.indexOf(value) === index);
+        setOptions(unique);
+        setSelected(unique[0] || "");
+      } catch (err) {
+        console.error("Lỗi fetch vị trí ngồi:", err);
+      }
+    };
     loadOptions();
     loadWays();
   }, []);
@@ -71,7 +71,5 @@ export const useBookingData = () => {
     setSelectedWay,
     passengers,
     handlePassengerInput,
-    returnDate,
-    setReturnDate,
   };
 };

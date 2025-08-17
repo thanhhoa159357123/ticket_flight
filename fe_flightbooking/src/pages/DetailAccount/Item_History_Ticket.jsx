@@ -9,74 +9,56 @@ const Item_History_Ticket = ({ maKhachHang }) => {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
 
+  // Helper lấy chiều đi/về từ model mới
+  const getChieuDi = (val) => Array.isArray(val) ? val[0] : val;
+  const getChieuVe = (val) => Array.isArray(val) && val.length > 1 ? val[1] : null;
+
   const handleViewDetail = async (ticket) => {
     try {
-      // 1. Lấy chi tiết vé đặt
       const chiTietRes = await axios.get(
-        `http://localhost:8000/api/chi-tiet-ve-dat/by-ma-dat-ve/${ticket.ma_dat_ve}`
+        `http://localhost:8000/chitietvedat/by-ma-dat-ve/${ticket.ma_dat_ve}`
       );
       const chiTietVeDat = chiTietRes.data?.chi_tiet_ve_list || [];
-
-      // 2. Lấy danh sách mã hành khách
       const maHanhKhachList = chiTietVeDat.flatMap(
         (item) => item.ma_hanh_khach || []
       );
-
-      // 3. Gọi API lấy thông tin hành khách từ danh sách mã
       let passengers = [];
       if (maHanhKhachList.length > 0) {
         const passengersRes = await axios.post(
-          `http://localhost:8000/api/hanh-khach/get-multiple`,
-          {
-            ma_hanh_khach_list: maHanhKhachList,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
+          `http://localhost:8000/hanhkhach/get-multiple`,
+          { ma_hanh_khach_list: maHanhKhachList },
+          { headers: { "Content-Type": "application/json" } }
         );
         passengers = passengersRes.data?.hanh_khach_list || [];
       }
-
-      // 4. Gắn danh sách mã + tên hành khách vào ticket
       const enrichedTicket = {
         ...ticket,
         ma_hanh_khach: maHanhKhachList,
         passengers,
-        chi_tiet_ve_dat: chiTietVeDat
+        chi_tiet_ve_dat: chiTietVeDat,
       };
       setSelectedTicket(enrichedTicket);
       setShowDetail(true);
     } catch (error) {
-      console.error("Lỗi khi lấy chi tiết hành khách:", error);
-      alert("Không thể hiển thị chi tiết vé.");
+      alert("Không thể hiển thị chi tiết vé: ", error);
     }
   };
 
   useEffect(() => {
     if (!maKhachHang) return;
-
     const fetchData = async () => {
-      try {        
+      try {
         const response = await axios.get(
-          `http://localhost:8000/api/dat-ve/all`,
-          {
-            params: { ma_khach_hang: maKhachHang },
-          }
-        );        
-        // ✅ Xử lý data trả về
-        const ticketsData = Array.isArray(response.data) ? response.data : [];
-        
-        setTickets(ticketsData);
-      } catch (error) {
-        console.error("❌ Error fetching tickets:", error);
+          `http://localhost:8000/datve/all`,
+          { params: { ma_khach_hang: maKhachHang } }
+        );
+        setTickets(Array.isArray(response.data) ? response.data : []);
+      } catch {
         setTickets([]);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [maKhachHang]);
 
@@ -114,6 +96,11 @@ const Item_History_Ticket = ({ maKhachHang }) => {
       </div>
     );
   }
+  console.log("Dữ liệu vé máy bay: ", tickets)
+
+  // Helper để lấy giá trị hoặc fallback
+  const getOrDefault = (val, fallback = "N/A") =>
+    val !== undefined && val !== null && val !== "" ? val : fallback;
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm overflow-hidden">
@@ -123,105 +110,96 @@ const Item_History_Ticket = ({ maKhachHang }) => {
           {tickets.length} vé được tìm thấy
         </div>
       </div>
-
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Mã vé
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Loại chuyến
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tuyến bay
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Mã chuyến bay
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Hạng vé
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Mã hạng vé
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày đặt
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Trạng thái
                 </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Thao tác
                 </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {tickets.map((ticket, index) => (
-                <tr key={ticket.ma_dat_ve || index} className="hover:bg-gray-50 transition-colors">
+                <tr key={ticket.ma_dat_ve || index}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-blue-600">
-                      {ticket.ma_dat_ve || 'N/A'}
+                      {getOrDefault(ticket.ma_dat_ve)}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
-                      {ticket.loai_chuyen_di || "Một chiều"}
+                      {getOrDefault(ticket.loai_chuyen_di, "Một chiều")}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex flex-col">
-                        {/* Chiều đi */}
-                        <div className="flex items-center mb-1">
-                          <span className="text-sm font-medium text-gray-900">
-                            {ticket.ten_san_bay_di || "N/A"}
-                          </span>
-                          <ArrowDownwardIcon className="text-gray-400 mx-1" />
-                          <span className="text-sm font-medium text-gray-900">
-                            {ticket.ten_san_bay_den_di || "N/A"}
-                          </span>
-                        </div>
-
-                        {/* Chiều về (nếu có) */}
-                        {ticket.loai_chuyen_di === "Khứ hồi" && ticket.ten_san_bay_di_ve && (
-                          <div className="flex items-center text-xs text-gray-500">
-                            <span>{ticket.ten_san_bay_di_ve}</span>
-                            <ArrowDownwardIcon className="mx-1" style={{ fontSize: "12px" }} />
-                            <span>{ticket.ten_san_bay_den_ve}</span>
-                          </div>
-                        )}
-                      </div>
+                    <div>
+                      <span>{getOrDefault(getChieuDi(ticket.ma_chuyen_bay))}</span>
+                      {ticket.loai_chuyen_di === "Khứ hồi" && getChieuVe(ticket.ma_chuyen_bay) && (
+                        <>
+                          <br />
+                          <span>{getOrDefault(getChieuVe(ticket.ma_chuyen_bay))}</span>
+                        </>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-col">
-                      {/* Hạng vé chiều đi */}
-                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800 mb-1">
-                        {ticket.vi_tri_ngoi_di || ticket.vi_tri_ngoi || "N/A"}
-                      </span>
-
-                      {/* Hạng vé chiều về (nếu có) */}
-                      {ticket.loai_chuyen_di === "Khứ hồi" && ticket.vi_tri_ngoi_ve && (
-                        <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                          {ticket.vi_tri_ngoi_ve}
-                        </span>
+                    <div>
+                      <span>{getOrDefault(getChieuDi(ticket.ma_hang_ve))}</span>
+                      {ticket.loai_chuyen_di === "Khứ hồi" && getChieuVe(ticket.ma_hang_ve) && (
+                        <>
+                          <br />
+                          <span>{getOrDefault(getChieuVe(ticket.ma_hang_ve))}</span>
+                        </>
                       )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-500">
-                      {ticket.ngay_dat ? new Date(ticket.ngay_dat).toLocaleDateString() : 'N/A'}
+                      {ticket.ngay_dat
+                        ? new Date(ticket.ngay_dat).toLocaleDateString()
+                        : "N/A"}
                       <span className="block text-xs text-gray-400">
-                        {ticket.ngay_dat ? new Date(ticket.ngay_dat).toLocaleTimeString() : ''}
+                        {ticket.ngay_dat
+                          ? new Date(ticket.ngay_dat).toLocaleTimeString()
+                          : ""}
                       </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      ticket.trang_thai === "Đã hủy"
-                        ? "bg-red-100 text-red-800"
-                        : ticket.trang_thai === "Đã thanh toán"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}>
-                      {ticket.trang_thai || 'N/A'}
+                    <span
+                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        ticket.trang_thai === "Đã hủy"
+                          ? "bg-red-100 text-red-800"
+                          : ticket.trang_thai === "Đã thanh toán"
+                          ? "bg-green-100 text-green-800"
+                          : ticket.trang_thai === "Đã hoàn vé"
+                          ? "bg-purple-100 text-purple-800"
+                          : ticket.trang_thai === "Chờ duyệt hoàn vé"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {getOrDefault(ticket.trang_thai)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -238,15 +216,13 @@ const Item_History_Ticket = ({ maKhachHang }) => {
           </table>
         </div>
       </div>
-
-      {/* ✅ Chỉ render modal khi có selectedTicket */}
       {selectedTicket && (
         <Detail_History_Ticket
           ticket={selectedTicket}
           show={showDetail}
           onClose={() => {
             setShowDetail(false);
-            setSelectedTicket(null); // Reset selected ticket
+            setSelectedTicket(null);
           }}
         />
       )}

@@ -1,12 +1,12 @@
 from pydantic import BaseModel, validator
-from typing import List, Union
+from typing import List, Optional, Union
 
 class ChiTietVeDat(BaseModel):
-    ma_dat_ve: str
-    ma_gia_ve: Union[str, List[str]]  # ✅ Hỗ trợ cả string và array
+    ma_dat_ve: Optional[str] = None
+    ma_ve: Union[str, List[str]]  # ✅ Hỗ trợ cả string và array
     ma_hanh_khach: Union[str, List[str]]  # Chấp nhận cả string và list
     
-    @validator('ma_gia_ve')
+    @validator('ma_ve')
     def convert_gia_ve_to_list(cls, v):
         if isinstance(v, str):
             return [v]  # Chuyển string thành list cho vé một chiều

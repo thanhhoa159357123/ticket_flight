@@ -1,7 +1,15 @@
 // TicketInfoHeader.jsx
 import React from "react";
-import FlightTakeoffIcon from '@mui/icons-material/FlightTakeoff';
-import FlightLandIcon from '@mui/icons-material/FlightLand';
+import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff";
+import FlightLandIcon from "@mui/icons-material/FlightLand";
+import dayjs from "dayjs";
+import duration from "dayjs/plugin/duration";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(duration);
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const TicketInfoHeader = ({
   flight,
@@ -21,10 +29,13 @@ const TicketInfoHeader = ({
           </span>
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold text-gray-900 truncate">
-              {flight?.ten_san_bay_di || ""} → {flight?.ten_san_bay_den || ""}
+              Sân bay {flight?.ten_san_bay_di || ""} → Sân bay{" "}
+              {flight?.ten_san_bay_den || ""}
             </h3>
             <p className="text-sm text-gray-500 truncate">
-              {gioDiVN?.format("dddd, DD/MM/YYYY") || "Ngày khởi hành"}
+              {gioDiVN
+                ? dayjs(gioDiVN).subtract(7, "hour").format("HH:mm")
+                : "N/A"}
             </p>
           </div>
         </div>
@@ -35,8 +46,19 @@ const TicketInfoHeader = ({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-blue-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                  />
                 </svg>
               </div>
               <span className="font-semibold text-gray-800">
@@ -48,7 +70,7 @@ const TicketInfoHeader = ({
           {/* Flight timeline */}
           <div className="relative mb-4">
             <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-gray-300 z-0"></div>
-            
+
             <div className="relative z-10 flex items-center justify-between">
               {/* Departure */}
               <div className="flex flex-col items-center bg-white px-2">
@@ -96,11 +118,22 @@ const TicketInfoHeader = ({
                 e.stopPropagation();
                 onShowDetail();
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
             >
               Xem chi tiết chuyến bay
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </div>

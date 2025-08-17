@@ -1,25 +1,36 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api";
+const API_BASE_URL = "http://localhost:8000";
 
 export const bookingService = {
-  // Tạo hành khách
+  createDatVe: async (datVeData) => {
+    const response = await axios.post(`${API_BASE_URL}/datve`, datVeData);
+    return response.data.datve;
+  },
+
   createPassenger: async (passengerData) => {
-    const response = await axios.post(`${API_BASE_URL}/hanh-khach`, passengerData);
+    const response = await axios.post(
+      `${API_BASE_URL}/hanhkhach`,
+      passengerData
+    );
     return response.data.hanh_khach;
   },
 
-  // Tạo chi tiết vé
   createTicketDetail: async (ticketDetailData) => {
-    const response = await axios.post(`${API_BASE_URL}/chi-tiet-ve-dat`, ticketDetailData);
-    return response.data.chi_tiet_ve;
+    const response = await axios.post(
+      `${API_BASE_URL}/chitietdatve`,
+      ticketDetailData
+    );
+    return response.data.chi_tiet_ve_list;
   },
 
-  // Tạo danh sách hành khách
   createPassengers: async (passengerList) => {
     const hanhKhachResponses = await Promise.all(
       passengerList.map(async (p) => {
-        const ngay_sinh = `${p.yyyy}-${p.mm.padStart(2, "0")}-${p.dd.padStart(2, "0")}`;
+        const ngay_sinh = `${p.yyyy}-${p.mm.padStart(2, "0")}-${p.dd.padStart(
+          2,
+          "0"
+        )}`;
         const passengerPayload = {
           danh_xung: p.danh_xung,
           ho_hanh_khach: p.ho_hanh_khach,
@@ -27,34 +38,15 @@ export const bookingService = {
           ngay_sinh,
           quoc_tich: p.quoc_tich,
         };
-
         return await bookingService.createPassenger(passengerPayload);
       })
     );
     return hanhKhachResponses;
   },
 
-  // Tạo chi tiết vé cho chuyến
-  createTicketDetails: async (passengers, maDatVe, packageOrFlight) => {
-    const chiTietVeResponses = await Promise.all(
-      passengers.map(async (hk) => {
-        const payload = {
-          ma_dat_ve: maDatVe,
-          ma_gia_ve: packageOrFlight?.ma_gia_ve,
-          ma_hanh_khach: hk.ma_hanh_khach,
-        };
-        return await bookingService.createTicketDetail(payload);
-      })
-    );
-    return chiTietVeResponses;
-  },
-
-  // Xử lý đặt vé hoàn chỉnh
   processBooking: async (bookingData) => {
     const {
       passengerList,
-      maDatVe,
-      maDatVeReturn,
       selectedPackage,
       returnPackage,
       flight,
@@ -62,31 +54,51 @@ export const bookingService = {
       isRoundTrip,
     } = bookingData;
 
-    // 1. Tạo hành khách
-    const passengers = await bookingService.createPassengers(passengerList);
+    const userData = JSON.parse(localStorage.getItem("user") || "{}");
+    const maKhachHang = userData?.ma_khach_hang;
 
-    // 2. Chi tiết vé cho chuyến đi
-    const chiTietVeDat = await bookingService.createTicketDetails(
-      passengers,
-      maDatVe,
-      selectedPackage || flight
-    );
-
-    // 3. Chi tiết vé cho chuyến về (nếu có)
-    let chiTietVeReturn = [];
-    if (isRoundTrip && returnFlight && returnPackage) {
-      const maDatVeForReturn = maDatVeReturn || maDatVe;
-      chiTietVeReturn = await bookingService.createTicketDetails(
-        passengers,
-        maDatVeForReturn,
-        returnPackage || returnFlight
+    if (!maKhachHang) {
+      throw new Error(
+        "Không tìm thấy thông tin khách hàng. Vui lòng đăng nhập lại."
       );
     }
+
+    // 🔧 Chuyển thành mảng cho model mới
+    const maHangVeList = [
+      selectedPackage?.ma_hang_ve || selectedPackage?.ma_ve,
+    ];
+    const maChuyenBayList = [flight?.ma_chuyen_bay];
+
+    if (isRoundTrip && returnPackage && returnFlight) {
+      maHangVeList.push(returnPackage?.ma_hang_ve || returnPackage?.ma_ve);
+      maChuyenBayList.push(returnFlight?.ma_chuyen_bay);
+    }
+
+    const datVePayload = {
+      ngay_dat: new Date().toISOString(),
+      trang_thai: "Đang xử lý",
+      ma_khach_hang: maKhachHang,
+      loai_chuyen_di: isRoundTrip ? "Khứ hồi" : "Một chiều",
+      ma_hang_ve: isRoundTrip ? maHangVeList : maHangVeList[0],
+      ma_chuyen_bay: isRoundTrip ? maChuyenBayList : maChuyenBayList[0],
+    };
+
+    const datVeOutbound = await bookingService.createDatVe(datVePayload);
+
+    const passengers = await bookingService.createPassengers(passengerList);
+
+    // Gọi API tạo chi tiết vé chỉ 1 lần với mảng hành khách
+    const payload = {
+      ma_dat_ve: datVeOutbound.ma_dat_ve,
+      ma_ve: selectedPackage?.ma_ve || selectedPackage?.ma_hang_ve,
+      ma_hanh_khach: passengers.map((hk) => hk.ma_hanh_khach),
+    };
+    const chiTietVeDat = await bookingService.createTicketDetail(payload);
 
     return {
       passengers,
       chiTietVeDat,
-      chiTietVeReturn,
+      datVeOutbound,
     };
   },
 };

@@ -1,62 +1,76 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
-from models.hang_ban_ve import HangBanVe
-from utils.spark import load_df, invalidate_cache
+from models.hangbanve import HangBanVe
+from utils.spark import load_df, refresh_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
-import os
+import traceback
 
 router = APIRouter()
 client = MongoClient(MONGO_URI)
-hang_ban_ve_collection = client[MONGO_DB]["hang_ban_ve"]
+hang_ban_ve_collection = client[MONGO_DB]["hangbanve"]
 
-@router.post("", tags=["hang_ban_ve"])
+@router.post("", tags=["hangbanve"])
 def add_hang_ban_ve(hang_ban_ve: HangBanVe):
     try:
         print("📥 Dữ liệu nhận từ client:", hang_ban_ve.dict())
 
-        df = load_df("hang_ban_ve")
-        print("✅ Đã load dữ liệu từ MongoDB bằng Spark")
-
+        # Kiểm tra tồn tại với cached DataFrame
+        df = load_df("hangbanve")
         if (
             "ma_hang_ban_ve" in df.columns
             and df.filter(df["ma_hang_ban_ve"] == hang_ban_ve.ma_hang_ban_ve).count() > 0
         ):
-            raise HTTPException(status_code=400, detail="Hãng bay đã tồn tại")
+            raise HTTPException(status_code=400, detail="Hãng bán vé đã tồn tại")
 
+        # Insert với error handling
         data_to_insert = hang_ban_ve.dict()
-        inserted = hang_ban_ve_collection.insert_one(data_to_insert)
+        try:
+            inserted = hang_ban_ve_collection.insert_one(data_to_insert)
+            if not inserted.inserted_id:
+                raise HTTPException(status_code=500, detail="Không thể thêm hãng bán vé")
+        except DuplicateKeyError:
+            raise HTTPException(status_code=400, detail="Mã hãng bán vé đã tồn tại")
 
-        print("🎉 Thêm hãng bay thành công:", hang_ban_ve.ma_hang_ban_ve)
-
-        # Gắn lại _id vào dict theo dạng chuỗi nếu muốn trả về
+        # Refresh cache để có dữ liệu mới ngay lập tức
+        refresh_cache("hangbanve")
+        
         data_to_insert["_id"] = str(inserted.inserted_id)
-        invalidate_cache("hang_ban_ve")
+        print("🎉 Thêm hãng bán vé thành công:", hang_ban_ve.ma_hang_ban_ve)
+        
         return JSONResponse(
-            content={"message": "Thêm hãng bán vé thành công", "hang_ban_ve": data_to_insert}
+            content={
+                "message": "Thêm hãng bán vé thành công", 
+                "data": data_to_insert
+            },
+            status_code=201
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
-        print("❌ Lỗi trong /add:", str(e))
+        print("❌ Lỗi trong add_hang_ban_ve:", str(e))
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
 
-@router.get("", tags=["hang_ban_ve"])
+@router.get("", tags=["hangbanve"])
 def get_all_hang_ban_ve():
     try:
-        df = load_df("hang_ban_ve")
-
-        # Các cột mong muốn
+        # Sử dụng cached DataFrame với select tối ưu
+        df = load_df("hangbanve")
         df = df.select("ma_hang_ban_ve", "ten_hang_ban_ve", "vai_tro")
         result = df.toPandas().to_dict(orient="records")
-
+        
+        print(f"✅ Lấy danh sách hãng bán vé thành công: {len(result)} records")
         return JSONResponse(content=result)
 
     except Exception as e:
         print("❌ Lỗi trong get_all_hang_ban_ve:", str(e))
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
     
-@router.delete("/{ma_hang_ban_ve}", tags=["hang_ban_ve"])
+@router.delete("/{ma_hang_ban_ve}", tags=["hangbanve"])
 def delete_hang_ban_ve(ma_hang_ban_ve: str):
     try:
         print(f"🗑 Nhận yêu cầu xoá tuyến bay: {ma_hang_ban_ve}")
@@ -65,9 +79,9 @@ def delete_hang_ban_ve(ma_hang_ban_ve: str):
 
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Không tìm thấy tuyến bay cần xoá")
-
+        refresh_cache("hangbanve")
         return JSONResponse(content={"message": f"Đã xoá tuyến bay {ma_hang_ban_ve} thành công"})
-
+        
     except HTTPException as he:
         raise he
 
