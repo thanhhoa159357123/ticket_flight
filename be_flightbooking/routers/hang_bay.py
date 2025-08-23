@@ -1,8 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.hang_bay import HangBay
-from utils.spark import load_df, refresh_cache
-from utils.spark_views import get_view
+from utils.spark import load_df, invalidate_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
@@ -49,7 +48,7 @@ def add_hang_bay(hang_bay: HangBay):
             raise HTTPException(status_code=400, detail="Mã hãng bay đã tồn tại")
 
         # Refresh cache để có dữ liệu mới ngay lập tức
-        refresh_cache("hangbay")
+        invalidate_cache("hangbay")
 
         print(f"🎉 Thêm hãng bay thành công: {hang_bay.ma_hang_bay}")
         return JSONResponse(
@@ -155,7 +154,7 @@ def update_hang_bay(ma_hang_bay: str, hang_bay: HangBay):
             raise HTTPException(status_code=404, detail="Không tìm thấy hãng bay")
 
         # Invalidate cache
-        refresh_cache("hang_bay")
+        invalidate_cache("hang_bay")
 
         print(f"✅ Cập nhật hãng bay thành công: {ma_hang_bay}")
         return JSONResponse(content={"message": "Cập nhật hãng bay thành công"})
@@ -191,7 +190,7 @@ def delete_hang_bay(ma_hang_bay: str):
             raise HTTPException(status_code=404, detail="Không tìm thấy hãng bay")
 
         # Invalidate cache
-        refresh_cache("hang_bay")
+        invalidate_cache("hang_bay")
 
         print(f"✅ Xóa hãng bay thành công: {ma_hang_bay}")
         return JSONResponse(content={"message": f"Xóa hãng bay {ma_hang_bay} thành công"})

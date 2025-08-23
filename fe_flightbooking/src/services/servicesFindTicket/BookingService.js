@@ -1,19 +1,16 @@
 import axios from "axios";
+import { BASE_URL } from "../apiConfig";
 
-const BASE_URL = "http://localhost:8000";
-
-export const fetchTripTypes = async () => {
-  const res = await axios.get(`${BASE_URL}/loaichuyendi`);
-  return res.data;
+// Hàm fetch an toàn, tái sử dụng
+const safeFetch = async (url) => {
+  try {
+    const res = await axios.get(url);
+    return Array.isArray(res.data) ? res.data : [];
+  } catch (err) {
+    console.error(`❌ Lỗi fetch API: ${url}`, err);
+    return []; // ✅ Luôn trả về mảng rỗng để tránh crash UI
+  }
 };
 
-export const fetchSeatPositions = async () => {
-  const res = await axios.get(`${BASE_URL}/hangve`);
-  return res.data;
-};
-
-
-// export const findTripTypeByName = async (name) => {
-//   const all = await fetchTripTypes();
-//   return all.find((item) => item.ten_chuyen_di === name);
-// };
+export const fetchTripTypes = () => safeFetch(`${BASE_URL}/loaichuyendi`);
+export const fetchSeatPositions = () => safeFetch(`${BASE_URL}/hangve`);

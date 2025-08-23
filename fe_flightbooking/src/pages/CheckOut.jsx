@@ -11,7 +11,6 @@ const CheckOut = () => {
   const { booking = {} } = location.state || {};
   const {
     passengers,
-    chiTietVeDat,
     datVeOutbound,
     datVeReturn,
     selectedPackage,
@@ -22,6 +21,7 @@ const CheckOut = () => {
     selectedLuggage,
   } = booking;
   const state = { booking };
+  console.log("🚀 ~ file: CheckOut.jsx:7 ~ CheckOut ~ booking:", booking);
 
   const [loading, setLoading] = React.useState(false);
 
@@ -68,25 +68,50 @@ const CheckOut = () => {
   // Hàm gọi API tạo hóa đơn khi thanh toán PayPal thành công
   const onPaymentSuccess = async (details) => {
     try {
+      const userData = JSON.parse(localStorage.getItem("user") || "{}");
+      const tongTien = calculateTotal();
+
+      // Gửi hóa đơn
       const hoaDonPayload = {
-        ma_hoa_don: "", // tạo ở backend
-        ngay_thanh_toan: new Date().toISOString().split('T')[0],
-        tong_tien: calculateTotal(),
+        ma_hoa_don: "",
+        ngay_thanh_toan: new Date().toISOString().split("T")[0],
+        tong_tien: tongTien,
         phuong_thuc: "PayPal",
         ghi_chu: `Thanh toán bởi ${details.payer.name.given_name}`,
         ma_dat_ve: datVeOutbound?.ma_dat_ve,
       };
-
       await axios.post(
         "http://localhost:8000/hoadon/thanh-toan",
         hoaDonPayload
       );
 
-      alert("🎉 Thanh toán thành công!");
+      // Gửi vé điện tử
+      await axios.post("http://localhost:8000/vedientu/send-full", null, {
+        params: {
+          ma_dat_ve: datVeOutbound.ma_dat_ve,
+          email: userData?.email || "test@example.com",
+        },
+      });
+
+      // Gửi vé điện tử khứ hồi nếu có
+      if (
+        isRoundTrip &&
+        datVeReturn?.ma_dat_ve &&
+        datVeReturn.ma_dat_ve !== datVeOutbound.ma_dat_ve
+      ) {
+        await axios.post("http://localhost:8000/vedientu/send-full", null, {
+          params: {
+            ma_dat_ve: datVeReturn.ma_dat_ve,
+            email: userData?.email || "test@example.com",
+          },
+        });
+      }
+
+      alert("🎉 Thanh toán và gửi vé thành công!");
       navigate("/success");
     } catch (error) {
-      console.error("❌ Lỗi khi cập nhật thanh toán:", error);
-      alert("Thanh toán thành công nhưng cập nhật thất bại.");
+      console.error("❌ Lỗi sau khi thanh toán:", error);
+      alert("Thanh toán thành công nhưng gửi vé thất bại.");
     }
   };
 

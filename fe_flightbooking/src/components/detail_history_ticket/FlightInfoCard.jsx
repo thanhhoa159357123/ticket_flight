@@ -14,8 +14,7 @@ const FlightInfoCard = ({
     <div className="flex items-center justify-between">
       <div className="text-center flex-1">
         <div className="flex items-center justify-center text-gray-900 mb-1">
-          <MapPinIcon className="h-3 w-3 mr-1" />
-          <span className="font-medium text-sm">{departure}</span>
+          <span className="font-medium text-sm">Sân bay {departure}</span>
         </div>
         {departureTime && (
           <div className="text-xs text-gray-600">
@@ -34,8 +33,7 @@ const FlightInfoCard = ({
 
       <div className="text-center flex-1">
         <div className="flex items-center justify-center text-gray-900 mb-1">
-          <MapPinIcon className="h-3 w-3 mr-1" />
-          <span className="font-medium text-sm">{arrival}</span>
+          <span className="font-medium text-sm">Sân bay {arrival}</span>
         </div>
         {arrivalTime && (
           <div className="text-xs text-gray-600">

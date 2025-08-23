@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Body, Path
 from fastapi.responses import JSONResponse
-from utils.spark import load_df, refresh_cache
+from utils.spark import load_df, invalidate_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from utils.logger import logger
@@ -87,7 +87,7 @@ def update_khach_hang_admin(
             raise HTTPException(status_code=404, detail="Không tìm thấy khách hàng")
 
         logger.info(f"[ADMIN UPDATE] Mã KH: {ma_khach_hang} | Thay đổi: {update_fields}")
-        refresh_cache("khach_hang")
+        invalidate_cache("khach_hang")
 
         updated_doc = khach_hang_collection.find_one({"ma_khach_hang": ma_khach_hang})
         updated_doc.pop("_id", None)

@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.hangbanve import HangBanVe
-from utils.spark import load_df, refresh_cache
+from utils.spark import load_df, invalidate_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
+from pymongo.errors import DuplicateKeyError
 import traceback
 
 router = APIRouter()
@@ -33,7 +34,7 @@ def add_hang_ban_ve(hang_ban_ve: HangBanVe):
             raise HTTPException(status_code=400, detail="Mã hãng bán vé đã tồn tại")
 
         # Refresh cache để có dữ liệu mới ngay lập tức
-        refresh_cache("hangbanve")
+        invalidate_cache("hangbanve")
         
         data_to_insert["_id"] = str(inserted.inserted_id)
         print("🎉 Thêm hãng bán vé thành công:", hang_ban_ve.ma_hang_ban_ve)
@@ -79,7 +80,7 @@ def delete_hang_ban_ve(ma_hang_ban_ve: str):
 
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Không tìm thấy tuyến bay cần xoá")
-        refresh_cache("hangbanve")
+        invalidate_cache("hangbanve")
         return JSONResponse(content={"message": f"Đã xoá tuyến bay {ma_hang_ban_ve} thành công"})
         
     except HTTPException as he:

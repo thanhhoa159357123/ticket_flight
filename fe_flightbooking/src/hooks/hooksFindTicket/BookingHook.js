@@ -1,66 +1,59 @@
-// BookingHook.jsx
 import { useState, useEffect, useCallback } from "react";
-import {
-  fetchSeatPositions,
-  fetchTripTypes,
-} from "../../services/servicesFindTicket/BookingService";
+import { fetchSeatPositions, fetchTripTypes } from "../../services/servicesFindTicket/bookingService";
 
 export const useBookingData = () => {
   const [options, setOptions] = useState([]);
   const [ways, setWays] = useState([]);
   const [selected, setSelected] = useState("");
   const [selectedWay, setSelectedWay] = useState("");
-  const [passengers, setPassengers] = useState({
-    Adult: 1,
-    Children: 0,
-    Infant: 0,
-  });
+  const [passengers, setPassengers] = useState({ Adult: 1, Children: 0, Infant: 0 });
+  const [returnDate, setReturnDate] = useState(true);
 
-  useEffect(() => {
-    // Hàm lấy loại chuyến đi
-    const loadWays = async () => {
-      try {
-        const res = await fetchTripTypes();
-        // ✅ Filter out Multi City
-        const types = res
-          .map((item) => item.ten_chuyen_di)
-          .filter((type) => type !== "Nhiều chặng");
-        setWays(types);
-        setSelectedWay(types[0] || "");
-      } catch (err) {
-        console.error("Lỗi fetch loại chuyến đi:", err);
-      }
-    };
-
-    const loadOptions = async () => {
-      try {
-        const res = await fetchSeatPositions();
-        // Lọc trước khi map để tránh lỗi logic
-        const filtered = res.filter((item) => !item.ma_hang_ve.includes("+"));
-        const unique = filtered
-          .map((item) => item.ten_hang_ve)
-          .filter((value, index, self) => self.indexOf(value) === index);
-        setOptions(unique);
-        setSelected(unique[0] || "");
-      } catch (err) {
-        console.error("Lỗi fetch vị trí ngồi:", err);
-      }
-    };
-    loadOptions();
-    loadWays();
+  // ✅ Memo hóa handlePassengerInput để tránh re-render thừa
+  const handlePassengerInput = useCallback((type, value) => {
+    const num = parseInt(value, 10) || 0;
+    setPassengers((prev) => ({
+      ...prev,
+      [type]: type === "Adult" ? Math.max(1, num) : Math.max(0, num),
+    }));
   }, []);
 
-  const handlePassengerInput = useCallback(
-    (type, value) => {
-      const numValue = parseInt(value) || 0;
-      setPassengers((prev) => ({
-        ...prev,
-        [type]:
-          type === "Adult" ? Math.max(1, numValue) : Math.max(0, numValue),
-      }));
-    },
-    [setPassengers]
-  );
+  useEffect(() => {
+    let isMounted = true; // ✅ Ngăn update state khi component đã unmount
+
+    const fetchData = async () => {
+      // Chạy song song 2 API để nhanh hơn
+      const [tripTypes, seatPositions] = await Promise.all([
+        fetchTripTypes(),
+        fetchSeatPositions(),
+      ]);
+
+      if (!isMounted) return;
+
+      // Lấy loại chuyến đi
+      const types = tripTypes
+        .map((item) => item.ten_chuyen_di)
+        .filter((type) => type !== "Nhiều chặng");
+      setWays(types);
+      setSelectedWay(types[0] || "");
+
+      // Lấy hạng vé duy nhất, loại bỏ mã có "+"
+      const uniqueOptions = [...new Set(
+        seatPositions
+          .filter((item) => !item.ma_hang_ve.includes("+"))
+          .map((item) => item.ten_hang_ve)
+      )];
+      setOptions(uniqueOptions);
+      setSelected(uniqueOptions[0] || "");
+    };
+
+    fetchData();
+
+    // Cleanup tránh memory leak khi unmount
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return {
     options,
@@ -71,5 +64,7 @@ export const useBookingData = () => {
     setSelectedWay,
     passengers,
     handlePassengerInput,
+    returnDate,
+    setReturnDate,
   };
 };

@@ -1,8 +1,7 @@
-import React, { useState, useCallback } from "react";
-import Navbar from "../../components/Navbar";
+import { useState, useCallback } from "react";
 import Item_Information from "./Item_Information";
 import Item_History_Ticket from "./Item_History_Ticket";
-import Edit_Information from "../../components/Edit_Information";
+import Edit_Information from "../../components/inputs/Edit_Information";
 
 const FIELD_LABELS = {
   ten_khach_hang: "Họ tên",

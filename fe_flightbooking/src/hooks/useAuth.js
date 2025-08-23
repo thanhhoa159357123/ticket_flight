@@ -5,33 +5,37 @@ export const useAuth = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (email, password, onSuccess) => {
+  // ✅ Đăng nhập
+  const handleLogin = async (email, password) => {
     setErrors({});
     setLoading(true);
 
     const newErrors = {};
     if (!email.trim()) newErrors.email = "Vui lòng nhập Email.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = "Email không đúng định dạng.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      newErrors.email = "Email không đúng định dạng.";
     if (!password.trim()) newErrors.password = "Vui lòng nhập Mật khẩu.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setLoading(false);
-      return;
+      return false;
     }
 
     try {
       const data = await loginUser(email, password);
       localStorage.setItem("user", JSON.stringify(data));
-      onSuccess(data);
+      return true; // ✅ thành công
     } catch (err) {
-      alert("❌ " + err.message);
+      console.error("Login error:", err.message);
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRegister = async (payload, confirmPass, onSuccess) => {
+  // ✅ Đăng ký
+  const handleRegister = async (payload, confirmPass) => {
     setErrors({});
     setLoading(true);
 
@@ -39,22 +43,25 @@ export const useAuth = () => {
     if (!payload.ten_khach_hang) newErrors.ten = "Vui lòng nhập họ tên.";
     if (!payload.so_dien_thoai) newErrors.sdt = "Vui lòng nhập số điện thoại.";
     if (!payload.email) newErrors.email = "Vui lòng nhập Email.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) newErrors.email = "Email không đúng định dạng.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email))
+      newErrors.email = "Email không đúng định dạng.";
     if (!payload.matkhau) newErrors.password = "Vui lòng nhập Mật khẩu.";
     if (!confirmPass) newErrors.confirmPass = "Vui lòng xác nhận mật khẩu.";
-    else if (payload.matkhau !== confirmPass) newErrors.confirmPass = "❌ Mật khẩu xác nhận không khớp.";
+    else if (payload.matkhau !== confirmPass)
+      newErrors.confirmPass = "❌ Mật khẩu xác nhận không khớp.";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setLoading(false);
-      return;
+      return false;
     }
 
     try {
       await registerUser(payload);
-      onSuccess();
+      return true; // ✅ thành công
     } catch (err) {
-      alert("❌ " + err.message);
+      console.error("Register error:", err.message);
+      return false;
     } finally {
       setLoading(false);
     }

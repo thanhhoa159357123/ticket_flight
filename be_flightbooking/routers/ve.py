@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from fastapi.responses import JSONResponse
+from pyspark import StorageLevel
 from models.ve import Ve
-from utils.spark import load_df, refresh_cache, get_spark, invalidate_cache
+from utils.spark import load_df, get_spark, invalidate_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 from pydantic import BaseModel
 from typing import List, Optional
 import traceback
-import re
 import pandas as pd
 import io
 
@@ -16,12 +16,12 @@ router = APIRouter()
 client = MongoClient(MONGO_URI)
 ve_collection = client[MONGO_DB]["ve"]
 
+
 def safe_escape_sql(value: str) -> str:
-    """Safely escape SQL values to prevent injection"""
-    return value.replace("'", "''").replace("\\", "\\\\\\\\")
+    return value.replace("'", "''").replace("\\", "\\\\")
+
 
 def check_exists_optimized(collection_name: str, field_name: str, value: str) -> bool:
-    """Optimized existence check using cached DataFrames"""
     try:
         df = load_df(collection_name)
         return df.filter(df[field_name] == value).limit(1).count() > 0
@@ -29,102 +29,58 @@ def check_exists_optimized(collection_name: str, field_name: str, value: str) ->
         print(f"❌ Lỗi check_exists_optimized {collection_name}.{field_name}: {e}")
         return False
 
-def create_temp_views():
-    """Create all required temp views for complex queries"""
-    collections = ["ve", "chuyenbay", "hangve", "hangbanve", "hangbay", "sanbay"]
-    created_views = {}
-    
-    for collection in collections:
-        try:
-            df = load_df(collection)
-            df.createOrReplaceTempView(collection)
-            created_views[collection] = df
-            print(f"✅ Created temp view: {collection}")
-        except Exception as e:
-            print(f"❌ Error creating view {collection}: {e}")
-    
-    return created_views
-
-# Sửa validate_required_views với tên collection đúng
-# def validate_required_views():
-#     """Ensure all required views exist for complex queries"""
-#     # Mapping tên collection MongoDB -> tên view Spark
-#     collection_mappings = {
-#         "ve": "ve",
-#         "chuyenbay": "chuyenbay", 
-#         "hangve": "hangve",
-#         "hangbanve": "hangbanve", 
-#         "hangbay": "hangbay",
-#         "sanbay": "sanbay",
-#     }
-    
-#     views = {}
-
-#     for collection_name, view_name in collection_mappings.items():
-#         try:
-#             view = get_view(collection_name)
-#             if view is None:
-#                 print(f"📥 Loading collection: {collection_name}")
-#                 view = load_df(collection_name)
-            
-#             if view is not None:
-#                 views[view_name] = view
-#                 view.createOrReplaceTempView(view_name)
-#                 print(f"✅ Created view: {view_name} from collection: {collection_name}")
-#             else:
-#                 print(f"❌ Failed to load collection: {collection_name}")
-#         except Exception as e:
-#             print(f"❌ Error creating view {view_name}: {e}")
-
-#     return views
 
 # Request models
 class GiaVeRequest(BaseModel):
     ma_gia_ves: List[str]
 
+
 @router.post("", tags=["ve"])
 def add_ve(ve: Ve):
-    """Add new ticket with optimized validation using cached DataFrames"""
     try:
-        print(f"📥 Dữ liệu nhận từ client: {ve.dict()}")
-
-        # Input validation
-        if not ve.ma_ve or not ve.ma_ve.strip():
+        if not ve.ma_ve.strip():
             raise HTTPException(status_code=400, detail="Mã vé không được để trống")
-
         if ve.gia_ve <= 0:
             raise HTTPException(status_code=400, detail="Giá vé phải lớn hơn 0")
-
         if not ve.ma_hang_ve or not ve.ma_hang_ve.strip():
-            raise HTTPException(status_code=400, detail="Mã hạng vé không được để trống")
-            
+            raise HTTPException(
+                status_code=400, detail="Mã hạng vé không được để trống"
+            )
         if not ve.ma_chuyen_bay or not ve.ma_chuyen_bay.strip():
-            raise HTTPException(status_code=400, detail="Mã chuyến bay không được để trống")
-            
+            raise HTTPException(
+                status_code=400, detail="Mã chuyến bay không được để trống"
+            )
         if not ve.ma_hang_ban_ve or not ve.ma_hang_ban_ve.strip():
-            raise HTTPException(status_code=400, detail="Mã hãng bán vé không được để trống")
+            raise HTTPException(
+                status_code=400, detail="Mã hãng bán vé không được để trống"
+            )
 
-        # Check duplicate using cached DataFrame
         if check_exists_optimized("ve", "ma_ve", ve.ma_ve):
             raise HTTPException(status_code=400, detail="Mã vé đã tồn tại")
 
-        # Batch validation cho foreign keys sử dụng cached DataFrames
         validations = [
-            (check_exists_optimized("hangve", "ma_hang_ve", ve.ma_hang_ve), 
-             "Mã hạng vé không tồn tại"),
-            (check_exists_optimized("chuyenbay", "ma_chuyen_bay", ve.ma_chuyen_bay), 
-             "Mã chuyến bay không tồn tại"),
-            (check_exists_optimized("hangbanve", "ma_hang_ban_ve", ve.ma_hang_ban_ve), 
-             "Mã hãng bán vé không tồn tại")
+            (
+                check_exists_optimized("hangve", "ma_hang_ve", ve.ma_hang_ve),
+                "Mã hạng vé không tồn tại",
+            ),
+            (
+                check_exists_optimized("chuyenbay", "ma_chuyen_bay", ve.ma_chuyen_bay),
+                "Mã chuyến bay không tồn tại",
+            ),
+            (
+                check_exists_optimized(
+                    "hangbanve", "ma_hang_ban_ve", ve.ma_hang_ban_ve
+                ),
+                "Mã hãng bán vé không tồn tại",
+            ),
         ]
 
         for is_valid, error_msg in validations:
             if not is_valid:
                 raise HTTPException(status_code=400, detail=error_msg)
 
-        # Insert với duplicate key handling
+        data_to_insert = ve.dict()
         try:
-            data_to_insert = ve.dict()
             result = ve_collection.insert_one(data_to_insert)
             if not result.inserted_id:
                 raise HTTPException(status_code=500, detail="Không thể thêm vé")
@@ -133,9 +89,7 @@ def add_ve(ve: Ve):
 
         # Refresh cache để có dữ liệu mới ngay lập tức
         invalidate_cache("ve")
-
         data_to_insert["_id"] = str(result.inserted_id)
-        print(f"✅ Thêm vé thành công: {ve.ma_ve}")
 
         return JSONResponse(
             content={"message": "Thêm vé thành công", "ve": data_to_insert},
@@ -152,16 +106,12 @@ def add_ve(ve: Ve):
 
 @router.get("", tags=["ve"])
 def get_all_ve():
-    """Get all tickets with detailed information using cached DataFrames"""
     try:
         spark = get_spark()
-        
-        # Create temp views from cached DataFrames
-        views = create_temp_views()
-        
-        # Enhanced query with all necessary joins
+        spark.conf.set("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
+
         query = """
-        SELECT 
+        SELECT /*+ BROADCAST(hv), BROADCAST(hbv), BROADCAST(hb), BROADCAST(sb_di), BROADCAST(sb_den) */
             v.ma_ve,
             v.gia_ve,
             v.ma_chuyen_bay,
@@ -202,11 +152,8 @@ def get_all_ve():
         """
 
         df_result = spark.sql(query)
-        
-        # Convert to pandas with fallback enabled
-        spark.conf.set("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
         result = df_result.toPandas().to_dict(orient="records")
-        
+
         print(f"✅ Lấy danh sách vé thành công từ cache: {len(result)} records")
         return JSONResponse(content=result)
 
@@ -214,6 +161,7 @@ def get_all_ve():
         print(f"❌ Lỗi trong get_all_ve: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
+
 
 @router.get("/search-ve", tags=["ve"])
 def search_ve(
@@ -223,40 +171,47 @@ def search_ve(
     departure_date: Optional[str] = None,
     max_price: Optional[float] = None,
 ):
-    """Search tickets with enhanced filters using cached DataFrames"""
     try:
-        # Input validation
         if not from_airport or not to_airport or not ten_hang_ve:
             raise HTTPException(status_code=400, detail="Thiếu thông tin tìm kiếm")
 
-        safe_from = safe_escape_sql(from_airport.strip())
-        safe_to = safe_escape_sql(to_airport.strip())
-        safe_hang_ve = safe_escape_sql(ten_hang_ve.strip())
-
         spark = get_spark()
-        
-        # Create temp views from cached DataFrames
-        views = create_temp_views()
+        spark.conf.set("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
+        spark.conf.set(
+            "spark.sql.autoBroadcastJoinThreshold", "-1"
+        )  # tắt auto broadcast
 
-        # Build where conditions
-        where_conditions = [
-            f"cb.ma_san_bay_di = '{safe_from}'",
-            f"cb.ma_san_bay_den = '{safe_to}'",
-            f"hv.ten_hang_ve = '{safe_hang_ve}'",
+        # Các bảng nhỏ cần broadcast
+        broadcast_tables = ["hangve", "hangbanve", "hangbay", "sanbay"]
+        for tbl in broadcast_tables:
+            df = load_df(tbl).persist(StorageLevel.MEMORY_AND_DISK).hint("broadcast")
+            df.createOrReplaceTempView(tbl)
+
+        # Các bảng lớn không broadcast
+        for tbl in ["ve", "chuyenbay"]:
+            load_df(tbl).persist(StorageLevel.MEMORY_AND_DISK).createOrReplaceTempView(
+                tbl
+            )
+
+        conditions = [
+            f"cb.ma_san_bay_di = '{safe_escape_sql(from_airport.strip())}'",
+            f"cb.ma_san_bay_den = '{safe_escape_sql(to_airport.strip())}'",
+            f"hv.ten_hang_ve = '{safe_escape_sql(ten_hang_ve.strip())}'",
             "v.ma_ve IS NOT NULL",
         ]
 
         if departure_date:
-            safe_date = safe_escape_sql(departure_date)
-            where_conditions.append(f"DATE(cb.thoi_gian_di) = '{safe_date}'")
+            conditions.append(
+                f"DATE(cb.thoi_gian_di) = '{safe_escape_sql(departure_date)}'"
+            )
 
         if max_price and max_price > 0:
-            where_conditions.append(f"v.gia_ve <= {max_price}")
+            conditions.append(f"v.gia_ve <= {max_price}")
 
-        where_clause = " AND ".join(where_conditions)
+        where_clause = " AND ".join(conditions)
 
         query = f"""
-        SELECT 
+        SELECT /*+ BROADCAST(hv), BROADCAST(hbv), BROADCAST(hb), BROADCAST(sb_di), BROADCAST(sb_den) */
             v.ma_ve,
             v.gia_ve,
             v.ma_chuyen_bay,
@@ -297,12 +252,10 @@ def search_ve(
         """
 
         df_result = spark.sql(query)
-
-        # Enable fallback để tránh lỗi Arrow -> Pandas conversion
-        spark.conf.set("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
-
         result = df_result.toPandas().to_dict(orient="records")
-        print(f"🔍 Tìm kiếm vé {safe_from} → {safe_to}, {safe_hang_ve} từ cache: {len(result)} kết quả")
+        print(
+            f"🔍 Tìm kiếm vé {from_airport} → {to_airport}, {ten_hang_ve}: {len(result)} kết quả"
+        )
         return JSONResponse(content=result)
 
     except HTTPException:
@@ -312,20 +265,16 @@ def search_ve(
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
+
 @router.post("/chi-tiet-ve-nhieu", tags=["ve"])
 def chi_tiet_ve_nhieu(body: GiaVeRequest):
-    """Get details for multiple tickets with optimized batch processing using cached DataFrames"""
     try:
-        # Input validation
         if (
             not body
             or not isinstance(body.ma_gia_ves, list)
             or len(body.ma_gia_ves) == 0
         ):
-            raise HTTPException(
-                status_code=400, detail="Danh sách mã vé không hợp lệ"
-            )
-
+            raise HTTPException(status_code=400, detail="Danh sách mã vé không hợp lệ")
         if len(body.ma_gia_ves) > 100:
             raise HTTPException(
                 status_code=400, detail="Chỉ cho phép tối đa 100 mã vé mỗi lần"
@@ -335,11 +284,23 @@ def chi_tiet_ve_nhieu(body: GiaVeRequest):
         print(f"📥 Nhận ma_ves ({len(ma_ves)}): {ma_ves}")
 
         spark = get_spark()
-        
-        # Create temp views from cached DataFrames
-        views = create_temp_views()
+        spark.conf.set("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
+        spark.conf.set(
+            "spark.sql.autoBroadcastJoinThreshold", "-1"
+        )  # Tắt auto broadcast
 
-        # Safe SQL IN clause construction
+        # Broadcast các bảng nhỏ
+        for tbl in ["hangve", "hangbanve", "hangbay"]:
+            df = load_df(tbl).persist(StorageLevel.MEMORY_AND_DISK).hint("broadcast")
+            df.createOrReplaceTempView(tbl)
+
+        # Bảng lớn không broadcast
+        for tbl in ["ve", "chuyenbay"]:
+            load_df(tbl).persist(StorageLevel.MEMORY_AND_DISK).createOrReplaceTempView(
+                tbl
+            )
+
+        # Xây WHERE IN an toàn
         escaped_codes = [f"'{safe_escape_sql(ma)}'" for ma in ma_ves]
         in_clause = ",".join(escaped_codes)
 
@@ -382,9 +343,10 @@ def chi_tiet_ve_nhieu(body: GiaVeRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
+
 @router.get("/{ma_gia_ve}", tags=["gia_ve"])
 def get_gia_ve_day_du(ma_gia_ve: str):
-    """Get detailed ticket price information by ID - supports pattern matching"""
+    """Get detailed ticket price information by ID - supports pattern matching with optimized Spark broadcast"""
     try:
         if not ma_gia_ve or not ma_gia_ve.strip():
             raise HTTPException(status_code=400, detail="Mã giá vé không hợp lệ")
@@ -392,11 +354,20 @@ def get_gia_ve_day_du(ma_gia_ve: str):
         safe_ma_gia_ve = safe_escape_sql(ma_gia_ve.strip())
 
         spark = get_spark()
-        
-        # ✅ Sử dụng create_temp_views() thay vì validate_required_views()
-        views = create_temp_views()
+        spark.conf.set("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
+        spark.conf.set(
+            "spark.sql.autoBroadcastJoinThreshold", "-1"
+        )  # Tắt tự động broadcast
 
-        # ✅ Query hỗ trợ cả exact match và pattern search
+        # ✅ Broadcast các bảng nhỏ
+        for tbl in ["hangve", "hangbanve", "hangbay", "sanbay"]:
+            df = load_df(tbl).hint("broadcast")
+            df.createOrReplaceTempView(tbl)
+
+        # ✅ Persist bảng lớn hơn
+        for tbl in ["ve", "chuyenbay"]:
+            load_df(tbl).persist().createOrReplaceTempView(tbl)
+
         query = f"""
         SELECT 
             v.ma_ve,
@@ -446,25 +417,18 @@ def get_gia_ve_day_du(ma_gia_ve: str):
         """
 
         print(f"🔍 Executing query for ma_ve pattern: {safe_ma_gia_ve}")
-        
         df_result = spark.sql(query)
-        
-        # ✅ Enable fallback để tránh lỗi Arrow conversion
-        spark.conf.set("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
-        
         result = df_result.toPandas().to_dict(orient="records")
 
         if not result:
             print(f"❌ Không tìm thấy vé với mã: {safe_ma_gia_ve}")
             raise HTTPException(status_code=404, detail="Không tìm thấy thông tin vé")
 
-        print(f"✅ Lấy chi tiết vé thành công: {safe_ma_gia_ve} - Found {len(result)} records")
-        
-        # ✅ Trả về array thay vì single object nếu có nhiều kết quả
-        if len(result) == 1:
-            return JSONResponse(content=result[0])
-        else:
-            return JSONResponse(content=result)
+        print(
+            f"✅ Lấy chi tiết vé thành công: {safe_ma_gia_ve} - Found {len(result)} records"
+        )
+
+        return JSONResponse(content=result[0] if len(result) == 1 else result)
 
     except HTTPException:
         raise
@@ -596,11 +560,32 @@ async def import_ve_from_excel(file: UploadFile = File(...)):
 
         # 🔥 FLEXIBLE column mapping - accept different column names
         column_mappings = {
-            'ma_ve': ['ma_ve', 'Ma_ve', 'MA_VE', 'mave', 'ticket_id', 'ticket_code'],
-            'gia_ve': ['gia_ve', 'Gia_ve', 'GIA_VE', 'giave', 'price', 'gia'],
-            'ma_hang_ve': ['ma_hang_ve', 'Ma_hang_ve', 'MA_HANG_VE', 'mahangve', 'class_code', 'hang_ve'],
-            'ma_chuyen_bay': ['ma_chuyen_bay', 'Ma_chuyen_bay', 'MA_CHUYEN_BAY', 'machuyenbay', 'flight_code', 'chuyen_bay'],
-            'ma_hang_ban_ve': ['ma_hang_ban_ve', 'Ma_hang_ban_ve', 'MA_HANG_BAN_VE', 'mahangbanve', 'seller_code', 'hang_ban_ve']
+            "ma_ve": ["ma_ve", "Ma_ve", "MA_VE", "mave", "ticket_id", "ticket_code"],
+            "gia_ve": ["gia_ve", "Gia_ve", "GIA_VE", "giave", "price", "gia"],
+            "ma_hang_ve": [
+                "ma_hang_ve",
+                "Ma_hang_ve",
+                "MA_HANG_VE",
+                "mahangve",
+                "class_code",
+                "hang_ve",
+            ],
+            "ma_chuyen_bay": [
+                "ma_chuyen_bay",
+                "Ma_chuyen_bay",
+                "MA_CHUYEN_BAY",
+                "machuyenbay",
+                "flight_code",
+                "chuyen_bay",
+            ],
+            "ma_hang_ban_ve": [
+                "ma_hang_ban_ve",
+                "Ma_hang_ban_ve",
+                "MA_HANG_BAN_VE",
+                "mahangbanve",
+                "seller_code",
+                "hang_ban_ve",
+            ],
         }
 
         # 🔥 Auto-detect columns
@@ -624,19 +609,29 @@ async def import_ve_from_excel(file: UploadFile = File(...)):
                 df_renamed = df_renamed.rename(columns={detected: standard})
 
         # 🔥 Keep only required columns that exist
-        required_columns = ['ma_ve', 'gia_ve', 'ma_hang_ve', 'ma_chuyen_bay', 'ma_hang_ban_ve']
-        available_columns = [col for col in required_columns if col in df_renamed.columns]
-        
+        required_columns = [
+            "ma_ve",
+            "gia_ve",
+            "ma_hang_ve",
+            "ma_chuyen_bay",
+            "ma_hang_ban_ve",
+        ]
+        available_columns = [
+            col for col in required_columns if col in df_renamed.columns
+        ]
+
         if not available_columns:
             raise HTTPException(
                 status_code=400,
-                detail=f"Không tìm thấy cột nào trong số: {required_columns}. Available: {df.columns.tolist()}"
+                detail=f"Không tìm thấy cột nào trong số: {required_columns}. Available: {df.columns.tolist()}",
             )
 
         df_clean = df_renamed[available_columns].copy()
 
         # 🔥 Drop rows with missing critical data
-        df_clean = df_clean.dropna(subset=['ma_ve'] if 'ma_ve' in df_clean.columns else available_columns[:1])
+        df_clean = df_clean.dropna(
+            subset=["ma_ve"] if "ma_ve" in df_clean.columns else available_columns[:1]
+        )
 
         if df_clean.empty:
             raise HTTPException(status_code=400, detail="File không có dữ liệu hợp lệ")
@@ -648,7 +643,7 @@ async def import_ve_from_excel(file: UploadFile = File(...)):
         success_count = 0
         error_count = 0
         errors = []
-        
+
         # Get existing ma_ve to avoid duplicates
         existing_ma_ves = set()
         try:
@@ -662,47 +657,55 @@ async def import_ve_from_excel(file: UploadFile = File(...)):
             try:
                 # 🔥 Build data dict from available columns
                 ve_data = {}
-                
+
                 for col in available_columns:
                     value = row[col]
                     if pd.isna(value):
-                        if col == 'ma_ve':
-                            errors.append(f"Dòng {index + 2}: Mã vé không được để trống")
+                        if col == "ma_ve":
+                            errors.append(
+                                f"Dòng {index + 2}: Mã vé không được để trống"
+                            )
                             error_count += 1
                             continue
                         ve_data[col] = ""
-                    elif col == 'gia_ve':
+                    elif col == "gia_ve":
                         try:
                             ve_data[col] = float(value)
                             if ve_data[col] <= 0:
-                                errors.append(f"Dòng {index + 2}: Giá vé phải lớn hơn 0")
+                                errors.append(
+                                    f"Dòng {index + 2}: Giá vé phải lớn hơn 0"
+                                )
                                 error_count += 1
                                 continue
                         except (ValueError, TypeError):
-                            errors.append(f"Dòng {index + 2}: Giá vé không hợp lệ: {value}")
+                            errors.append(
+                                f"Dòng {index + 2}: Giá vé không hợp lệ: {value}"
+                            )
                             error_count += 1
                             continue
                     else:
                         ve_data[col] = str(value).strip()
 
                 # Skip if ma_ve validation failed
-                if 'ma_ve' not in ve_data:
+                if "ma_ve" not in ve_data:
                     continue
 
                 # 🔥 Check duplicate
-                if ve_data['ma_ve'] in existing_ma_ves:
-                    errors.append(f"Dòng {index + 2}: Mã vé {ve_data['ma_ve']} đã tồn tại")
+                if ve_data["ma_ve"] in existing_ma_ves:
+                    errors.append(
+                        f"Dòng {index + 2}: Mã vé {ve_data['ma_ve']} đã tồn tại"
+                    )
                     error_count += 1
                     continue
 
                 # 🔥 Fill missing fields with defaults
                 default_values = {
-                    'gia_ve': 0.0,
-                    'ma_hang_ve': 'DEFAULT',
-                    'ma_chuyen_bay': 'DEFAULT',
-                    'ma_hang_ban_ve': 'DEFAULT'
+                    "gia_ve": 0.0,
+                    "ma_hang_ve": "DEFAULT",
+                    "ma_chuyen_bay": "DEFAULT",
+                    "ma_hang_ban_ve": "DEFAULT",
                 }
-                
+
                 for field, default in default_values.items():
                     if field not in ve_data:
                         ve_data[field] = default
@@ -712,14 +715,18 @@ async def import_ve_from_excel(file: UploadFile = File(...)):
                     result = ve_collection.insert_one(ve_data)
                     if result.inserted_id:
                         success_count += 1
-                        existing_ma_ves.add(ve_data['ma_ve'])  # Add to set to prevent duplicates in same import
+                        existing_ma_ves.add(
+                            ve_data["ma_ve"]
+                        )  # Add to set to prevent duplicates in same import
                         if success_count % 10 == 0:
                             print(f"📈 Imported {success_count} records...")
                     else:
                         errors.append(f"Dòng {index + 2}: Không thể thêm vào database")
                         error_count += 1
                 except DuplicateKeyError:
-                    errors.append(f"Dòng {index + 2}: Mã vé {ve_data['ma_ve']} đã tồn tại")
+                    errors.append(
+                        f"Dòng {index + 2}: Mã vé {ve_data['ma_ve']} đã tồn tại"
+                    )
                     error_count += 1
                 except Exception as insert_err:
                     errors.append(f"Dòng {index + 2}: Lỗi insert: {str(insert_err)}")
@@ -741,7 +748,7 @@ async def import_ve_from_excel(file: UploadFile = File(...)):
             "errors": errors[:20] if errors else [],  # Show first 20 errors
             "total_errors": len(errors),
             "detected_columns": detected_columns,
-            "processed_rows": len(df_clean)
+            "processed_rows": len(df_clean),
         }
 
         print(f"📊 Import kết quả: {success_count} thành công, {error_count} lỗi")
@@ -754,30 +761,32 @@ async def import_ve_from_excel(file: UploadFile = File(...)):
         print(f"❌ Lỗi import Excel: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Lỗi xử lý file Excel: {str(e)}")
-    
+
+
 @router.patch("/fix-hang-ban-ve", tags=["ve"])
 def fix_hang_ban_ve_to_default():
     """Fix tất cả ma_hang_ban_ve về HBV001 - EMERGENCY FIX"""
     try:
         print("🔧 FIXING: Update tất cả ma_hang_ban_ve về HBV001...")
-        
+
         # 🔥 UPDATE tất cả records về HBV001
         result = ve_collection.update_many(
-            {},  # Empty filter = update ALL
-            {"$set": {"ma_hang_ban_ve": "HBV001"}}
+            {}, {"$set": {"ma_hang_ban_ve": "HBV001"}}  # Empty filter = update ALL
         )
-        
+
         print(f"✅ Updated {result.modified_count} records to HBV001")
-        
+
         # Invalidate cache
         invalidate_cache("ve")
-        
-        return JSONResponse(content={
-            "message": f"✅ Đã fix {result.modified_count} vé về ma_hang_ban_ve = HBV001",
-            "updated_count": result.modified_count,
-            "fixed_value": "HBV001"
-        })
-        
+
+        return JSONResponse(
+            content={
+                "message": f"✅ Đã fix {result.modified_count} vé về ma_hang_ban_ve = HBV001",
+                "updated_count": result.modified_count,
+                "fixed_value": "HBV001",
+            }
+        )
+
     except Exception as e:
         print(f"❌ Lỗi fix hang_ban_ve: {repr(e)}")
         traceback.print_exc()

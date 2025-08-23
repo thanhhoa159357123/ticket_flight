@@ -1,3 +1,4 @@
+// src/components/roundtrip/FlightSection.jsx
 import React from 'react';
 import FlightCard from './FlightCard';
 import PackageCard from './PackageCard';
@@ -32,7 +33,7 @@ const FlightSection = ({
         <div>
           <h3 className="text-base font-bold text-gray-800">{title}</h3>
           <p className="text-xs text-gray-600">
-            {flight?.ten_thanh_pho_di} → {flight?.ten_thanh_pho_den} • {formatDate(flight?.gio_di)}
+            {flight?.ten_thanh_pho_di} → {flight?.ten_thanh_pho_den} • {formatDate(flight?.thoi_gian_di)}
           </p>
         </div>
       </div>
@@ -45,9 +46,9 @@ const FlightSection = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {packages.slice(0, 3).map((pkg, index) => (
               <PackageCard
-                key={pkg.ma_gia_ve || index}
+                key={pkg.ma_ve || index}
                 pkg={pkg}
-                isSelected={selectedPackage?.ma_gia_ve === pkg.ma_gia_ve}
+                isSelected={selectedPackage?.ma_ve === pkg.ma_ve}
                 onSelect={onPackageSelect}
                 type={type}
                 index={index}

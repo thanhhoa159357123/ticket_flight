@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Detail_History_Ticket from "../../components/detail_history_ticket/Detail_History_Ticket";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 
 const Item_History_Ticket = ({ maKhachHang }) => {
   const [tickets, setTickets] = useState([]);
@@ -9,49 +8,18 @@ const Item_History_Ticket = ({ maKhachHang }) => {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [showDetail, setShowDetail] = useState(false);
 
-  // Helper lấy chiều đi/về từ model mới
-  const getChieuDi = (val) => Array.isArray(val) ? val[0] : val;
-  const getChieuVe = (val) => Array.isArray(val) && val.length > 1 ? val[1] : null;
-
-  const handleViewDetail = async (ticket) => {
-    try {
-      const chiTietRes = await axios.get(
-        `http://localhost:8000/chitietvedat/by-ma-dat-ve/${ticket.ma_dat_ve}`
-      );
-      const chiTietVeDat = chiTietRes.data?.chi_tiet_ve_list || [];
-      const maHanhKhachList = chiTietVeDat.flatMap(
-        (item) => item.ma_hanh_khach || []
-      );
-      let passengers = [];
-      if (maHanhKhachList.length > 0) {
-        const passengersRes = await axios.post(
-          `http://localhost:8000/hanhkhach/get-multiple`,
-          { ma_hanh_khach_list: maHanhKhachList },
-          { headers: { "Content-Type": "application/json" } }
-        );
-        passengers = passengersRes.data?.hanh_khach_list || [];
-      }
-      const enrichedTicket = {
-        ...ticket,
-        ma_hanh_khach: maHanhKhachList,
-        passengers,
-        chi_tiet_ve_dat: chiTietVeDat,
-      };
-      setSelectedTicket(enrichedTicket);
-      setShowDetail(true);
-    } catch (error) {
-      alert("Không thể hiển thị chi tiết vé: ", error);
-    }
+  const handleViewDetail = (ticket) => {
+    setSelectedTicket(ticket);
+    setShowDetail(true);
   };
 
   useEffect(() => {
     if (!maKhachHang) return;
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:8000/datve/all`,
-          { params: { ma_khach_hang: maKhachHang } }
-        );
+        const response = await axios.get("http://localhost:8000/datve/all", {
+          params: { ma_khach_hang: maKhachHang },
+        });
         setTickets(Array.isArray(response.data) ? response.data : []);
       } catch {
         setTickets([]);
@@ -61,6 +29,14 @@ const Item_History_Ticket = ({ maKhachHang }) => {
     };
     fetchData();
   }, [maKhachHang]);
+
+  const getTenChuyenBay = (chieu) => {
+    if (!chieu?.ten_san_bay_di || !chieu?.ten_san_bay_den) return "N/A";
+    return `Sân bay ${chieu.ten_san_bay_di} → Sân bay ${chieu.ten_san_bay_den}`;
+  };
+
+  const getOrDefault = (val, fallback = "N/A") =>
+    val !== undefined && val !== null && val !== "" ? val : fallback;
 
   if (loading) {
     return (
@@ -96,11 +72,6 @@ const Item_History_Ticket = ({ maKhachHang }) => {
       </div>
     );
   }
-  console.log("Dữ liệu vé máy bay: ", tickets)
-
-  // Helper để lấy giá trị hoặc fallback
-  const getOrDefault = (val, fallback = "N/A") =>
-    val !== undefined && val !== null && val !== "" ? val : fallback;
 
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm overflow-hidden">
@@ -125,7 +96,7 @@ const Item_History_Ticket = ({ maKhachHang }) => {
                   Mã chuyến bay
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Mã hạng vé
+                  Hạng vé
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày đặt
@@ -153,24 +124,20 @@ const Item_History_Ticket = ({ maKhachHang }) => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <span>{getOrDefault(getChieuDi(ticket.ma_chuyen_bay))}</span>
-                      {ticket.loai_chuyen_di === "Khứ hồi" && getChieuVe(ticket.ma_chuyen_bay) && (
-                        <>
-                          <br />
-                          <span>{getOrDefault(getChieuVe(ticket.ma_chuyen_bay))}</span>
-                        </>
-                      )}
+                      {ticket?.chi_tiet_ve_dat?.map((ve, i) => (
+                        <div key={i}>
+                          <span>{getTenChuyenBay(ve)}</span>
+                        </div>
+                      ))}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <span>{getOrDefault(getChieuDi(ticket.ma_hang_ve))}</span>
-                      {ticket.loai_chuyen_di === "Khứ hồi" && getChieuVe(ticket.ma_hang_ve) && (
-                        <>
-                          <br />
-                          <span>{getOrDefault(getChieuVe(ticket.ma_hang_ve))}</span>
-                        </>
-                      )}
+                      {ticket?.chi_tiet_ve_dat?.map((ve, i) => (
+                        <div key={i}>
+                          <span>{getOrDefault(ve?.ten_hang_ve)}</span>
+                        </div>
+                      ))}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -178,11 +145,6 @@ const Item_History_Ticket = ({ maKhachHang }) => {
                       {ticket.ngay_dat
                         ? new Date(ticket.ngay_dat).toLocaleDateString()
                         : "N/A"}
-                      <span className="block text-xs text-gray-400">
-                        {ticket.ngay_dat
-                          ? new Date(ticket.ngay_dat).toLocaleTimeString()
-                          : ""}
-                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -216,6 +178,7 @@ const Item_History_Ticket = ({ maKhachHang }) => {
           </table>
         </div>
       </div>
+
       {selectedTicket && (
         <Detail_History_Ticket
           ticket={selectedTicket}

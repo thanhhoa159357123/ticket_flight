@@ -1,51 +1,58 @@
-// hooks/TicketHook.js
 import { useEffect, useState } from "react";
 import { ticketService } from "../services/TicketService";
 import { useLocation } from "react-router-dom";
 
-export const Tickets = () => {
+export const useTickets = () => {
   const location = useLocation();
   const [flightResults, setFlightResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchAllTickets = async () => {
-      try {
-        setLoading(true);
+    let isMounted = true;
 
-        // ✅ Ưu tiên dùng kết quả search từ navigation
-        if (location.state?.results || location.state?.outboundFlights) {
-          console.log("📍 Using search results from navigation");
-          const results =
-            location.state.results || location.state.outboundFlights || [];
-          console.log("📍 Search results count:", results.length);
-          console.log("📍 Sample result:", results[0]); // Debug first item
-          setFlightResults(results);
-          setLoading(false);
+    const loadTickets = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        // ✅ Ưu tiên lấy dữ liệu từ `location.state`
+        const state = location.state;
+        if (state?.results || state?.outboundFlights) {
+          const results = state.results || state.outboundFlights;
+          if (isMounted) {
+            setFlightResults(Array.isArray(results) ? results : []);
+          }
           return;
         }
 
-        // ✅ Fallback: lấy tất cả vé (tạm bỏ filter)
-        console.log("📍 No search results, fetching all tickets...");
+        // ✅ Nếu không có state, ưu tiên cache
+        const cached = sessionStorage.getItem("ticketPrices");
+        if (cached) {
+          if (isMounted) setFlightResults(JSON.parse(cached));
+          return;
+        }
+
+        // ✅ Nếu chưa có cache → gọi API
         const data = await ticketService.getTicketPrices();
-        console.log("📍 All tickets count:", data?.length);
-        setFlightResults(data || []);
+        if (isMounted) setFlightResults(data);
       } catch (err) {
-        console.error("❌ TicketHook error:", err);
-        setFlightResults([]);
+        console.error("❌ Lỗi khi lấy vé máy bay:", err);
+        if (isMounted) {
+          setError("Không thể tải danh sách vé. Vui lòng thử lại sau.");
+          setFlightResults([]);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
-    fetchAllTickets();
+    loadTickets();
+
+    return () => {
+      isMounted = false;
+    };
   }, [location.state]);
 
-  console.log("📍 TicketHook final:", {
-    flightResultsCount: flightResults?.length,
-    loading,
-    hasLocationState: !!location.state,
-  });
-
-  return { flightResults, loading };
+  return { flightResults, loading, error };
 };

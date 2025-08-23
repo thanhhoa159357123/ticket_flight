@@ -1,33 +1,47 @@
-// service/TicketService.jsx
 import axios from "axios";
 
 const API_BASE_URL = "http://localhost:8000";
 
+// ✅ Tạo axios instance để dễ quản lý interceptor, timeout
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 8000, // tránh treo UI
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 export const ticketService = {
-  // Get all ticket prices
+  // ✅ Lấy toàn bộ danh sách vé (có cache)
   getTicketPrices: async () => {
+    const cached = sessionStorage.getItem("ticketPrices");
+    if (cached) return JSON.parse(cached);
+
     try {
-      const response = await axios.get(`${API_BASE_URL}/ve`);
-      return response.data
-      // .filter((item) => !item.ma_hang_ve.includes("+"));
-    } catch (error) {
-      console.error("Error fetching ticket prices:", error);
-      throw error;
+      const { data } = await api.get("/ve");
+      const result = Array.isArray(data) ? data : [];
+
+      // Cache vào sessionStorage để tăng tốc
+      sessionStorage.setItem("ticketPrices", JSON.stringify(result));
+
+      return result;
+    } catch (err) {
+      console.error("❌ Error fetching ticket prices:", err);
+      return []; // ✅ Tránh crash UI
     }
   },
 
-  // Search flights
-  searchFlights: async (searchParams) => {
+  // ✅ Tìm chuyến bay theo điều kiện
+  searchFlights: async (params) => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/search-flights`, searchParams);
-      return response.data;
-    } catch (error) {
-      console.error("Error searching flights:", error);
-      throw error;
+      const { data } = await api.post("/search-flights", params);
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      console.error("❌ Error searching flights:", err);
+      return [];
     }
   },
 };
 
-// Backward compatibility
+// Optional alias cho tương thích cũ
 export const TicketService = ticketService.getTicketPrices;
-

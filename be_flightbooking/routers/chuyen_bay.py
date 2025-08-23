@@ -1,15 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.chuyenbay import ChuyenBay
-from utils.spark import load_df, get_spark, refresh_cache, invalidate_cache
-from utils.spark_views import get_view
+from utils.spark import load_df, get_spark, invalidate_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
-from datetime import datetime, timedelta
+from datetime import datetime
 from pydantic import BaseModel
 import pandas as pd
-import uuid
 import traceback
 
 router = APIRouter()
@@ -17,23 +15,20 @@ client = MongoClient(MONGO_URI)
 db = client[MONGO_DB]
 chuyen_bay_collection = db["chuyenbay"]
 
-# Helper functions
+# ================= Helper Functions ===================
 def check_exists_optimized(collection_name: str, field_name: str, value: str) -> bool:
-    """Optimized existence check using cached DataFrame"""
     try:
         df = load_df(collection_name)
         return df.filter(df[field_name] == value).limit(1).count() > 0
     except Exception as e:
-        print(f"❌ Lỗi check_exists_optimized {collection_name}.{field_name}: {e}")
+        print(f"❌ check_exists_optimized {collection_name}.{field_name}: {e}")
         return False
 
 def safe_datetime_convert(dt_value):
-    """Safely convert datetime strings to datetime objects"""
     if isinstance(dt_value, str):
-        # Handle multiple datetime formats
         formats = [
             "%Y-%m-%dT%H:%M:%S.%fZ",
-            "%Y-%m-%dT%H:%M:%SZ", 
+            "%Y-%m-%dT%H:%M:%SZ",
             "%Y-%m-%dT%H:%M:%S",
             "%Y-%m-%d %H:%M:%S"
         ]
@@ -42,11 +37,10 @@ def safe_datetime_convert(dt_value):
                 return datetime.strptime(dt_value, fmt)
             except ValueError:
                 continue
-        # Fallback: use fromisoformat
         return datetime.fromisoformat(dt_value.replace('Z', '+00:00'))
     return dt_value
 
-# Models for bulk operations
+# ================= Models ===================
 class BulkUpdateRequest(BaseModel):
     days_to_add: int
     new_status: str = "Đang hoạt động"
@@ -55,117 +49,73 @@ class GenerateFutureRequest(BaseModel):
     days_ahead: int = 30
     base_date: str
 
+# ================= Routes ===================
 @router.post("", tags=["chuyen_bay"])
 def add_chuyen_bay(chuyen_bay: ChuyenBay):
-    """Add new flight with proper validation"""
     try:
-        print(f"🔥 Nhận yêu cầu POST /add: {chuyen_bay.ma_chuyen_bay}")
-        print(f"📥 Dữ liệu: {chuyen_bay.dict()}")
-
-        # Input validation
-        if not chuyen_bay.ma_chuyen_bay or not chuyen_bay.ma_chuyen_bay.strip():
+        if not chuyen_bay.ma_chuyen_bay.strip():
             raise HTTPException(status_code=400, detail="Mã chuyến bay không được để trống")
 
-        # Datetime validation
         if chuyen_bay.thoi_gian_di >= chuyen_bay.thoi_gian_den:
             raise HTTPException(status_code=400, detail="Giờ đi phải trước giờ đến")
 
-        # Check duplicate first (sử dụng cached DataFrame)
         if check_exists_optimized("chuyenbay", "ma_chuyen_bay", chuyen_bay.ma_chuyen_bay):
             raise HTTPException(status_code=400, detail="Mã chuyến bay đã tồn tại")
 
-        # Batch validation cho foreign keys (sử dụng cached DataFrames)
         validations = [
-            (check_exists_optimized("hangbay", "ma_hang_bay", chuyen_bay.ma_hang_bay), 
-             "Mã hãng bay không tồn tại"),
-            (check_exists_optimized("sanbay", "ma_san_bay", chuyen_bay.ma_san_bay_di), 
-             "Sân bay đi không tồn tại"),
-            (check_exists_optimized("sanbay", "ma_san_bay", chuyen_bay.ma_san_bay_den), 
-             "Sân bay đến không tồn tại")
+            (check_exists_optimized("hangbay", "ma_hang_bay", chuyen_bay.ma_hang_bay), "Mã hãng bay không tồn tại"),
+            (check_exists_optimized("sanbay", "ma_san_bay", chuyen_bay.ma_san_bay_di), "Sân bay đi không tồn tại"),
+            (check_exists_optimized("sanbay", "ma_san_bay", chuyen_bay.ma_san_bay_den), "Sân bay đến không tồn tại")
         ]
-
-        for is_valid, error_msg in validations:
+        for is_valid, msg in validations:
             if not is_valid:
-                raise HTTPException(status_code=400, detail=error_msg)
+                raise HTTPException(status_code=400, detail=msg)
 
-        # Business logic validation
         if chuyen_bay.ma_san_bay_di == chuyen_bay.ma_san_bay_den:
             raise HTTPException(status_code=400, detail="Sân bay đi và đến không được giống nhau")
 
-        # Prepare data for insert
         data_to_insert = chuyen_bay.dict()
         data_to_insert["created_at"] = datetime.now()
-        print(f"💾 Chuẩn bị insert: {data_to_insert}")
 
-        # Insert với duplicate key handling
         try:
             result = chuyen_bay_collection.insert_one(data_to_insert)
             if not result.inserted_id:
                 raise HTTPException(status_code=500, detail="Không thể thêm chuyến bay")
-                
         except DuplicateKeyError:
             raise HTTPException(status_code=400, detail="Mã chuyến bay đã tồn tại")
-        except Exception as insert_err:
-            print(f"❌ Insert error: {insert_err}")
-            raise HTTPException(status_code=500, detail=f"Lỗi insert: {str(insert_err)}")
 
-        # Refresh cache để có dữ liệu mới ngay lập tức
         invalidate_cache("chuyenbay")
-        print("✅ Cache refreshed")
 
-        # Response with formatted datetime
         response_data = chuyen_bay.dict()
         response_data["_id"] = str(result.inserted_id)
-        
-        # Safe datetime formatting
-        try:
-            if hasattr(chuyen_bay.thoi_gian_di, 'strftime'):
-                response_data["thoi_gian_di"] = chuyen_bay.thoi_gian_di.strftime("%d/%m/%Y, %H:%M:%S")
-            if hasattr(chuyen_bay.thoi_gian_den, 'strftime'):
-                response_data["thoi_gian_den"] = chuyen_bay.thoi_gian_den.strftime("%d/%m/%Y, %H:%M:%S")
-        except Exception as dt_err:
-            print(f"⚠️ Datetime format warning: {dt_err}")
 
-        print(f"🎉 Thêm chuyến bay thành công: {chuyen_bay.ma_chuyen_bay}")
-        return JSONResponse(
-            content={
-                "message": "Thêm chuyến bay thành công", 
-                "chuyen_bay": response_data
-            },
-            status_code=201
-        )
+        for attr in ["thoi_gian_di", "thoi_gian_den"]:
+            val = getattr(chuyen_bay, attr)
+            if hasattr(val, 'strftime'):
+                response_data[attr] = val.strftime("%d/%m/%Y, %H:%M:%S")
+
+        return JSONResponse(content={"message": "Thêm chuyến bay thành công", "chuyen_bay": response_data}, status_code=201)
 
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Lỗi trong add_chuyen_bay: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Lỗi server nội bộ: {str(e)}")
 
 @router.get("", tags=["chuyen_bay"])
 def get_all_chuyen_bay():
-    """Get all flights with proper JOIN query using cached DataFrames"""
     try:
         spark = get_spark()
-        
-        # Load cached DataFrames với error handling
-        try:
-            chuyen_bay_df = load_df("chuyenbay")
-            hang_bay_df = load_df("hangbay")
-            san_bay_df = load_df("sanbay")
-            
-            print("✅ All DataFrames loaded successfully from cache")
-            
-        except Exception as load_err:
-            print(f"❌ Error loading DataFrames: {load_err}")
-            raise HTTPException(status_code=500, detail="Lỗi tải dữ liệu")
+        spark.conf.set("spark.sql.execution.arrow.pyspark.fallback.enabled", "true")
 
-        # Create temp views for SQL
-        chuyen_bay_df.createOrReplaceTempView("chuyenbay")
-        hang_bay_df.createOrReplaceTempView("hangbay")
-        san_bay_df.createOrReplaceTempView("sanbay")
+        cb_df = load_df("chuyenbay")
+        hb_df = load_df("hangbay")
+        sb_df = load_df("sanbay")
 
-        # Fixed SQL query với correct field names
+        cb_df.createOrReplaceTempView("chuyenbay")
+        hb_df.createOrReplaceTempView("hangbay")
+        sb_df.createOrReplaceTempView("sanbay")
+
         query = """
         SELECT 
             cb.ma_chuyen_bay, 
@@ -189,80 +139,57 @@ def get_all_chuyen_bay():
         ORDER BY cb.thoi_gian_di DESC
         """
 
-        print(f"🔍 Executing optimized query with cached data...")
         df_result = spark.sql(query)
-        
-        # Convert to pandas với error handling
-        try:
-            pdf = df_result.toPandas()
-            print(f"📊 Query result: {len(pdf)} records")
-            
-        except Exception as pandas_err:
-            print(f"❌ Pandas conversion error: {pandas_err}")
-            raise HTTPException(status_code=500, detail="Lỗi chuyển đổi dữ liệu")
+        pdf = df_result.toPandas()
 
-        # Safe datetime formatting
-        if not pdf.empty and 'thoi_gian_di' in pdf.columns:
-            try:
-                # Handle datetime formatting safely
-                pdf["thoi_gian_di_formatted"] = pd.to_datetime(pdf["thoi_gian_di"], errors='coerce').dt.strftime("%d/%m/%Y, %H:%M:%S")
-                pdf["thoi_gian_den_formatted"] = pd.to_datetime(pdf["thoi_gian_den"], errors='coerce').dt.strftime("%d/%m/%Y, %H:%M:%S")
-                
-                # Replace original columns
-                pdf["thoi_gian_di"] = pdf["thoi_gian_di_formatted"]
-                pdf["thoi_gian_den"] = pdf["thoi_gian_den_formatted"]
-                
-                # Drop temp columns
-                pdf = pdf.drop(columns=["thoi_gian_di_formatted", "thoi_gian_den_formatted"], errors='ignore')
-                
-            except Exception as dt_error:
-                print(f"⚠️ Lỗi format datetime (keeping original): {dt_error}")
+        if not pdf.empty:
+            pdf["thoi_gian_di"] = pd.to_datetime(pdf["thoi_gian_di"], errors='coerce').dt.strftime("%d/%m/%Y, %H:%M:%S")
+            pdf["thoi_gian_den"] = pd.to_datetime(pdf["thoi_gian_den"], errors='coerce').dt.strftime("%d/%m/%Y, %H:%M:%S")
 
         result = pdf.to_dict(orient="records")
-        print(f"✅ Lấy danh sách chuyến bay thành công từ cache: {len(result)} records")
         return JSONResponse(content=result)
 
     except HTTPException:
         raise
     except Exception as e:
-        print(f"❌ Lỗi trong get_all_chuyen_bay: {repr(e)}")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Lỗi server nội bộ: {str(e)}")
 
 
-@router.get("/{ma_chuyen_bay}", tags=["chuyen_bay"])
-def get_chuyen_bay_by_id(ma_chuyen_bay: str):
-    """Get flight by ID with detailed information"""
-    try:
-        spark = get_spark()
-        
-        # Ensure views exist
-        chuyen_bay_df = get_view("chuyen_bay")
-        if chuyen_bay_df is None:
-            chuyen_bay_df = load_df("chuyen_bay")
-        
-        chuyen_bay_df.createOrReplaceTempView("chuyen_bay")
 
-        query = f"""
-        SELECT *
-        FROM chuyen_bay 
-        WHERE ma_chuyen_bay = '{ma_chuyen_bay}'
-        """
-
-        df_result = spark.sql(query)
+# @router.get("/{ma_chuyen_bay}", tags=["chuyen_bay"])
+# def get_chuyen_bay_by_id(ma_chuyen_bay: str):
+#     """Get flight by ID with detailed information"""
+#     try:
+#         spark = get_spark()
         
-        if df_result.count() == 0:
-            raise HTTPException(status_code=404, detail="Không tìm thấy chuyến bay")
+#         # Ensure views exist
+#         chuyen_bay_df = get_view("chuyen_bay")
+#         if chuyen_bay_df is None:
+#             chuyen_bay_df = load_df("chuyen_bay")
         
-        result = df_result.toPandas().to_dict(orient="records")[0]
-        return JSONResponse(content=result)
+#         chuyen_bay_df.createOrReplaceTempView("chuyen_bay")
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"❌ Lỗi trong get_chuyen_bay_by_id: {repr(e)}")
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
+#         query = f"""
+#         SELECT *
+#         FROM chuyen_bay 
+#         WHERE ma_chuyen_bay = '{ma_chuyen_bay}'
+#         """
+
+#         df_result = spark.sql(query)
+        
+#         if df_result.count() == 0:
+#             raise HTTPException(status_code=404, detail="Không tìm thấy chuyến bay")
+        
+#         result = df_result.toPandas().to_dict(orient="records")[0]
+#         return JSONResponse(content=result)
+
+#     except HTTPException:
+#         raise
+#     except Exception as e:
+#         print(f"❌ Lỗi trong get_chuyen_bay_by_id: {repr(e)}")
+#         traceback.print_exc()
+#         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
 # @router.patch("/bulk-update-dates", tags=["chuyen_bay"])
 # def bulk_update_flight_dates(request: BulkUpdateRequest):

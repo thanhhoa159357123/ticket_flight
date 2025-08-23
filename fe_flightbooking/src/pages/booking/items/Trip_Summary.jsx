@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import "dayjs/locale/vi";
-import DetailContent from "./../../../pages/ticket/ticket_content/item_content/DetailContent";
+import DetailContent from "../../ticket/ticket_content/item_content/DetailContent";
 
 dayjs.extend(duration);
 dayjs.locale("vi");

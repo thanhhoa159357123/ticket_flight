@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List
 from models.hanh_khach import HanhKhach
+from utils.spark import invalidate_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from uuid import uuid4
@@ -56,6 +57,7 @@ def add_or_get_hanh_khach(hanh_khach: HanhKhach):
         hanh_khach_data = hanh_khach.dict()
         hanh_khach_data["ma_hanh_khach"] = ma_hanh_khach
         hanh_khach_data["ngay_sinh"] = ngay_sinh
+        invalidate_cache("hanhkhach")
 
         insert_result = hanh_khach_collection.insert_one(hanh_khach_data)
         hanh_khach_data["_id"] = str(insert_result.inserted_id)

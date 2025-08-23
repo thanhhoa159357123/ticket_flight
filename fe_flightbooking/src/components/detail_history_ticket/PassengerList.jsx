@@ -3,6 +3,15 @@ import { UserIcon } from "@heroicons/react/24/outline";
 
 const PassengerList = ({ passengers }) => {
   if (!passengers || passengers.length === 0) return null;
+  // Helper function to format date as DD/MM/YYYY
+  function formatVietnameseDate(dateString) {
+    const date = new Date(dateString);
+    if (isNaN(date)) return "";
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
 
   return (
     <div className="mb-6">
@@ -11,22 +20,17 @@ const PassengerList = ({ passengers }) => {
         Hành khách ({passengers.length})
       </h3>
       <div className="space-y-2 max-h-40 overflow-y-auto">
-        {passengers.map((hk, index) => (
-          <div
-            key={hk.ma_hanh_khach || index}
-            className="bg-gray-50 p-3 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <p className="font-medium text-sm">
-              {index + 1}. {hk.danh_xung || ""} {hk.ho_hanh_khach} {hk.ten_hanh_khach}
-            </p>
-            <div className="text-xs text-gray-500 mt-1 space-y-0.5">
-              {hk.ngay_sinh && (
-                <p>Ngày sinh: {new Date(hk.ngay_sinh).toLocaleDateString("vi-VN")}</p>
-              )}
-              {hk.quoc_tich && (
-                <p>Quốc tịch: {hk.quoc_tich}</p>
-              )}
+        {passengers.map((p, index) => (
+          <div key={index} className="mb-2">
+            <div className="font-semibold">
+              {index + 1}. {p?.ho_hanh_khach || ""} {p?.ten_hanh_khach || ""}
             </div>
+            {p?.ngay_sinh && (
+              <div className="text-sm text-gray-600">
+                Ngày sinh: {formatVietnameseDate(p.ngay_sinh)}
+              </div>
+            )}
+            {/* Add more if needed */}
           </div>
         ))}
       </div>

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Query, Body
 from models.khachhang import KhachHangCreate
-from utils.spark import load_df, refresh_cache
+from utils.spark import load_df, invalidate_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 from datetime import datetime, timezone
@@ -95,7 +95,7 @@ def register_user(khachhang: KhachHangCreate):
             raise HTTPException(status_code=400, detail="Email đã tồn tại")
 
         # Invalidate cache sau khi insert thành công
-        refresh_cache("khachhang")
+        invalidate_cache("khachhang")
 
         print(f"🎉 Đăng ký thành công: {normalized_email} - Mã KH: {ma_khach_hang}")
         
@@ -175,7 +175,7 @@ def update_user_info(
         if result.matched_count == 0:
             raise HTTPException(status_code=404, detail="Không tìm thấy người dùng")
 
-        df_updated = refresh_cache("khachhang")
+        df_updated = invalidate_cache("khachhang")
         final_email = email if email else current_email
         user_row = df_updated.filter(df_updated["email"] == final_email).first()
 

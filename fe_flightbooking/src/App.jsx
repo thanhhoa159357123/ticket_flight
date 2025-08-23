@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 const Home = lazy(() => import("./pages/home/Home"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
-const Ticket = lazy(() => import("./pages/ticket/Ticket"));
+const Ticket = lazy(() => import(/* webpackPrefetch: true */ "./pages/ticket/Ticket"));
 const Detail_Account = lazy(() =>
   import("./pages/DetailAccount/Detail_Account")
 );

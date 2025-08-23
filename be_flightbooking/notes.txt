@@ -19,3 +19,6 @@ Kích hoạt môi trường
 
 # Cài thêm gunicorn cho production
 pip install gunicorn
+
+app password
+blou elub mlbb dlpv

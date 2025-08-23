@@ -1,7 +1,7 @@
 import React from "react";
-import FacebookIcon from "@mui/icons-material/Facebook";
-import InstagramIcon from "@mui/icons-material/Instagram";
-import YouTubeIcon from "@mui/icons-material/YouTube";
+const FacebookIcon = React.lazy(() => import("@mui/icons-material/Facebook"));
+const InstagramIcon = React.lazy(() => import("@mui/icons-material/Instagram"));
+const YouTubeIcon = React.lazy(() => import("@mui/icons-material/YouTube"));
 
 const Footer = () => {
   const handleDownloadApp = () => {

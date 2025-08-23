@@ -1,17 +1,19 @@
+// ✅ AirlineFilter.jsx
 import React, { useState, useEffect } from "react";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import axios from "axios";
 
-const AirlineFilter = ({ selectedAirlines, setSelectedAirlines }) => {
+const AirlineFilter = ({ onChange }) => {
   const [isAirlineOpen, setIsAirlineOpen] = useState(true);
   const [allAirlines, setAllAirlines] = useState([]);
+  const [selectedAirlines, setSelectedAirlines] = useState([]);
 
   const toggleAirline = (name) => {
-    setSelectedAirlines((prev) =>
-      prev.includes(name)
-        ? prev.filter((airline) => airline !== name)
-        : [...prev, name]
-    );
+    const updated = selectedAirlines.includes(name)
+      ? selectedAirlines.filter((a) => a !== name)
+      : [...selectedAirlines, name];
+    setSelectedAirlines(updated);
+    onChange(updated);
   };
 
   useEffect(() => {
@@ -21,13 +23,14 @@ const AirlineFilter = ({ selectedAirlines, setSelectedAirlines }) => {
         const fetchedAirlines = response.data.map((item) => item.ten_hang_bay);
         setAllAirlines(fetchedAirlines);
         setSelectedAirlines(fetchedAirlines);
+        onChange(fetchedAirlines);
       } catch (error) {
         console.error("Error fetching airlines:", error);
       }
     };
 
     fetchAirlines();
-  }, [setSelectedAirlines]);
+  }, []); // ✅ Không phụ thuộc onChange
 
   return (
     <div className="flex flex-col border-b border-black/10">

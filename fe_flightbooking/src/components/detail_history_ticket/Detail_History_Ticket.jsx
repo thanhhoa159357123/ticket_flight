@@ -14,7 +14,8 @@ import { getStatusBadge, formatVietnameseDate } from "../../utils/ticketUtils";
 
 const Detail_History_Ticket = ({ ticket, onClose, show }) => {
   const drawerRef = useRef(null);
-  const { handleCancelBooking, handlePayment, handleRefundTicket, loading } = useTicketActions(onClose);
+  const { handleCancelBooking, handlePayment, handleRefundTicket, loading } =
+    useTicketActions(onClose);
 
   // Auto focus and handle ESC key
   useEffect(() => {
@@ -38,6 +39,7 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
   }, [show, onClose]);
 
   const isRoundTrip = ticket.loai_chuyen_di === "Khứ hồi";
+  console.log("Ticket Details:", ticket);
 
   return (
     <>
@@ -55,8 +57,8 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
         tabIndex={-1}
         className={`fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-[1001] 
           transition-transform duration-300 ease-out focus:outline-none ${
-          show ? "translate-x-0" : "translate-x-full"
-        }`}
+            show ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-600 to-blue-500 text-white">
@@ -64,7 +66,9 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
             <TicketIcon className="h-5 w-5" />
             <div>
               <h2 className="text-lg font-bold">Chi tiết đặt vé</h2>
-              <p className="text-blue-100 text-xs">{ticket.loai_chuyen_di || "Một chiều"}</p>
+              <p className="text-blue-100 text-xs">
+                {ticket.loai_chuyen_di || "Một chiều"}
+              </p>
             </div>
           </div>
           <button
@@ -85,8 +89,12 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
             </div>
             <div className="bg-gray-50 p-3 rounded-lg">
               <p className="text-xs text-gray-500 mb-1">Trạng thái</p>
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(ticket.trang_thai)}`}>
-                {ticket.trang_thai || 'N/A'}
+              <span
+                className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(
+                  ticket.trang_thai
+                )}`}
+              >
+                {ticket.trang_thai || "N/A"}
               </span>
             </div>
           </div>
@@ -103,23 +111,27 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
 
           {/* Flight Information */}
           <div className="mb-4">
-            <h3 className="text-base font-semibold mb-3 text-gray-800">Thông tin chuyến bay</h3>
-            
+            <h3 className="text-base font-semibold mb-3 text-gray-800">
+              Thông tin chuyến bay
+            </h3>
+
             <FlightInfoCard
-              departure={ticket.ten_san_bay_di || ticket.ma_san_bay_di || "N/A"}
-              arrival={ticket.ten_san_bay_den_di || ticket.ten_san_bay_den || "N/A"}
-              departureTime={ticket.gio_di}
-              arrivalTime={ticket.gio_den_di}
+              departure={ticket?.chi_tiet_ve_dat?.[0]?.ten_san_bay_di || "N/A"}
+              arrival={ticket?.chi_tiet_ve_dat?.[0]?.ten_san_bay_den || "N/A"}
+              departureTime={ticket?.chi_tiet_ve_dat?.[0]?.thoi_gian_di}
+              arrivalTime={ticket?.chi_tiet_ve_dat?.[0]?.thoi_gian_den}
               title="Chuyến đi"
               bgColor="bg-blue-50"
             />
 
             {isRoundTrip && (
               <FlightInfoCard
-                departure={ticket.ten_san_bay_di_ve || "N/A"}
-                arrival={ticket.ten_san_bay_den_ve || "N/A"}
-                departureTime={ticket.gio_di_ve}
-                arrivalTime={ticket.gio_den_ve}
+                departure={
+                  ticket?.chi_tiet_ve_dat?.[1]?.ten_san_bay_di || "N/A"
+                }
+                arrival={ticket?.chi_tiet_ve_dat?.[1]?.ten_san_bay_den || "N/A"}
+                departureTime={ticket?.chi_tiet_ve_dat?.[1]?.thoi_gian_di}
+                arrivalTime={ticket?.chi_tiet_ve_dat?.[1]?.thoi_gian_den}
                 title="Chuyến về"
                 bgColor="bg-orange-50"
               />
@@ -128,20 +140,22 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
 
           {/* Seat Class */}
           <div className="mb-4">
-            <h3 className="text-base font-semibold mb-3 text-gray-800">Hạng vé</h3>
+            <h3 className="text-base font-semibold mb-3 text-gray-800">
+              Hạng vé
+            </h3>
             <div className="space-y-2">
               <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
                 <span className="text-gray-600 text-sm">Chuyến đi:</span>
                 <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                  {ticket.vi_tri_ngoi_di || ticket.vi_tri_ngoi || "N/A"}
+                  {ticket?.chi_tiet_ve_dat?.[0]?.ten_hang_ve || "N/A"}
                 </span>
               </div>
-              
-              {isRoundTrip && ticket.vi_tri_ngoi_ve && (
+
+              {isRoundTrip && (
                 <div className="flex justify-between items-center bg-gray-50 p-2 rounded-lg">
                   <span className="text-gray-600 text-sm">Chuyến về:</span>
                   <span className="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
-                    {ticket.vi_tri_ngoi_ve}
+                    {ticket?.chi_tiet_ve_dat?.[1]?.ten_hang_ve || "N/A"}
                   </span>
                 </div>
               )}
@@ -149,11 +163,23 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
           </div>
 
           {/* Passengers */}
-          <PassengerList passengers={ticket.passengers} />
+          <PassengerList
+            passengers={Array.from(
+              new Map(
+                (
+                  ticket.chi_tiet_ve_dat?.flatMap(
+                    (v) => v.danh_sach_hanh_khach
+                  ) || []
+                ).map((hk) => [hk.ma_hanh_khach, hk])
+              ).values()
+            )}
+          />
         </div>
 
         {/* Footer Actions - ✅ Updated with new status handling */}
-        {["Chờ thanh toán", "Đã thanh toán", "Chờ duyệt hoàn vé"].includes(ticket.trang_thai) && (
+        {["Chờ thanh toán", "Đã thanh toán", "Chờ duyệt hoàn vé"].includes(
+          ticket.trang_thai
+        ) && (
           <div className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t">
             <div className="flex space-x-2">
               {/* Chờ thanh toán */}
@@ -190,7 +216,9 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
                     <span>{loading ? "Đang xử lý..." : "Yêu cầu hoàn vé"}</span>
                   </button>
                   <button
-                    onClick={() => alert("🚧 Tính năng đổi chuyến bay đang phát triển")}
+                    onClick={() =>
+                      alert("🚧 Tính năng đổi chuyến bay đang phát triển")
+                    }
                     disabled={loading}
                     className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50"
                   >

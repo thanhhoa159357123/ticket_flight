@@ -14,16 +14,13 @@ const PackageCard = ({ pkg, isSelected, onSelect, type = "outbound", index, onSh
     >
       <div className="flex justify-between items-start mb-2">
         <div className="flex-1">
-          <div className="font-medium text-gray-800 text-sm">
-            {pkg.ten_hang_ban_ve || `Gói ${index + 1}`}
-          </div>
           <div className={`text-xs font-medium text-${isBlue ? 'blue' : 'orange'}-600`}>
-            {pkg.vi_tri_ngoi}
+            {pkg.ten_hang_ve}
           </div>
         </div>
         <div className="text-right">
           <div className="text-base font-bold text-green-600">
-            {formatPrice(pkg.gia)}
+            {formatPrice(pkg.gia_ve)}
           </div>
         </div>
       </div>

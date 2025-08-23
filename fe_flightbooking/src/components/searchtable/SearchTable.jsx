@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useMemo } from "react";
 import HeaderRow from "./HeaderRow";
 import SingleTripInputs from "./SingleTripInputs";
 import SearchButton from "./SearchButton";
 import { useSearchTableData } from "../../hooks/hooksFindTicket/SearchTableHook";
+import debounce from "lodash/debounce";
 
-const SearchTable = ({ selectedWay, selected, passengers, onSubmit }) => {
+const SearchTable = React.memo(({ selectedWay, selected, passengers, onSubmit }) => {
   const {
     selectedLocation,
     from,
@@ -17,15 +18,24 @@ const SearchTable = ({ selectedWay, selected, passengers, onSubmit }) => {
     setReturnDate,
     handleSwapLocation,
     handleSearch,
+    loading,
+    error,
   } = useSearchTableData();
 
   const isOneWay = selectedWay === "Một chiều";
   const isRoundTrip = selectedWay === "Khứ hồi";
 
-  const handleSearchClick = () => {
-    handleSearch(selectedWay, selected, passengers);
-    if (onSubmit) onSubmit();
-  };
+  // ✅ Memo hóa debounce, không tạo lại mỗi render
+  const handleSearchClick = useMemo(
+    () =>
+      debounce(() => {
+        handleSearch(selectedWay, selected, passengers);
+        if (onSubmit) onSubmit();
+      }, 500),
+    [selectedWay, selected, passengers, handleSearch, onSubmit]
+  );
+
+  const isReady = Boolean(selectedWay && selected && passengers && from && to);
 
   return (
     <div className="grid gap-4 items-center grid-cols-4">
@@ -45,9 +55,15 @@ const SearchTable = ({ selectedWay, selected, passengers, onSubmit }) => {
         isRoundTrip={isRoundTrip}
       />
 
-      <SearchButton handleSearch={handleSearchClick} />
+      <SearchButton
+        handleSearch={handleSearchClick}
+        disabled={!isReady || loading}
+        loading={loading}
+      />
+
+      {error && <p className="col-span-4 text-red-500 text-sm">{error}</p>}
     </div>
   );
-};
+});
 
 export default SearchTable;

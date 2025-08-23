@@ -2,7 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from models.chi_tiet_ve_dat import ChiTietVeDat
-from utils.spark import load_df, refresh_cache, invalidate_cache
+from utils.spark import load_df, invalidate_cache
 from utils.env_loader import MONGO_DB, MONGO_URI
 from pymongo import MongoClient
 
@@ -25,39 +25,20 @@ def add_chi_tiet_ve_dat(payload: ChiTietVeDat):
         if df_dat_ve.filter(df_dat_ve["ma_dat_ve"] == payload.ma_dat_ve).count() == 0:
             raise HTTPException(status_code=400, detail="Mã đặt vé không tồn tại")
 
-        # Kiểm tra tất cả mã giá vé
-        ma_ve_list = payload.ma_ve
-        print(f"📋 Danh sách giá vé cần kiểm tra: {ma_ve_list}")
-        for ma_v in ma_ve_list:
-            if df_gia_ve.filter(df_gia_ve["ma_ve"] == ma_v).count() == 0:
-                raise HTTPException(
-                    status_code=400, detail=f"Mã giá vé {ma_v} không tồn tại"
-                )
+        ma_ve_list = payload.ma_ve if isinstance(payload.ma_ve, list) else [payload.ma_ve]
+        ma_hanh_khach_list = payload.ma_hanh_khach if isinstance(payload.ma_hanh_khach, list) else [payload.ma_hanh_khach]
 
-        # Lấy danh sách hành khách
-        ma_hanh_khach_list = payload.ma_hanh_khach
-        print(f"📝 Danh sách hành khách cần thêm: {ma_hanh_khach_list}")
+        record = {
+            "ma_dat_ve": payload.ma_dat_ve,
+            "ma_ve": ma_ve_list,
+            "ma_hanh_khach": ma_hanh_khach_list
+        }
+        result = chi_tiet_ve_dat_collection.insert_one(record)
+        record["_id"] = str(result.inserted_id)
+        created_records = [record]
 
-        # Kiểm tra tất cả hành khách có tồn tại không
-        for ma_hk in ma_hanh_khach_list:
-            if hanh_khach_collection.count_documents({"ma_hanh_khach": ma_hk}) == 0:
-                raise HTTPException(
-                    status_code=400, detail=f"Hành khách {ma_hk} không tồn tại"
-                )
+        print(f"✅ Đã tạo 1 record duy nhất cho tất cả mã vé:", record)
 
-        # Tạo records cho từng mã giá vé
-        created_records = []
-        for ma_ve in ma_ve_list:
-            record = {
-                "ma_dat_ve": payload.ma_dat_ve,
-                "ma_ve": ma_ve,
-                "ma_hanh_khach": ma_hanh_khach_list,
-            }
-            # Luôn tạo mới bản ghi (insert_one)
-            result = chi_tiet_ve_dat_collection.insert_one(record)
-            record["_id"] = str(result.inserted_id)
-            created_records.append(record)
-            print(f"✅ Đã tạo record mới cho {ma_ve}:", record)
 
         invalidate_cache("chitietdatve")
 

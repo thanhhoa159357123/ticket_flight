@@ -1,113 +1,105 @@
-// SearchTableHook.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  fetchAirports,
-  searchFlights,
-} from "../../services/servicesFindTicket/SearchTableService";
+import { fetchAirports } from "../../services/servicesFindTicket/airportService";
+import { searchFlights } from "../../services/servicesFindTicket/flightService";
+import { debounce } from "lodash";
 
 export const useSearchTableData = () => {
-  // ✅ SearchTable states - one-way only
   const [selectedLocation, setSelectedLocation] = useState([]);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [departureDate, setDepartureDate] = useState(new Date());
-  // const [returnDate, setReturnDate] = useState(null); // ❌ Comment out
-
+  const [returnDate, setReturnDate] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSwapLocation = () => {
+  const handleSwapLocation = useCallback(() => {
     if (!from || !to) return;
-    const tempFrom = from;
     setFrom(to);
-    setTo(tempFrom);
-  };
+    setTo(from);
+  }, [from, to]);
 
-  const handleSearch = async (selectedWay, selected, passengers) => {
-    try {
-      // ❌ Comment out round trip logic
-      // const isRoundTrip = selectedWay === "Khứ hồi";
+  const saveSearchData = useCallback((data) => {
+    localStorage.setItem("ticketSearchData", JSON.stringify(data));
+    navigate("/flight-ticket");
+  }, [navigate]);
 
+  const searchHandler = useCallback(
+    async (selectedWay, selected, passengers) => {
       if (!from || !to || !selected) {
-        console.error("❌ Missing required fields:", { from, to, selected });
-        alert("Vui lòng điền đầy đủ thông tin tìm kiếm");
+        alert("Vui lòng điền đủ thông tin tìm kiếm");
         return;
       }
 
-      // ❌ Comment out round trip branch
-      // if (isRoundTrip) {
-      //   console.log("🔍 Searching round trip flights...");
-      //
-      //   const [outboundData, returnData] = await Promise.all([
-      //     searchFlights({ from, to, selected, departureDate }),
-      //     searchFlights({
-      //       from: to,
-      //       to: from,
-      //       selected,
-      //       departureDate: returnDate || departureDate,
-      //     }),
-      //   ]);
-      //
-      //   console.log("✅ Round trip search results:", {
-      //     outbound: outboundData?.length,
-      //     return: returnData?.length
-      //   });
-      //
-      //   navigate("/flight-ticket", {
-      //     state: {
-      //       searchType: "roundtrip",
-      //       searchInfo: {
-      //         from, to, departureDate, returnDate, selectedWay, selected, passengers
-      //       },
-      //       outboundFlights: outboundData || [],
-      //       returnFlights: returnData || [],
-      //     },
-      //   });
-      // } else {
+      setLoading(true);
+      setError("");
+      try {
+        const isRoundTrip = selectedWay === "Khứ hồi";
 
-      const data = await searchFlights({ from, to, selected, departureDate });
+        if (isRoundTrip) {
+          const [outboundFlights, returnFlights] = await Promise.all([
+            searchFlights({ from, to, selected, departureDate }),
+            searchFlights({
+              from: to,
+              to: from,
+              selected,
+              departureDate: returnDate || departureDate,
+            }),
+          ]);
 
-      navigate("/flight-ticket", {
-        state: {
-          searchType: "oneway",
-          searchInfo: {
-            from,
-            to,
-            departureDate,
-            selectedWay,
-            selected,
-            passengers,
-          },
-          results: data || [],
-          outboundFlights: data || [],
-        },
-      });
-      // }
+          saveSearchData({
+            searchType: "roundtrip",
+            searchInfo: { from, to, departureDate, returnDate, selectedWay, selected, passengers },
+            outboundFlights,
+            returnFlights,
+          });
+        } else {
+          const data = await searchFlights({ from, to, selected, departureDate });
 
-    } catch (error) {
-      console.error("❌ Lỗi khi tìm vé:", error);
-      alert("Không thể tìm vé. Vui lòng thử lại sau.");
-    }
-  };
+          saveSearchData({
+            searchType: "oneway",
+            searchInfo: { from, to, departureDate, selectedWay, selected, passengers },
+            outboundFlights: data,
+          });
+        }
+      } catch (err) {
+        console.error("❌ Lỗi khi tìm vé:", err);
+        setError("Không thể tìm vé. Vui lòng thử lại sau.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [from, to, departureDate, returnDate, saveSearchData]
+  );
 
-  // ✅ Load airports
+  // ✅ Memo hóa debounce để ổn định hơn
+  const handleSearch = useMemo(() => debounce(searchHandler, 600), [searchHandler]);
+
   useEffect(() => {
+    let isMounted = true;
+
     const fetchLocations = async () => {
       try {
         const locations = await fetchAirports();
-        setSelectedLocation(locations);
-
-        // Set default values nếu chưa có
-        if (locations.length > 1 && !from && !to) {
-          setFrom(locations[0].code);
-          setTo(locations[1].code);
+        if (isMounted) {
+          setSelectedLocation(locations);
+          if (locations.length >= 2) {
+            setFrom(locations[0].code);
+            setTo(locations[1].code);
+          }
         }
-      } catch (error) {
-        console.error("❌ Error fetching locations:", error);
+      } catch (err) {
+        console.error("❌ Error fetching airports:", err);
+        if (isMounted) setError("Không thể tải danh sách sân bay");
       }
     };
 
     fetchLocations();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   return {
@@ -118,8 +110,11 @@ export const useSearchTableData = () => {
     setTo,
     departureDate,
     setDepartureDate,
-    // returnDate, setReturnDate, // ❌ Comment out
+    returnDate,
+    setReturnDate,
     handleSwapLocation,
     handleSearch,
+    loading,
+    error,
   };
 };
