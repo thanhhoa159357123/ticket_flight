@@ -22,7 +22,6 @@ const RoundTripConfirmPanel = (props) => {
   } = useRoundTripConfirm(props);
 
   const {
-    show,
     selectedOutbound,
     selectedReturn,
     passengers,

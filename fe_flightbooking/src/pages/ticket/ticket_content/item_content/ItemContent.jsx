@@ -18,7 +18,7 @@ const ItemContent = ({ flight, onFlightSelect, passengers }) => {
     const diff = arr.diff(dep, "minute");
     return `${Math.floor(diff / 60)}h ${diff % 60}m`;
   };
-
+  
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow hover:shadow-lg transition-all duration-200">
       {/* --- Thông tin chính --- */}
@@ -95,13 +95,13 @@ const ItemContent = ({ flight, onFlightSelect, passengers }) => {
       <div className="px-6 py-4 bg-gray-50 rounded-b-xl flex items-center justify-between">
         <button
           onClick={() => setShowDetail((prev) => !prev)}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+          className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1 cursor-pointer"
         >
           {showDetail ? "Ẩn chi tiết" : "Xem chi tiết"}
         </button>
         <button
           onClick={() => onFlightSelect(flight)}
-          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer"
         >
           Chọn chuyến bay
         </button>

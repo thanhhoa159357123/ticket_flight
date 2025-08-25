@@ -12,7 +12,7 @@ const Loai_Chuyen_Di = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:8000/api/loai-chuyen-di")
+      .get("http://localhost:8000/loaichuyendi")
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
   };
@@ -27,7 +27,7 @@ const Loai_Chuyen_Di = () => {
 
   const handleAdd = () => {
     axios
-      .post("http://localhost:8000/api-loai-chuyen-di/add", formData)
+      .post("http://localhost:8000/loaichuyendi", formData)
       .then(() => {
         fetchData();
         setShowForm(false);

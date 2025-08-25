@@ -2,10 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import FlightIcon from "@mui/icons-material/Flight";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
-import AssignmentIcon from "@mui/icons-material/Assignment";
-import DescriptionIcon from "@mui/icons-material/Description";
-import PersonIcon from "@mui/icons-material/Person";
-import ReceiptIcon from "@mui/icons-material/Receipt";
 import GroupsIcon from "@mui/icons-material/Groups";
 import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
@@ -22,11 +18,10 @@ const menuItems = [
   { label: "Hãng bán vé", icon: <BusinessIcon />, path: "/hang-ban-ve" },
   { label: "Khách hàng", icon: <GroupsIcon />, path: "/khach-hang" },
   { label: "Sân bay", icon: <LocationOnIcon />, path: "/san-bay" },
-  { label: "Tuyến bay", icon: <AltRouteIcon />, path: "/tuyen-bay" },
   { label: "Chuyến bay", icon: <FlightIcon />, path: "/chuyen-bay" },
   { label: "Hạng vé", icon: <ClassIcon />, path: "/hang-ve" },
   { label: "Loại chuyến đi", icon: <FlightTakeoffIcon />, path: "/loai-chuyen-di" },
-  { label: "Giá vé", icon: <MonetizationOnIcon />, path: "/ve" },
+  { label: "Vé", icon: <MonetizationOnIcon />, path: "/ve" },
   { label: "Xử lý hoàn vé", icon: <AssignmentReturnIcon />, path: "/xu-ly-hoan-ve" }, // 🆕 Menu mới
 ];
 

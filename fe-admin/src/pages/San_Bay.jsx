@@ -14,7 +14,7 @@ const San_Bay = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:8000/api/san-bay")
+      .get("http://localhost:8000/sanbay")
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
   };
@@ -29,7 +29,7 @@ const San_Bay = () => {
 
   const handleAdd = () => {
     axios
-      .post("http://localhost:8000/api/san-bay", formData)
+      .post("http://localhost:8000/sanbay", formData)
       .then(() => {
         fetchData();
         setShowForm(false);
@@ -133,7 +133,7 @@ const San_Bay = () => {
             {data.map((san_bay) => (
               <tr key={san_bay.ma_san_bay} className="transition-colors">
                 <td className="px-6 py-4">{san_bay.ma_san_bay}</td>
-                <td className="px-6 py-4">{san_bay.ten_san_bay}</td>
+                <td className="px-6 py-4">Sân bay {san_bay.ten_san_bay}</td>
                 <td className="px-6 py-4">{san_bay.thanh_pho}</td>
                 <td className="px-6 py-4">{san_bay.ma_quoc_gia}</td>
                 <td className="px-6 py-4">{san_bay.iata_code}</td>

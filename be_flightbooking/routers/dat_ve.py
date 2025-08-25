@@ -169,16 +169,20 @@ def get_all_dat_ve_by_user(ma_khach_hang: str = Query(...)):
                 "ma_ve_array",
                 when(
                     col("ma_ve").startswith("["),
-                    from_json("ma_ve", ArrayType(StringType()))
-                ).otherwise(F.array("ma_ve"))
+                    from_json("ma_ve", ArrayType(StringType())),
+                ).otherwise(F.array("ma_ve")),
             )
-            df_chitiet = df_chitiet.withColumn("ma_ve", explode("ma_ve_array")).drop("ma_ve_array")
+            df_chitiet = df_chitiet.withColumn("ma_ve", explode("ma_ve_array")).drop(
+                "ma_ve_array"
+            )
         else:
             df_chitiet = df_chitiet.withColumn("ma_ve", explode("ma_ve"))
 
         # 3️⃣ Explode ma_hanh_khach nếu nó là array
         if dict(df_chitiet.dtypes)["ma_hanh_khach"] == "array<string>":
-            df_chitiet = df_chitiet.withColumn("ma_hanh_khach", explode("ma_hanh_khach"))
+            df_chitiet = df_chitiet.withColumn(
+                "ma_hanh_khach", explode("ma_hanh_khach")
+            )
 
         # 4️⃣ Tạo view cho Spark SQL
         df_datve.createOrReplaceTempView("datve")
@@ -223,52 +227,51 @@ def get_all_dat_ve_by_user(ma_khach_hang: str = Query(...)):
         df = spark.sql(query)
 
         # 6️⃣ Gom hành khách theo từng vé
-        df_grouped_ve = (
-            df.groupBy(
-                "ma_dat_ve",
-                "ma_ve",
-                "ma_chuyen_bay",
-                "ma_hang_ve",
-                "ten_hang_ve",
-                "thoi_gian_di",
-                "thoi_gian_den",
-                "ten_san_bay_di",
-                "ten_san_bay_den"
-            )
-            .agg(
-                F.collect_list(
-                    F.struct(
-                        "ma_hanh_khach",
-                        "danh_xung",
-                        "ho_hanh_khach",
-                        "ten_hanh_khach",
-                        "ngay_sinh"
-                    )
-                ).alias("danh_sach_hanh_khach")
-            )
+        df_grouped_ve = df.groupBy(
+            "ma_dat_ve",
+            "ma_khach_hang",
+            "ma_ve",
+            "ma_chuyen_bay",
+            "ma_hang_ve",
+            "ten_hang_ve",
+            "thoi_gian_di",
+            "thoi_gian_den",
+            "ten_san_bay_di",
+            "ten_san_bay_den",
+        ).agg(
+            F.collect_list(
+                F.struct(
+                    "ma_hanh_khach",
+                    "danh_xung",
+                    "ho_hanh_khach",
+                    "ten_hanh_khach",
+                    "ngay_sinh",
+                )
+            ).alias("danh_sach_hanh_khach")
         )
 
-        # 7️⃣ Gom vé theo đơn đặt vé
-        df_grouped_datve = (
-            df_grouped_ve.groupBy("ma_dat_ve")
-            .agg(F.collect_list(F.struct(
-                "ma_ve",
-                "ma_chuyen_bay",
-                "ma_hang_ve",
-                "ten_hang_ve",
-                "thoi_gian_di",
-                "thoi_gian_den",
-                "ten_san_bay_di",
-                "ten_san_bay_den",
-                "danh_sach_hanh_khach"
-            )).alias("chi_tiet_ve_dat"))
+        # 7️⃣ Gom vé theo đơn đặt vé, giữ ma_khach_hang để tránh nhầm khách
+        df_grouped_datve = df_grouped_ve.groupBy("ma_dat_ve", "ma_khach_hang").agg(
+            F.collect_list(
+                F.struct(
+                    "ma_ve",
+                    "ma_chuyen_bay",
+                    "ma_hang_ve",
+                    "ten_hang_ve",
+                    "thoi_gian_di",
+                    "thoi_gian_den",
+                    "ten_san_bay_di",
+                    "ten_san_bay_den",
+                    "danh_sach_hanh_khach",
+                )
+            ).alias("chi_tiet_ve_dat")
         )
 
-        # 8️⃣ Join lại với thông tin chung của đơn đặt vé
-        final_df = (
-            df_datve.join(df_grouped_datve, on="ma_dat_ve", how="left")
-            .orderBy(F.col("ngay_dat").desc())
-        )
+        # 8️⃣ Join lại với df_datve đã lọc ma_khach_hang
+        df_datve_filtered = df_datve.filter(col("ma_khach_hang") == ma_khach_hang)
+        final_df = df_datve_filtered.join(
+            df_grouped_datve, on="ma_dat_ve", how="left"
+        ).orderBy(F.col("ngay_dat").desc())
 
         # 9️⃣ Trả dữ liệu JSON về FE
         return [json.loads(row) for row in final_df.toJSON().collect()]
@@ -301,188 +304,172 @@ def get_all_dat_ve_by_user(ma_khach_hang: str = Query(...)):
 #         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
 
-# # ✅ Hybrid approach: Dùng Spark để validate + MongoDB để update
-# @router.patch("/{ma_dat_ve}/refund", tags=["dat_ve"])
-# def request_refund_ticket_hybrid(ma_dat_ve: str):
-#     try:
-#         # 🔍 BƯỚC 1: Dùng SPARK để VALIDATE (READ operations)
-#         spark = cached_views["dat_ve"].sparkSession
+# ✅ Hybrid approach: Dùng Spark để validate + MongoDB để update
+@router.patch("/{ma_dat_ve}/refund", tags=["dat_ve"])
+def request_refund_ticket_hybrid(ma_dat_ve: str):
+    try:
+        # Load các DataFrame cần thiết
+        df_datve = load_df("datve")
+        df_ctdv = load_df("chitietdatve")
+        df_ve = load_df("ve")
+        df_hangve = load_df("hangve")
 
-#         # Register views cần thiết
-#         for view_name in ["dat_ve", "hang_ve"]:
-#             cached_views[view_name].createOrReplaceTempView(view_name)
+        # ✅ Fix lỗi array<string> bằng explode trước khi join
+        if dict(df_ctdv.dtypes)["ma_ve"] == "array<string>":
+            df_ctdv = df_ctdv.withColumn("ma_ve", F.explode("ma_ve"))
 
-#         # Spark query để validation
-#         validation_query = f"""
-#         SELECT 
-#             dv.ma_dat_ve,
-#             dv.trang_thai,
-#             dv.ma_khach_hang,
-#             dv.ma_hang_ve_di,
-#             hv.refundable,
-#             hv.vi_tri_ngoi
-#         FROM dat_ve dv
-#         LEFT JOIN hang_ve hv ON dv.ma_hang_ve_di = hv.ma_hang_ve
-#         WHERE dv.ma_dat_ve = '{ma_dat_ve}'
-#         """
+        # Tạo view cho Spark SQL
+        df_datve.createOrReplaceTempView("datve")
+        df_ctdv.createOrReplaceTempView("chitietdatve")
+        df_ve.createOrReplaceTempView("ve")
+        df_hangve.createOrReplaceTempView("hangve")
 
-#         df_result = spark.sql(validation_query)
-#         results = df_result.collect()
+        # Query vé
+        query = f"""
+        SELECT dv.ma_dat_ve, dv.trang_thai, dv.ma_khach_hang,
+               v.ma_hang_ve, hv.ten_hang_ve, hv.refundable, v.gia_ve
+        FROM datve dv
+        LEFT JOIN chitietdatve ctdv ON dv.ma_dat_ve = ctdv.ma_dat_ve
+        LEFT JOIN ve v ON ctdv.ma_ve = v.ma_ve
+        LEFT JOIN hangve hv ON v.ma_hang_ve = hv.ma_hang_ve
+        WHERE dv.ma_dat_ve = '{ma_dat_ve}'
+        """
 
-#         if len(results) == 0:
-#             raise HTTPException(status_code=404, detail="Không tìm thấy mã đặt vé")
+        spark = df_datve.sparkSession
+        results = spark.sql(query).collect()
 
-#         ticket_info = results[0]
+        if not results:
+            raise HTTPException(status_code=404, detail="Không tìm thấy mã đặt vé")
 
-#         # ✅ Kiểm tra trạng thái
-#         if ticket_info["trang_thai"] != "Đã thanh toán":
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail=f"Chỉ có thể hoàn vé đã thanh toán. Trạng thái hiện tại: {ticket_info['trang_thai']}",
-#             )
+        ticket_info = results[0]
 
-#         # ✅ Kiểm tra điều kiện refundable từ Spark
-#         is_refundable = (
-#             ticket_info["refundable"] if ticket_info["refundable"] is not None else True
-#         )
+        # Kiểm tra trạng thái vé
+        if ticket_info["trang_thai"] != "Đã thanh toán":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Chỉ hoàn vé đã thanh toán. Trạng thái hiện tại: {ticket_info['trang_thai']}",
+            )
 
-#         if not is_refundable:
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail=f"Loại vé {ticket_info['vi_tri_ngoi']} không thể hoàn. Vui lòng liên hệ hotline để được hỗ trợ.",
-#             )
+        # Kiểm tra điều kiện hoàn vé
+        if ticket_info["refundable"] is not None and not ticket_info["refundable"]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Hạng vé {ticket_info['ten_hang_ve']} không được phép hoàn vé",
+            )
 
-#         print(
-#             f"✅ Spark validation passed - Khách hàng: {ticket_info['ma_khach_hang']}, Hạng vé: {ticket_info['vi_tri_ngoi']}"
-#         )
+        # Tính số tiền hoàn (90%)
+        gia_ve_hoan = int(ticket_info["gia_ve"] * 0.9)
 
-#         # 💾 BƯỚC 2: Chỉ cập nhật dat_ve collection
-#         update_result = dat_ve_collection.update_one(
-#             {"ma_dat_ve": ma_dat_ve},
-#             {
-#                 "$set": {
-#                     "trang_thai": "Chờ duyệt hoàn vé",
-#                     "ngay_yeu_cau_hoan": datetime.now(),
-#                     "ly_do_hoan": "Khách hàng yêu cầu hoàn vé",
-#                     "nguoi_yeu_cau": ticket_info["ma_khach_hang"],
-#                     "trang_thai_duyet": "Chờ xử lý",
-#                     "gia_ve_hoan": 1500000,
-#                     "admin_xem": False,  # 🆕 Đánh dấu admin chưa xem
-#                 }
-#             },
-#         )
+        # Cập nhật trạng thái trong MongoDB
+        update_result = dat_ve_collection.update_one(
+            {"ma_dat_ve": ma_dat_ve},
+            {
+                "$set": {
+                    "trang_thai": "Chờ duyệt hoàn vé",
+                    "ngay_yeu_cau_hoan": datetime.now(),
+                    "gia_ve_hoan": gia_ve_hoan,
+                    "trang_thai_duyet": "Chờ xử lý",
+                    "admin_xem": False,
+                }
+            },
+        )
 
-#         if update_result.modified_count == 0:
-#             raise HTTPException(status_code=400, detail="Không thể cập nhật trạng thái")
+        if update_result.modified_count == 0:
+            raise HTTPException(status_code=400, detail="Không thể cập nhật trạng thái")
 
-#         # 🗑️ BỎ PHẦN TẠO NOTIFICATION
+        invalidate_cache("datve")
 
-#         # 🔄 SYNC dữ liệu
-#         refresh_cache("dat_ve")
+        return JSONResponse(
+            content={
+                "message": "Yêu cầu hoàn vé thành công",
+                "ma_dat_ve": ma_dat_ve,
+                "trang_thai_moi": "Chờ duyệt hoàn vé",
+                "so_tien_hoan": gia_ve_hoan,
+            }
+        )
 
-#         return JSONResponse(
-#             content={
-#                 "message": f"Yêu cầu hoàn vé {ma_dat_ve} đã được gửi thành công. Chúng tôi sẽ xử lý trong vòng 24-48h.",
-#                 "ma_dat_ve": ma_dat_ve,
-#                 "trang_thai_moi": "Chờ duyệt hoàn vé",
-#                 "thoi_gian_xu_ly": "24-48 giờ",
-#                 "hang_ve": ticket_info["vi_tri_ngoi"],
-#                 "khach_hang": ticket_info["ma_khach_hang"],
-#             }
-#         )
-
-#     except HTTPException as he:
-#         raise he
-#     except Exception as e:
-#         print("❌ Lỗi hybrid refund request:", e)
-#         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print("❌ Lỗi hybrid refund request:", e)
+        raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
 
-# @router.patch("/{ma_dat_ve}/approve-refund", tags=["admin"])
-# def approve_refund_hybrid(ma_dat_ve: str, approved: bool):
-#     try:
-#         # 🔍 Tìm thông tin vé từ MongoDB
-#         ticket_doc = dat_ve_collection.find_one({"ma_dat_ve": ma_dat_ve})
 
-#         if not ticket_doc:
-#             raise HTTPException(status_code=404, detail="Không tìm thấy mã đặt vé")
+@router.patch("/{ma_dat_ve}/approve-refund", tags=["admin"])
+def approve_refund(ma_dat_ve: str, approved: bool = Query(...)):
+    try:
+        # 🔍 Tìm thông tin vé
+        ticket_doc = dat_ve_collection.find_one({"ma_dat_ve": ma_dat_ve})
+        if not ticket_doc:
+            raise HTTPException(status_code=404, detail="Không tìm thấy mã đặt vé")
 
-#         if ticket_doc["trang_thai"] != "Chờ duyệt hoàn vé":
-#             raise HTTPException(
-#                 status_code=400,
-#                 detail=f"Vé không ở trạng thái chờ duyệt. Trạng thái hiện tại: {ticket_doc['trang_thai']}",
-#             )
+        # 🛑 Chỉ xử lý nếu vé đang chờ duyệt hoàn vé
+        if ticket_doc.get("trang_thai") != "Chờ duyệt hoàn vé":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Vé không ở trạng thái chờ duyệt. Trạng thái hiện tại: {ticket_doc.get('trang_thai')}",
+            )
 
-#         # 💾 Update vé trong MongoDB
-#         if approved:
-#             # ✅ DUYỆT: Chuyển thành "Đã hoàn vé"
-#             new_status = "Đã hoàn vé"
-#             update_data = {
-#                 "trang_thai": new_status,
-#                 "ngay_duyet_hoan": datetime.now(),
-#                 "trang_thai_duyet": "Đã duyệt",
-#                 "admin_duyet": "SYSTEM",
-#                 "ngay_hoan_ve": datetime.now(),
-#                 "so_tien_hoan": ticket_doc.get("gia_ve_hoan", 1500000),
-#             }
-#         else:
-#             # ❌ TỪ CHỐI: Chuyển về lại "Đã thanh toán"
-#             new_status = "Đã thanh toán"
-#             update_data = {
-#                 "trang_thai": new_status,
-#                 "ngay_duyet_hoan": datetime.now(),
-#                 "trang_thai_duyet": "Từ chối",
-#                 "admin_duyet": "SYSTEM",
-#                 "ly_do_tu_choi": "Admin từ chối yêu cầu hoàn vé",
-#             }
+        # ✅ Nếu DUYỆT
+        if approved:
+            new_status = "Đã hoàn vé"
+            update_data = {
+                "trang_thai": new_status,
+                "trang_thai_duyet": "Đã duyệt",
+                "ngay_duyet_hoan": datetime.now(),
+                "ngay_hoan_ve": datetime.now(),
+                "admin_duyet": "SYSTEM",
+                "so_tien_hoan": ticket_doc.get("gia_ve_hoan", 1500000),
+            }
+        else:
+            # ❌ Nếu TỪ CHỐI
+            new_status = "Đã thanh toán"
+            update_data = {
+                "trang_thai": new_status,
+                "trang_thai_duyet": "Từ chối",
+                "ngay_duyet_hoan": datetime.now(),
+                "admin_duyet": "SYSTEM",
+                "ly_do_tu_choi": "Admin từ chối yêu cầu hoàn vé",
+            }
 
-#         # Update vé
-#         dat_ve_collection.update_one({"ma_dat_ve": ma_dat_ve}, {"$set": update_data})
+        # 💾 Update vé
+        dat_ve_collection.update_one(
+            {"ma_dat_ve": ma_dat_ve},
+            {"$set": update_data}
+        )
 
-#         # Nếu từ chối, xóa các field liên quan đến hoàn vé
-#         if not approved:
-#             dat_ve_collection.update_one(
-#                 {"ma_dat_ve": ma_dat_ve},
-#                 {
-#                     "$unset": {
-#                         "ngay_yeu_cau_hoan": "",
-#                         "gia_ve_hoan": "",
-#                         "nguoi_yeu_cau": "",
-#                         "admin_xem": "",
-#                     }
-#                 },
-#             )
+        # Nếu từ chối thì xóa field liên quan
+        if not approved:
+            dat_ve_collection.update_one(
+                {"ma_dat_ve": ma_dat_ve},
+                {
+                    "$unset": {
+                        "ngay_yeu_cau_hoan": "",
+                        "gia_ve_hoan": "",
+                        "nguoi_yeu_cau": "",
+                        "admin_xem": "",
+                    }
+                }
+            )
 
-#         # 🗑️ BỎ PHẦN TẠO NOTIFICATION
+        # 🔄 Refresh Spark cache
+        invalidate_cache("datve")
 
-#         # 🔄 SYNC dữ liệu
-#         refresh_cache("dat_ve")
+        return JSONResponse(
+            content={
+                "message": f"{'Duyệt' if approved else 'Từ chối'} hoàn vé thành công",
+                "approved": approved,
+                "new_status": new_status,
+                "so_tien_hoan": update_data.get("so_tien_hoan", 0),
+            }
+        )
 
-#         action_text = "Đã duyệt" if approved else "Đã từ chối"
-#         print(f"✅ {action_text} hoàn vé {ma_dat_ve}")
-#         print(f"📝 Trạng thái mới: {new_status}")
-
-#         return JSONResponse(
-#             content={
-#                 "message": f"{action_text} hoàn vé {ma_dat_ve}",
-#                 "approved": approved,
-#                 "new_status": new_status,
-#                 "so_tien_hoan": (
-#                     ticket_doc.get("gia_ve_hoan", 1500000) if approved else 0
-#                 ),
-#                 "note": (
-#                     "Vé được trả về trạng thái đã thanh toán"
-#                     if not approved
-#                     else "Vé đã được hoàn thành công"
-#                 ),
-#             }
-#         )
-
-#     except HTTPException as he:
-#         raise he
-#     except Exception as e:
-#         print(f"❌ Lỗi hybrid approve refund: {e}")
-#         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Lỗi approve refund: {e}")
+        raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
 
 # @router.get("", tags=["dat_ve"])
 # def get_existing_dat_ve(
@@ -558,4 +545,3 @@ def get_all_dat_ve_by_user(ma_khach_hang: str = Query(...)):
 #     except Exception as e:
 #         print("❌ Lỗi khi cập nhật trạng thái hủy vé:", e)
 #         raise HTTPException(status_code=500, detail="Lỗi server nội bộ")
-

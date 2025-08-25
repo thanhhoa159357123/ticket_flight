@@ -6,7 +6,7 @@ const Hang_ve = () => {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     ma_hang_ve: "",
-    vi_tri_ngoi: "",
+    ten_hang_ve: "",
     so_kg_hanh_ly_ky_gui: "",
     so_kg_hanh_ly_xach_tay: "",
     so_do_ghe: "",
@@ -17,7 +17,7 @@ const Hang_ve = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:8000/api/hang-ve")
+      .get("http://localhost:8000/hangve")
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
   };
@@ -40,13 +40,13 @@ const Hang_ve = () => {
     };
 
     axios
-      .post("http://localhost:8000/api/hang-ve", payload)
+      .post("http://localhost:8000/hangve", payload)
       .then(() => {
         fetchData();
         setShowForm(false);
         setFormData({
           ma_hang_ve: "",
-          vi_tri_ngoi: "",
+          ten_hang_ve: "",
           so_kg_hanh_ly_ky_gui: "",
           so_kg_hanh_ly_xach_tay: "",
           so_do_ghe: "",
@@ -82,8 +82,8 @@ const Hang_ve = () => {
               className="p-2 border rounded"
             />
             <input
-              name="vi_tri_ngoi"
-              value={formData.vi_tri_ngoi}
+              name="ten_hang_ve"
+              value={formData.ten_hang_ve}
               onChange={handleChange}
               placeholder="Vị trí ngồi"
               className="p-2 border rounded"
@@ -127,7 +127,7 @@ const Hang_ve = () => {
               <option value="true">Có hoàn tiền</option>
               <option value="false">Không hoàn tiền</option>
             </select>
-            <select
+            {/* <select
               name="changeable"
               value={formData.changeable}
               onChange={handleChange}
@@ -135,7 +135,7 @@ const Hang_ve = () => {
             >
               <option value="true">Có thay đổi chuyến</option>
               <option value="false">Không thay đổi chuyến</option>
-            </select>
+            </select> */}
           </div>
           <button
             onClick={handleAdd}
@@ -155,7 +155,7 @@ const Hang_ve = () => {
                 Mã hạng vé
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Vị trí ngồi
+                Tên hạng vé
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Số lượng hành lý kí gửi
@@ -184,7 +184,7 @@ const Hang_ve = () => {
             {data.map((item) => (
               <tr key={item.ma_hang_ve} className="transition-colors">
                 <td className="px-6 py-4">{item.ma_hang_ve}</td>
-                <td className="px-6 py-4">{item.vi_tri_ngoi}</td>
+                <td className="px-6 py-4">{item.ten_hang_ve}</td>
                 <td className="px-6 py-4">{item.so_kg_hanh_ly_ky_gui}</td>
                 <td className="px-6 py-4">{item.so_kg_hanh_ly_xach_tay}</td>
                 <td className="px-6 py-4">{item.so_do_ghe}</td>

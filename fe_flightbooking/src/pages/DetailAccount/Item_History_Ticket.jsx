@@ -12,7 +12,7 @@ const Item_History_Ticket = ({ maKhachHang }) => {
     setSelectedTicket(ticket);
     setShowDetail(true);
   };
-
+console.log(maKhachHang);
   useEffect(() => {
     if (!maKhachHang) return;
     const fetchData = async () => {
@@ -185,7 +185,6 @@ const Item_History_Ticket = ({ maKhachHang }) => {
           show={showDetail}
           onClose={() => {
             setShowDetail(false);
-            setSelectedTicket(null);
           }}
         />
       )}

@@ -8,16 +8,16 @@ from datetime import datetime, timezone
 
 router = APIRouter()
 client = MongoClient(MONGO_URI)
-khach_hang_collection = client[MONGO_DB]["khach_hang"]
+khach_hang_collection = client[MONGO_DB]["khachhang"]
 
 @router.get("", tags=["khach_hang"])
 def get_all_khach_hang():
     try:
-        df = load_df("khach_hang")
+        df = load_df("khachhang")
         filtered_df = df.filter((df["deleted_at"] == "") & (df["is_active"] == True))
 
         selected_df = filtered_df.select(
-            "ma_khach_hang", "ten_khach_hang", "so_dien_thoai", "email", "is_active", "da_dat_ve"
+            "ma_khach_hang", "ten_khach_hang", "so_dien_thoai", "email", "is_active", "da_dat_ve", "last_active_at", "created_at", "deleted_at"
         )
 
         result = selected_df.toPandas().to_dict(orient="records")
@@ -30,7 +30,7 @@ def get_all_khach_hang():
 @router.get("/{ma_khach_hang}", tags=["khach_hang"])
 def get_khach_hang(ma_khach_hang: str):
     try:
-        df = load_df("khach_hang")
+        df = load_df("khachhang")
         result_df = df.filter((df["ma_khach_hang"] == ma_khach_hang) & (df["deleted_at"] == ""))
 
         if result_df.count() == 0:

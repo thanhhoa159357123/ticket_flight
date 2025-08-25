@@ -13,7 +13,7 @@ const Hang_Bay = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:8000/api/hang-bay")
+      .get("http://localhost:8000/hangbay")
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
   };
@@ -28,7 +28,7 @@ const Hang_Bay = () => {
 
   const handleAdd = () => {
     axios
-      .post("http://localhost:8000/api/hang-bay", formData)
+      .post("http://localhost:8000/hangbay", formData)
       .then(() => {
         fetchData();
         setShowForm(false);

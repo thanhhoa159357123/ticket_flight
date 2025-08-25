@@ -30,7 +30,7 @@ export const useTicketActions = (onClose) => {
   const handlePayment = async (ticket) => {
     try {
       const paymentData = await ticketService.getPaymentData(ticket);
-      
+
       if (paymentData.chiTietVeDat.length === 0) {
         throw new Error("Không tìm thấy chi tiết vé đặt.");
       }
@@ -42,15 +42,15 @@ export const useTicketActions = (onClose) => {
       }
 
       const isRoundTrip = ticket.loai_chuyen_di === "Khứ hồi";
-      
+
       const checkoutState = {
         isRoundTrip,
         dat_ve: { ma_dat_ve: ticket.ma_dat_ve },
         ...paymentData,
         passengers,
         ...(isRoundTrip && {
-          chiTietVeReturn: paymentData.chiTietVeDat
-        })
+          chiTietVeReturn: paymentData.chiTietVeDat,
+        }),
       };
 
       navigate("/checkout", { state: checkoutState });
@@ -74,27 +74,21 @@ export const useTicketActions = (onClose) => {
 • Có thể áp dụng phí hoàn vé theo quy định
 • Bạn sẽ nhận được thông báo khi có kết quả`;
 
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+    if (!window.confirm(confirmMessage)) return;
 
     setLoading(true);
     try {
-      console.log(`🚀 Đang gửi yêu cầu hoàn vé cho ${ticket.ma_dat_ve}...`);
-      
+      console.log(`🚀 Gửi yêu cầu hoàn vé ${ticket.ma_dat_ve}...`);
+
+      // GỌI API ĐÚNG ENDPOINT
       const response = await axios.patch(
-        `http://localhost:8000/api/dat-ve/${ticket.ma_dat_ve}/refund`,
+        `http://localhost:8000/datve/${ticket.ma_dat_ve}/refund`,
         {},
-        {
-          timeout: 10000,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+        { timeout: 10000 }
       );
-      
-      console.log('✅ Response thành công:', response.data);
-      
+
+      console.log("✅ Hoàn vé thành công:", response.data);
+
       alert(`✅ ${response.data.message}
 
 📋 Thông tin chi tiết:
@@ -105,60 +99,43 @@ export const useTicketActions = (onClose) => {
 • Thời gian xử lý: ${response.data.thoi_gian_xu_ly}
 
 📞 Liên hệ hotline: 1900-xxxx nếu cần hỗ trợ`);
-      
-      onClose();
-      window.location.reload();
-      
+
+      // ✅ Cập nhật trạng thái vé ngay lập tức
+      ticket.trang_thai = "Chờ duyệt hoàn vé";
+
+      // Nếu muốn đóng panel sau khi yêu cầu thành công
+      if (onClose) onClose();
     } catch (error) {
-      console.error('❌ Chi tiết lỗi yêu cầu hoàn vé:', error);
-      
-      let errorMessage = 'Có lỗi xảy ra khi gửi yêu cầu hoàn vé';
-      
+      console.error("❌ Lỗi yêu cầu hoàn vé:", error);
+
+      let errorMessage = "Có lỗi xảy ra khi gửi yêu cầu hoàn vé";
+
       if (error.response) {
         const status = error.response.status;
         const detail = error.response.data?.detail;
-        
+
         switch (status) {
           case 400:
-            // ✅ 400 là do không đủ điều kiện hoàn vé (business logic)
-            errorMessage = detail || 'Vé này không đủ điều kiện hoàn';
+            errorMessage = detail || "Vé này không đủ điều kiện hoàn";
             break;
           case 404:
-            errorMessage = 'Không tìm thấy mã đặt vé';
+            errorMessage = "Không tìm thấy mã đặt vé";
             break;
           case 500:
-            errorMessage = 'Lỗi server nội bộ. Vui lòng thử lại sau hoặc liên hệ hotline';
+            errorMessage = "Lỗi server nội bộ. Vui lòng thử lại sau";
             break;
           default:
             errorMessage = detail || `Lỗi server (${status})`;
         }
       } else if (error.request) {
-        errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng';
+        errorMessage = "Không thể kết nối tới server. Vui lòng kiểm tra mạng";
       } else {
-        errorMessage = error.message || 'Có lỗi không xác định xảy ra';
+        errorMessage = error.message || "Có lỗi không xác định xảy ra";
       }
-      
-      // ✅ Khác biệt thông báo cho case 400 vs các lỗi khác
-      const isBusinessLogicError = error.response?.status === 400;
-      
-      if (isBusinessLogicError) {
-        // Thông báo đơn giản cho lỗi business logic
-        alert(`❌ ${errorMessage}
 
-📞 Liên hệ hotline: 1900-xxxx để được hỗ trợ`);
-      } else {
-        // Thông báo đầy đủ cho lỗi kỹ thuật
-        alert(`❌ ${errorMessage}
-
-🔧 Hướng dẫn:
-• Kiểm tra kết nối mạng
-• Thử lại sau ít phút
-• Liên hệ hotline: 1900-xxxx nếu vẫn gặp lỗi`);
-      }
-      
+      alert(`❌ ${errorMessage}`);
     } finally {
       setLoading(false);
-      console.log('🏁 Hoàn thành xử lý yêu cầu hoàn vé');
     }
   };
 
@@ -166,6 +143,6 @@ export const useTicketActions = (onClose) => {
     handleCancelBooking,
     handlePayment,
     handleRefundTicket,
-    loading
+    loading,
   };
 };

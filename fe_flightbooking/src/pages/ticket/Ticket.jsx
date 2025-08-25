@@ -130,9 +130,7 @@ const Ticket = () => {
                   passengers={passengers}
                   searchInfo={searchInfo}
                   onFlightSelect={
-                    !selectedOutbound
-                      ? setSelectedOutbound
-                      : setSelectedReturn
+                    !selectedOutbound ? setSelectedOutbound : setSelectedReturn
                   }
                   title={!selectedOutbound ? "Chuyến bay đi" : "Chuyến bay về"}
                 />

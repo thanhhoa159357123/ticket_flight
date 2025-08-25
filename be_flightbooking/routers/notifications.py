@@ -9,7 +9,7 @@ router = APIRouter()
 # MongoDB connection
 client = MongoClient(MONGO_URI)
 db = client[MONGO_DB]
-dat_ve_collection = db["dat_ve"]
+dat_ve_collection = db["datve"]
 
 @router.get("/refund-requests", tags=["notifications"])  
 def get_refund_requests():

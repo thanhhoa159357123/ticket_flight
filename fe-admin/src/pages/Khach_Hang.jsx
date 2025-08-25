@@ -6,7 +6,7 @@ const Khach_Hang = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8000/api/khach-hang")
+      .get("http://localhost:8000/khachhang")
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
   }, []);

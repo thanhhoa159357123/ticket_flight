@@ -76,12 +76,12 @@ const DetailContent = ({ flight, durationFormatted }) => {
               {flight.refundable ? "Có" : "Không"}
             </span>
           </p>
-          <p>
+          {/* <p>
             <span className="text-gray-500">Đổi lịch bay:</span>{" "}
             <span className="font-medium">
               {flight.changeable ? "Có" : "Không"}
             </span>
-          </p>
+          </p> */}
         </div>
       </div>
     </div>

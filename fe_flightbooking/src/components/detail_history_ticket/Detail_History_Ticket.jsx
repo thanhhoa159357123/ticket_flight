@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   XMarkIcon,
   TicketIcon,
@@ -17,7 +17,23 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
   const { handleCancelBooking, handlePayment, handleRefundTicket, loading } =
     useTicketActions(onClose);
 
-  // Auto focus and handle ESC key
+  // State điều khiển unmount sau khi animation đóng xong
+  const [isVisible, setIsVisible] = useState(show);
+  const [animateIn, setAnimateIn] = useState(false);
+
+  useEffect(() => {
+    if (show) {
+      setIsVisible(true); // render panel trước
+      const timeout = setTimeout(() => setAnimateIn(true), 20); // kích hoạt animation sau 1 frame
+      return () => clearTimeout(timeout);
+    } else {
+      setAnimateIn(false); // bắt đầu animation đóng
+      const timeout = setTimeout(() => setIsVisible(false), 300); // gỡ panel sau khi đóng xong
+      return () => clearTimeout(timeout);
+    }
+  }, [show]);
+
+  // Auto focus & ESC key
   useEffect(() => {
     if (show && drawerRef.current) {
       drawerRef.current.focus();
@@ -39,7 +55,9 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
   }, [show, onClose]);
 
   const isRoundTrip = ticket.loai_chuyen_di === "Khứ hồi";
-  console.log("Ticket Details:", ticket);
+
+  // Nếu chưa visible thì không render component
+  if (!isVisible) return null;
 
   return (
     <>
@@ -47,7 +65,7 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
       <div
         onClick={onClose}
         className={`fixed inset-0 bg-black/40 z-[1000] transition-opacity duration-300 ${
-          show ? "opacity-100" : "opacity-0 pointer-events-none"
+          animateIn ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       />
 
@@ -55,10 +73,9 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
       <div
         ref={drawerRef}
         tabIndex={-1}
-        className={`fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-[1001] 
-          transition-transform duration-300 ease-out focus:outline-none ${
-            show ? "translate-x-0" : "translate-x-full"
-          }`}
+        className={`fixed top-0 right-0 h-screen bg-white z-[1001] flex flex-col shadow-2xl 
+        transition-transform duration-300 ease-in-out w-full max-w-[400px] lg:w-[65%] md:w-[75%]
+        ${animateIn ? "translate-x-0" : "translate-x-full"}`}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-blue-600 to-blue-500 text-white">
@@ -176,7 +193,7 @@ const Detail_History_Ticket = ({ ticket, onClose, show }) => {
           />
         </div>
 
-        {/* Footer Actions - ✅ Updated with new status handling */}
+        {/* Footer Actions */}
         {["Chờ thanh toán", "Đã thanh toán", "Chờ duyệt hoàn vé"].includes(
           ticket.trang_thai
         ) && (

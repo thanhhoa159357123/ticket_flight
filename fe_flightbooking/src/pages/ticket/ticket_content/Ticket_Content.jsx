@@ -5,9 +5,7 @@ const Ticket_Content = ({ flights, passengers, onFlightSelect, title }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 10;
 
-  const validFlights = useMemo(() => {
-    return (flights || []).filter((f) => f?.ma_ve || f?.ma_gia_ve);
-  }, [flights]);
+  const validFlights = useMemo(() => flights || [], [flights]);
 
   const totalPages = Math.ceil(validFlights.length / ITEMS_PER_PAGE);
 
@@ -37,7 +35,9 @@ const Ticket_Content = ({ flights, passengers, onFlightSelect, title }) => {
           <div className="space-y-4">
             {paginatedFlights.map((flight, index) => (
               <ItemContent
-                key={flight.ma_ve || flight.ma_gia_ve || `flight-${index}`}
+                key={`${flight.ma_ve || flight.ma_gia_ve}-${
+                  flight.thoi_gian_di
+                }-${index}`}
                 flight={flight}
                 onFlightSelect={onFlightSelect}
                 passengers={passengers}

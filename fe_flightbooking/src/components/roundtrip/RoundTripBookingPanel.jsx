@@ -1,16 +1,16 @@
 import React, { useState } from "react";
 import FlightSummaryCard from "./FlightSummaryCard";
 
-const RoundTripBookingPanel = ({ 
-  outboundFlights = [], 
-  returnFlights = [], 
+const RoundTripBookingPanel = ({
+  outboundFlights = [],
+  returnFlights = [],
   passengers = { Adult: 1 },
   from = {},
   to = {},
   departureDate = "",
   returnDate = "",
   onContinue,
-  onClose 
+  onClose,
 }) => {
   const [selectedOutbound, setSelectedOutbound] = useState(null);
   const [selectedReturn, setSelectedReturn] = useState(null);
@@ -24,10 +24,7 @@ const RoundTripBookingPanel = ({
   return (
     <>
       {/* Overlay */}
-      <div
-        onClick={onClose}
-        className="fixed inset-0 bg-black/50 z-[1000]"
-      />
+      <div onClick={onClose} className="fixed inset-0 bg-black/50 z-[1000]" />
 
       {/* Panel */}
       <div className="fixed top-0 right-0 h-screen bg-white z-[1001] flex flex-col shadow-2xl w-full max-w-[1200px] lg:w-[80%]">
@@ -71,7 +68,8 @@ const RoundTripBookingPanel = ({
                 </p>
                 <p className="text-xl font-bold text-red-600">
                   {formatPrice(
-                    (selectedOutbound.gia + selectedReturn.gia) * passengers.Adult
+                    (selectedOutbound.gia + selectedReturn.gia) *
+                      passengers.Adult
                   )}
                 </p>
               </>
@@ -83,7 +81,10 @@ const RoundTripBookingPanel = ({
           </div>
           <button
             onClick={() =>
-              onContinue?.({ outbound: selectedOutbound, return: selectedReturn })
+              onContinue?.({
+                outbound: selectedOutbound,
+                return: selectedReturn,
+              })
             }
             disabled={!selectedOutbound || !selectedReturn}
             className={`px-8 py-3 rounded-lg font-semibold transition-all ${

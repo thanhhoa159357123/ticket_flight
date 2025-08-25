@@ -37,7 +37,7 @@ const Navbar = () => {
   // 🔧 SỬA: Lấy notifications từ refund requests
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/api/notifications/refund-requests");
+      const response = await axios.get("http://localhost:8000/notifications/refund-requests");
       const refundRequests = response.data.requests || [];
       
       // 🔧 Chuyển đổi refund requests thành notifications format
@@ -76,7 +76,7 @@ const Navbar = () => {
   const markAsRead = async (maDatVe) => {
     try {
       // Cập nhật admin_xem = true trong dat_ve collection
-      await axios.patch(`http://localhost:8000/api/dat-ve/${maDatVe}/mark-read`);
+      await axios.patch(`http://localhost:8000/datve/${maDatVe}/mark-read`);
       fetchNotifications(); // Refresh notifications
     } catch (error) {
       console.error("❌ Lỗi mark as read:", error);

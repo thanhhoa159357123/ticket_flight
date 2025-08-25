@@ -1,58 +1,81 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat";
+dayjs.extend(customParseFormat);
 
 const Chuyen_Bay = () => {
-  const [chuyenBays, setchuyenBays] = useState([]);
-  const [tuyenBays, setTuyenBays] = useState([]);
+  const [chuyenBays, setChuyenBays] = useState([]);
+  const [filteredFlights, setFilteredFlights] = useState([]);
   const [hangBays, setHangBays] = useState([]);
+  const [sanBays, setSanBays] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [showBulkUpdate, setShowBulkUpdate] = useState(false); // 🆕 State cho bulk update
+  const [showBulkUpdate, setShowBulkUpdate] = useState(false);
   const [message, setMessage] = useState("");
+
   const [formData, setFormData] = useState({
     ma_chuyen_bay: "",
-    gio_di: "",
-    gio_den: "",
-    trang_thai: "",
-    ma_tuyen_bay: "",
+    thoi_gian_di: "",
+    thoi_gian_den: "",
     ma_hang_bay: "",
+    ma_san_bay_di: "",
+    ma_san_bay_den: "",
   });
 
-  // 🆕 State cho bulk update
   const [bulkUpdateData, setBulkUpdateData] = useState({
-    daysToAdd: 30, // Cộng thêm 30 ngày
-    selectedStatus: "Đang hoạt động",
+    daysToAdd: 30,
   });
 
+  const [filters, setFilters] = useState({
+    search: "",
+    hangBay: "",
+    sanBayDi: "",
+    sanBayDen: "",
+    status: "all", // all | upcoming | past
+    startDate: "",
+    endDate: "",
+  });
+
+  // =============================
+  // API FETCH
+  // =============================
   useEffect(() => {
-    axios
-      .get("http://localhost:8000/api/chuyen-bay")
-      .then((res) => setchuyenBays(res.data))
-      .catch(() => setMessage("❌ Lỗi khi tải danh sách chuyến bay"));
-    fetchTuyenBays();
+    fetchChuyenBays();
     fetchHangBays();
+    fetchSanBays();
   }, []);
 
-  const fetchTuyenBays = () => {
-    axios
-      .get("http://localhost:8000/api/tuyen-bay")
-      .then((res) => setTuyenBays(res.data))
-      .catch(() => setMessage("❌ Lỗi khi tải danh sách tuyến bay"));
+  const fetchChuyenBays = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/chuyenbay");
+      setChuyenBays(res.data);
+      setFilteredFlights(res.data);
+    } catch {
+      setMessage("❌ Lỗi khi tải danh sách chuyến bay");
+    }
   };
 
-  const fetchHangBays = () => {
-    axios
-      .get("http://localhost:8000/api/hang-bay")
-      .then((res) => setHangBays(res.data))
-      .catch(() => setMessage("❌ Lỗi khi tải danh sách hãng bay"));
+  const fetchHangBays = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/hangbay");
+      setHangBays(res.data);
+    } catch {
+      setMessage("❌ Lỗi khi tải danh sách hãng bay");
+    }
   };
 
-  const fetchChuyenBays = () => {
-    axios
-      .get("http://localhost:8000/api/chuyen-bay")
-      .then((res) => setchuyenBays(res.data))
-      .catch(() => setMessage("❌ Lỗi khi tải danh sách chuyến bay"));
+  const fetchSanBays = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/sanbay");
+      setSanBays(res.data);
+    } catch {
+      setMessage("❌ Lỗi khi tải danh sách sân bay");
+    }
   };
 
+  // =============================
+  // HANDLE FORM
+  // =============================
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
@@ -63,37 +86,35 @@ const Chuyen_Bay = () => {
   const handleAdd = async () => {
     const {
       ma_chuyen_bay,
-      gio_di,
-      gio_den,
-      trang_thai,
-      ma_tuyen_bay,
+      thoi_gian_den,
+      thoi_gian_di,
       ma_hang_bay,
+      ma_san_bay_di,
+      ma_san_bay_den,
     } = formData;
+
     if (
       !ma_chuyen_bay ||
-      !gio_di ||
-      !gio_den ||
-      !trang_thai ||
-      !ma_tuyen_bay ||
-      !ma_hang_bay
+      !thoi_gian_den ||
+      !thoi_gian_di ||
+      !ma_hang_bay ||
+      !ma_san_bay_di ||
+      !ma_san_bay_den
     ) {
       setMessage("⚠️ Vui lòng điền đầy đủ thông tin");
       return;
     }
 
     try {
-      const res = await axios.post(
-        "http://localhost:8000/api/chuyen-bay",
-        formData
-      );
+      const res = await axios.post("http://localhost:8000/chuyenbay", formData);
       setMessage(`✅ ${res.data.message}`);
       setFormData({
         ma_chuyen_bay: "",
-        gio_di: "",
-        gio_den: "",
-        trang_thai: "",
-        ma_tuyen_bay: "",
+        thoi_gian_di: "",
+        thoi_gian_den: "",
         ma_hang_bay: "",
+        ma_san_bay_di: "",
+        ma_san_bay_den: "",
       });
       setShowForm(false);
       fetchChuyenBays();
@@ -102,7 +123,9 @@ const Chuyen_Bay = () => {
     }
   };
 
-  // 🆕 Hàm xử lý bulk update
+  // =============================
+  // BULK UPDATE
+  // =============================
   const handleBulkUpdateDates = async () => {
     if (
       !window.confirm(
@@ -116,15 +139,14 @@ const Chuyen_Bay = () => {
       setMessage("🔄 Đang cập nhật hàng loạt...");
 
       const response = await axios.patch(
-        "http://localhost:8000/api/chuyen-bay/bulk-update-dates",
+        "http://localhost:8000/chuyen-bay/bulk-update-dates",
         {
           days_to_add: bulkUpdateData.daysToAdd,
-          new_status: bulkUpdateData.selectedStatus,
         }
       );
 
       setMessage(`✅ ${response.data.message}`);
-      fetchChuyenBays(); // Refresh data
+      fetchChuyenBays();
       setShowBulkUpdate(false);
     } catch (error) {
       setMessage(
@@ -133,7 +155,9 @@ const Chuyen_Bay = () => {
     }
   };
 
-  // 🆕 Hàm tạo lịch bay tương lai
+  // =============================
+  // GENERATE FUTURE FLIGHTS
+  // =============================
   const generateFutureFlights = async () => {
     if (
       !window.confirm(
@@ -147,7 +171,7 @@ const Chuyen_Bay = () => {
       setMessage("🔄 Đang tạo lịch bay tương lai...");
 
       const response = await axios.post(
-        "http://localhost:8000/api/chuyen-bay/generate-future",
+        "http://localhost:8000/chuyenbay/generate-future",
         {
           days_ahead: 30,
           base_date: new Date().toISOString(),
@@ -161,49 +185,83 @@ const Chuyen_Bay = () => {
     }
   };
 
-  // 🆕 Function để phân loại trạng thái chuyến bay
-  const getFlightStatusInfo = () => {
-    const now = new Date();
-    const stats = {
-      total: chuyenBays.length,
-      active: 0,
-      past: 0,
-      future: 0,
-    };
+  // =============================
+  // HANDLE FILTER
+  // =============================
+  useEffect(() => {
+    let filtered = [...chuyenBays];
 
-    chuyenBays.forEach((flight) => {
-      const flightDate = new Date(flight.gio_di);
-      if (flightDate < now) {
-        stats.past++;
-      } else {
-        stats.future++;
-        if (flight.trang_thai === "Đang hoạt động") {
-          stats.active++;
-        }
-      }
+    // Search theo mã chuyến bay
+    if (filters.search.trim() !== "") {
+      filtered = filtered.filter((cb) =>
+        cb.ma_chuyen_bay
+          .toLowerCase()
+          .includes(filters.search.trim().toLowerCase())
+      );
+    }
+
+    // Lọc theo hãng bay
+    if (filters.hangBay) {
+      filtered = filtered.filter((cb) => cb.ma_hang_bay === filters.hangBay);
+    }
+
+    // Lọc sân bay đi
+    if (filters.sanBayDi) {
+      filtered = filtered.filter((cb) => cb.ma_san_bay_di === filters.sanBayDi);
+    }
+
+    // Lọc sân bay đến
+    if (filters.sanBayDen) {
+      filtered = filtered.filter((cb) => cb.ma_san_bay_den === filters.sanBayDen);
+    }
+
+    // Lọc trạng thái chuyến bay
+    if (filters.status !== "all") {
+      filtered = filtered.filter((cb) => {
+        const flightDate = new Date(cb.thoi_gian_di);
+        const isPast = flightDate < new Date();
+        return filters.status === "past" ? isPast : !isPast;
+      });
+    }
+
+    // Lọc theo khoảng ngày
+    if (filters.startDate) {
+      filtered = filtered.filter(
+        (cb) => new Date(cb.thoi_gian_di) >= new Date(filters.startDate)
+      );
+    }
+
+    if (filters.endDate) {
+      filtered = filtered.filter(
+        (cb) => new Date(cb.thoi_gian_di) <= new Date(filters.endDate)
+      );
+    }
+
+    setFilteredFlights(filtered);
+  }, [filters, chuyenBays]);
+
+  const resetFilters = () => {
+    setFilters({
+      search: "",
+      hangBay: "",
+      sanBayDi: "",
+      sanBayDen: "",
+      status: "all",
+      startDate: "",
+      endDate: "",
     });
-
-    return stats;
   };
-
-  const flightStats = getFlightStatusInfo();
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
+      {/* HEADER */}
       <div className="flex justify-between mb-6">
         <div>
           <h2 className="text-2xl font-bold text-blue-700 pb-2">
             Danh sách chuyến bay
           </h2>
-          {/* 🆕 Thống kê nhanh */}
-          <div className="text-sm text-gray-600">
-            Tổng: {flightStats.total} | Hoạt động: {flightStats.active} | Cũ:{" "}
-            <span className="text-red-600">{flightStats.past}</span> | Tương
-            lai: <span className="text-green-600">{flightStats.future}</span>
-          </div>
         </div>
         <div className="flex gap-2">
-          {/* 🆕 Button Bulk Update */}
           <button
             onClick={() => setShowBulkUpdate(!showBulkUpdate)}
             className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors"
@@ -211,7 +269,6 @@ const Chuyen_Bay = () => {
             {showBulkUpdate ? "Đóng" : "Cập nhật hàng loạt"}
           </button>
 
-          {/* 🆕 Button Generate Future */}
           <button
             onClick={generateFutureFlights}
             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
@@ -219,7 +276,6 @@ const Chuyen_Bay = () => {
             Tạo lịch tương lai
           </button>
 
-          {/* Button thêm chuyến bay */}
           <button
             onClick={() => setShowForm(!showForm)}
             className="bg-blue-500 text-blue-100 px-4 py-2 rounded cursor-pointer transition duration-300 ease-in-out hover:bg-blue-200 hover:text-blue-800"
@@ -227,6 +283,94 @@ const Chuyen_Bay = () => {
             {showForm ? "Đóng" : "Thêm chuyến bay"}
           </button>
         </div>
+      </div>
+
+      {/* FILTER */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg border grid grid-cols-1 md:grid-cols-3 gap-4">
+        <input
+          type="text"
+          placeholder="Tìm theo mã chuyến bay"
+          value={filters.search}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, search: e.target.value }))
+          }
+          className="p-2 border rounded"
+        />
+        <select
+          value={filters.hangBay}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, hangBay: e.target.value }))
+          }
+          className="p-2 border rounded"
+        >
+          <option value="">-- Chọn hãng bay --</option>
+          {hangBays.map((hang) => (
+            <option key={hang.ma_hang_bay} value={hang.ma_hang_bay}>
+              {hang.ten_hang_bay} ({hang.ma_hang_bay})
+            </option>
+          ))}
+        </select>
+        <select
+          value={filters.sanBayDi}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, sanBayDi: e.target.value }))
+          }
+          className="p-2 border rounded"
+        >
+          <option value="">-- Chọn sân bay đi --</option>
+          {sanBays.map((sb) => (
+            <option key={sb.ma_san_bay} value={sb.ma_san_bay}>
+              {sb.ten_san_bay} ({sb.ma_san_bay})
+            </option>
+          ))}
+        </select>
+        <select
+          value={filters.sanBayDen}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, sanBayDen: e.target.value }))
+          }
+          className="p-2 border rounded"
+        >
+          <option value="">-- Chọn sân bay đến --</option>
+          {sanBays.map((sb) => (
+            <option key={sb.ma_san_bay} value={sb.ma_san_bay}>
+              {sb.ten_san_bay} ({sb.ma_san_bay})
+            </option>
+          ))}
+        </select>
+        <select
+          value={filters.status}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, status: e.target.value }))
+          }
+          className="p-2 border rounded"
+        >
+          <option value="all">Tất cả chuyến bay</option>
+          <option value="upcoming">Chuyến sắp tới</option>
+          <option value="past">Chuyến đã bay</option>
+        </select>
+        <input
+          type="date"
+          value={filters.startDate}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, startDate: e.target.value }))
+          }
+          className="p-2 border rounded"
+        />
+        <input
+          type="date"
+          value={filters.endDate}
+          onChange={(e) =>
+            setFilters((prev) => ({ ...prev, endDate: e.target.value }))
+          }
+          className="p-2 border rounded"
+        />
+        <button
+          onClick={resetFilters}
+          className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition"
+        >
+          Reset bộ lọc
+        </button>
       </div>
 
       {message && (
@@ -245,151 +389,7 @@ const Chuyen_Bay = () => {
         </div>
       )}
 
-      {/* 🆕 Form cập nhật hàng loạt */}
-      {showBulkUpdate && (
-        <div className="mb-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
-          <h3 className="text-lg font-semibold text-orange-800 mb-3">
-            Cập nhật ngày bay hàng loạt
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Số ngày cần cộng thêm
-              </label>
-              <input
-                type="number"
-                value={bulkUpdateData.daysToAdd}
-                onChange={(e) =>
-                  setBulkUpdateData((prev) => ({
-                    ...prev,
-                    daysToAdd: parseInt(e.target.value) || 0,
-                  }))
-                }
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-orange-500"
-                placeholder="VD: 30"
-                min="1"
-                max="365"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trạng thái mới
-              </label>
-              <select
-                value={bulkUpdateData.selectedStatus}
-                onChange={(e) =>
-                  setBulkUpdateData((prev) => ({
-                    ...prev,
-                    selectedStatus: e.target.value,
-                  }))
-                }
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="Đang hoạt động">Đang hoạt động</option>
-                <option value="Sắp khởi hành">Sắp khởi hành</option>
-                <option value="Đã lên lịch">Đã lên lịch</option>
-              </select>
-            </div>
-            <div>
-              <button
-                onClick={handleBulkUpdateDates}
-                className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 w-full transition-colors"
-              >
-                Cập nhật hàng loạt
-              </button>
-            </div>
-          </div>
-          <div className="mt-3 p-3 bg-orange-100 rounded border border-orange-300">
-            <p className="text-sm text-orange-800">
-              ⚠️ <strong>Lưu ý:</strong> Thao tác này sẽ cập nhật TẤT CẢ chuyến
-              bay có ngày cũ hơn hôm nay
-            </p>
-            <p className="text-xs text-orange-600 mt-1">
-              • Chỉ cập nhật: giờ đi, giờ đến, trạng thái
-              <br />
-              • Giữ nguyên khoảng thời gian bay (duration)
-              <br />• Không thêm field mới vào database
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Form thêm chuyến bay */}
-      {showForm && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <input
-              name="ma_chuyen_bay"
-              value={formData.ma_chuyen_bay}
-              onChange={handleChange}
-              placeholder="Mã chuyến bay"
-              className="p-2 border rounded"
-            />
-            <input
-              name="gio_di"
-              type="datetime-local"
-              value={formData.gio_di}
-              onChange={handleChange}
-              className="p-2 border rounded"
-            />
-            <input
-              name="gio_den"
-              type="datetime-local"
-              value={formData.gio_den}
-              onChange={handleChange}
-              className="p-2 border rounded"
-            />
-            <select
-              name="trang_thai"
-              value={formData.trang_thai}
-              onChange={handleChange}
-              className="p-2 border rounded"
-            >
-              <option value="">Chọn trạng thái</option>
-              <option value="Đang hoạt động">Đang hoạt động</option>
-              <option value="Hủy">Hủy</option>
-              <option value="Đã hoàn thành">Đã hoàn thành</option>
-            </select>
-            <select
-              name="ma_tuyen_bay"
-              value={formData.ma_tuyen_bay}
-              onChange={handleChange}
-              className="p-2 border rounded"
-            >
-              <option value="">-- Chọn tuyến bay --</option>
-              {tuyenBays.map((tuyen) => (
-                <option key={tuyen.ma_tuyen_bay} value={tuyen.ma_tuyen_bay}>
-                  {tuyen.ma_tuyen_bay} - {tuyen.san_bay_di} đến{" "}
-                  {tuyen.san_bay_den}
-                </option>
-              ))}
-            </select>
-            <select
-              name="ma_hang_bay"
-              value={formData.ma_hang_bay}
-              onChange={handleChange}
-              className="p-2 border rounded"
-            >
-              <option value="">-- Chọn hãng bay --</option>
-              {hangBays.map((hang) => (
-                <option key={hang.ma_hang_bay} value={hang.ma_hang_bay}>
-                  {hang.ten_hang_bay} ({hang.ma_hang_bay})
-                </option>
-              ))}
-            </select>
-            <div>
-              <button
-                onClick={handleAdd}
-                className="bg-green-500 text-green-100 cursor-pointer transition duration-300 ease-in-out px-4 py-2 rounded hover:bg-green-200 hover:text-green-800"
-              >
-                Xác nhận thêm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bảng danh sách */}
+      {/* BẢNG DANH SÁCH */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
@@ -398,16 +398,16 @@ const Chuyen_Bay = () => {
                 Mã chuyến bay
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Giờ đi
+                Thời gian đi
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Giờ đến
+                Thời gian đến
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Trạng thái
+                Sân bay đi
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Tuyến bay
+                Sân bay đến
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Hãng bay
@@ -418,9 +418,8 @@ const Chuyen_Bay = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {chuyenBays.map((cb) => {
-              // 🆕 Kiểm tra xem chuyến bay có cũ không
-              const flightDate = new Date(cb.gio_di);
+            {filteredFlights.map((cb) => {
+              const flightDate = new Date(cb.thoi_gian_di);
               const isOldFlight = flightDate < new Date();
 
               return (
@@ -436,29 +435,35 @@ const Chuyen_Bay = () => {
                       <span className="ml-2 text-xs text-red-500">• Cũ</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
-                    {new Date(cb.gio_di).toLocaleString("vi-VN")}
+                  <td>
+                    {cb.thoi_gian_di &&
+                    dayjs(
+                      cb.thoi_gian_di.trim(),
+                      "DD/MM/YYYY, HH:mm:ss"
+                    ).isValid()
+                      ? dayjs(
+                          cb.thoi_gian_di.trim(),
+                          "DD/MM/YYYY, HH:mm:ss"
+                        ).format("DD/MM/YYYY HH:mm")
+                      : "Chưa có"}
+                  </td>
+                  <td>
+                    {cb.thoi_gian_den &&
+                    dayjs(
+                      cb.thoi_gian_den.trim(),
+                      "DD/MM/YYYY, HH:mm:ss"
+                    ).isValid()
+                      ? dayjs(
+                          cb.thoi_gian_den.trim(),
+                          "DD/MM/YYYY, HH:mm:ss"
+                        ).format("DD/MM/YYYY HH:mm")
+                      : "Chưa có"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
-                    {new Date(cb.gio_den).toLocaleString("vi-VN")}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        cb.trang_thai === "Đang hoạt động"
-                          ? "bg-green-100 text-green-800"
-                          : cb.trang_thai === "Hủy"
-                          ? "bg-red-100 text-red-800"
-                          : cb.trang_thai === "Đã hoàn thành"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {cb.trang_thai}
-                    </span>
+                    {cb.ma_san_bay_di}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
-                    {cb.ma_tuyen_bay}
+                    {cb.ma_san_bay_den}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
                     {cb.ma_hang_bay}
@@ -467,20 +472,14 @@ const Chuyen_Bay = () => {
                     <button className="text-blue-100 bg-blue-500 cursor-pointer rounded-md px-2 py-1 hover:text-blue-800 hover:bg-blue-200 mr-3 transition-colors">
                       Sửa
                     </button>
-                    {/* <button
-                      onClick={() => handleDelete(cb.ma_chuyen_bay)}
-                      className="text-red-100 bg-red-500 cursor-pointer rounded-md px-2 py-1 hover:text-red-800 hover:bg-red-200 transition-colors"
-                    >
-                      Xóa
-                    </button> */}
                   </td>
                 </tr>
               );
             })}
-            {chuyenBays.length === 0 && (
+            {filteredFlights.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                  Không có chuyến bay nào.
+                  Không có chuyến bay nào phù hợp.
                 </td>
               </tr>
             )}

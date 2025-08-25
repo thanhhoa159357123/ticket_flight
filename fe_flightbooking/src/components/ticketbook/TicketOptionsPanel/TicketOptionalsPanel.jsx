@@ -95,13 +95,13 @@ const TicketOptionsPanel = ({
       <div
         onClick={handleClose}
         className={`fixed inset-0 bg-black/50 z-[1000] transition-opacity duration-300 ${
-          isAnimating ? "opacity-100" : "opacity-0"
+          isAnimating ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       />
 
       {/* Panel */}
       <div
-        className={`fixed top-0 right-0 h-screen bg-white z-[1001] flex flex-col shadow-2xl transition-transform duration-300 ease-out w-full max-w-[800px] lg:w-[65%] md:w-[75%] ${
+        className={`fixed top-0 right-0 h-screen bg-white z-[1001] flex flex-col shadow-2xl transition-transform duration-300 ease-out w-full max-w-[1000px] lg:w-[65%] md:w-[75%] ${
           isAnimating ? "translate-x-0" : "translate-x-full"
         }`}
       >

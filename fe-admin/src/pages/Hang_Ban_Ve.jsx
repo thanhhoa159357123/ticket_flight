@@ -13,7 +13,7 @@ const Hang_Ban_Ve = () => {
 
   const fetchData = () => {
     axios
-      .get("http://localhost:8000/api/hang-ban-ve")
+      .get("http://localhost:8000/hangbanve")
       .then((res) => setData(res.data))
       .catch((err) => console.error(err));
   };
@@ -28,7 +28,7 @@ const Hang_Ban_Ve = () => {
 
   const handleAdd = () => {
     axios
-      .post("http://localhost:8000/api/hang-ban-ve", formData)
+      .post("http://localhost:8000/hangbanve", formData)
       .then(() => {
         fetchData();
         setShowForm(false);
@@ -47,7 +47,7 @@ const Hang_Ban_Ve = () => {
 
     try {
       await axios.delete(
-        `http://localhost:8000/api/hang-ban-ve/${ma_hang_ban_ve}`
+        `http://localhost:8000/hangbanve/${ma_hang_ban_ve}`
       );
       setMessage(`🗑️ Đã xoá tuyến bay ${ma_hang_ban_ve}`);
       fetchData(); // cập nhật lại danh sách

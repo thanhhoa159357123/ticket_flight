@@ -11,7 +11,7 @@ const TicketPackageCard = ({ pkg, onShowMoreDetail, onChoose }) => {
 
   // Policies
   const isRefundable = pkg.refundable || false;
-  const isChangeable = pkg.changeable || false;
+  // const isChangeable = pkg.changeable || false;
 
   // Seat info
   const seatSpacing = pkg.khoang_cach_ghe || "Tiêu chuẩn";
@@ -45,7 +45,7 @@ const TicketPackageCard = ({ pkg, onShowMoreDetail, onChoose }) => {
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-2">
         {/* Baggage */}
         <div className="space-y-1">
           <h4 className="font-semibold text-gray-800 flex items-center gap-2">
@@ -105,7 +105,7 @@ const TicketPackageCard = ({ pkg, onShowMoreDetail, onChoose }) => {
                 {isRefundable ? "Có" : "Không"}
               </span>
             </div>
-            <div className="flex justify-between">
+            {/* <div className="flex justify-between">
               <span>Đổi vé:</span>
               <span
                 className={`font-medium ${
@@ -114,7 +114,7 @@ const TicketPackageCard = ({ pkg, onShowMoreDetail, onChoose }) => {
               >
                 {isChangeable ? "Có" : "Không"}
               </span>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

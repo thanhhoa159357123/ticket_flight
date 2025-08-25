@@ -6,4 +6,3 @@ class Ve(BaseModel):
     ma_hang_ve: str
     ma_chuyen_bay: str
     ma_hang_ban_ve: str
-    # goi_ve: str
