@@ -8,6 +8,8 @@ const Hang_Bay = () => {
     message,
     showForm,
     isEdit,
+    isOpening,
+    isClosing,
     formData,
     handleChange,
     openAddForm,
@@ -40,78 +42,84 @@ const Hang_Bay = () => {
           </div>
         )}
 
-        {/* Modal */}
+        {/* Drawer thêm/sửa hãng bay */}
         {showForm && (
           <>
+            {/* Overlay nền tối */}
             <div
-              className="fixed inset-0 z-40 bg-white bg-opacity-40 backdrop-blur-[8px]"
+              className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300
+                  ${isClosing ? "opacity-0" : "opacity-100"}`}
               onClick={handleCancel}
             ></div>
+
+            {/* Drawer trượt từ phải */}
             <div
-              className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
-                          bg-white rounded-2xl shadow-2xl border border-blue-100 w-full max-w-md
-                          px-8 py-9 animate-fade-in"
-              style={{ minWidth: 340, maxWidth: 480 }}
+              className={`fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-50
+                  transform transition-all duration-300 ease-out
+                  ${
+                    isClosing
+                      ? "translate-x-full opacity-0 scale-95"
+                      : isOpening
+                      ? "translate-x-0 opacity-0 scale-95"
+                      : "translate-x-0 opacity-100 scale-100"
+                  }`}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-blue-600">
+              {/* Header */}
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-2xl font-bold text-blue-600">
                   {isEdit ? "Chỉnh sửa hãng bay" : "Thêm hãng bay"}
                 </h3>
                 <button
                   onClick={handleCancel}
                   className="p-2 rounded-full hover:bg-gray-100 transition"
                 >
-                  <FaTimes className="text-xl text-blue-400" />
+                  <FaTimes className="text-2xl text-gray-600" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 gap-6">
-                <input
-                  name="ma_hang_bay"
-                  value={formData.ma_hang_bay}
-                  onChange={handleChange}
-                  disabled={isEdit}
-                  placeholder="Mã hãng bay"
-                  className="p-3 border border-blue-200 rounded-xl bg-gray-100 focus:ring-2 focus:ring-blue-400"
-                />
-                <input
-                  name="ten_hang_bay"
-                  value={formData.ten_hang_bay}
-                  onChange={handleChange}
-                  placeholder="Tên hãng bay"
-                  className="p-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400"
-                />
-                <input
-                  name="iata_code"
-                  value={formData.iata_code}
-                  onChange={handleChange}
-                  placeholder="IATA Code"
-                  className="p-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400"
-                />
-                <input
-                  name="quoc_gia"
-                  value={formData.quoc_gia}
-                  onChange={handleChange}
-                  placeholder="Quốc gia"
-                  className="p-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-400"
-                />
+              {/* Body */}
+              <div className="p-6 overflow-y-auto max-h-[calc(100vh-150px)]">
+                <div className="grid grid-cols-1 gap-5">
+                  {[
+                    {
+                      name: "ma_hang_bay",
+                      placeholder: "Mã hãng bay",
+                      disabled: isEdit,
+                    },
+                    { name: "ten_hang_bay", placeholder: "Tên hãng bay" },
+                    { name: "iata_code", placeholder: "IATA code" },
+                    { name: "quoc_gia", placeholder: "Quốc gia" },
+                  ].map(({ name, placeholder, disabled }) => (
+                    <input
+                      key={name}
+                      name={name}
+                      value={formData[name]}
+                      onChange={handleChange}
+                      placeholder={placeholder}
+                      disabled={disabled}
+                      className="p-3 border border-gray-200 rounded-xl bg-gray-50
+                         focus:ring-2 focus:ring-blue-400 focus:bg-white transition"
+                    />
+                  ))}
+                </div>
               </div>
-
-              <div className="mt-8 flex gap-2">
+              {/* Footer */}
+              <div className="p-6 border-t flex gap-3">
                 <button
                   onClick={isEdit ? handleUpdate : handleAdd}
-                  className={`w-full ${
-                    isEdit
-                      ? "bg-yellow-500 hover:bg-yellow-600"
-                      : "bg-green-500 hover:bg-green-600"
-                  } py-3 rounded-full text-white font-bold shadow-md transition text-base`}
+                  className={`w-full py-3 rounded-full text-white font-bold shadow-md transition 
+                      ${
+                        isEdit
+                          ? "bg-yellow-500 hover:bg-yellow-600"
+                          : "bg-green-500 hover:bg-green-600"
+                      }`}
                 >
-                  {isEdit ? "Cập nhật" : "Xác nhận thêm"}
+                  {isEdit ? "Cập nhật" : "Thêm mới"}
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="w-full py-3 rounded-full font-bold shadow-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-200 transition text-base"
+                  className="w-full py-3 rounded-full font-bold shadow-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-200 transition"
                 >
                   Hủy
                 </button>
@@ -121,16 +129,26 @@ const Hang_Bay = () => {
         )}
 
         {/* Bảng */}
-        <div className={showForm ? "pointer-events-none blur-[2px]" : ""}>
+        <div className={showForm ? "pointer-events-none" : ""}>
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white rounded-2xl shadow-xl overflow-hidden">
               <thead className="bg-gradient-to-r from-blue-100 to-cyan-100">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">Mã hãng bay</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">Tên hãng bay</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">IATA code</th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">Quốc gia</th>
-                  <th className="px-6 py-4 text-center text-sm font-bold text-blue-700 uppercase">Hành động</th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">
+                    Mã hãng bay
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">
+                    Tên hãng bay
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">
+                    IATA code
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-bold text-blue-700 uppercase">
+                    Quốc gia
+                  </th>
+                  <th className="px-6 py-4 text-center text-sm font-bold text-blue-700 uppercase">
+                    Hành động
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -138,9 +156,13 @@ const Hang_Bay = () => {
                   data.map((hangbay, idx) => (
                     <tr
                       key={hangbay.ma_hang_bay}
-                      className={`transition-all hover:bg-blue-50 ${idx % 2 === 0 ? "bg-white" : "bg-blue-50"}`}
+                      className={`transition-all hover:bg-blue-50 ${
+                        idx % 2 === 0 ? "bg-white" : "bg-blue-50"
+                      }`}
                     >
-                      <td className="px-6 py-4 font-semibold text-blue-800">{hangbay.ma_hang_bay}</td>
+                      <td className="px-6 py-4 font-semibold text-blue-800">
+                        {hangbay.ma_hang_bay}
+                      </td>
                       <td className="px-6 py-4">{hangbay.ten_hang_bay}</td>
                       <td className="px-6 py-4">{hangbay.iata_code}</td>
                       <td className="px-6 py-4">{hangbay.quoc_gia}</td>

@@ -18,12 +18,14 @@ export const useChuyenBay = () => {
   const [message, setMessage] = useState("");
   const [formData, setFormData] = useState(initialFormData);
 
+  // 🔹 Thêm state animation
+  const [isOpening, setIsOpening] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
   const fetchData = () => {
     axios
       .get("http://localhost:8080/chuyenbay")
-      .then((res) => {
-        setData(Array.isArray(res.data) ? res.data : []);
-      })
+      .then((res) => setData(Array.isArray(res.data) ? res.data : []))
       .catch(() => {
         setData([]);
         setMessage("Không lấy được dữ liệu chuyến bay.");
@@ -44,6 +46,8 @@ export const useChuyenBay = () => {
     setEditingId(null);
     setShowForm(true);
     setMessage("");
+    setIsOpening(true);
+    setTimeout(() => setIsOpening(false), 300);
   };
 
   const handleEdit = (cb) => {
@@ -52,6 +56,8 @@ export const useChuyenBay = () => {
     setEditingId(cb.ma_chuyen_bay);
     setShowForm(true);
     setMessage("");
+    setIsOpening(true);
+    setTimeout(() => setIsOpening(false), 300);
   };
 
   const handleAdd = () => {
@@ -59,11 +65,11 @@ export const useChuyenBay = () => {
       .post("http://localhost:8080/chuyenbay", formData)
       .then(() => {
         fetchData();
-        setShowForm(false);
-        setMessage("Đã thêm chuyến bay mới!");
+        handleCancel();
+        setMessage("✅ Đã thêm chuyến bay mới!");
       })
       .catch((err) => {
-        setMessage(err.response?.data?.detail || "Thêm thất bại!");
+        setMessage(err.response?.data?.detail || "❌ Thêm thất bại!");
       });
   };
 
@@ -72,13 +78,11 @@ export const useChuyenBay = () => {
       .put(`http://localhost:8080/chuyenbay/${editingId}`, formData)
       .then(() => {
         fetchData();
-        setShowForm(false);
-        setIsEdit(false);
-        setEditingId(null);
-        setMessage("Cập nhật thành công!");
+        handleCancel();
+        setMessage("✅ Cập nhật thành công!");
       })
       .catch((err) => {
-        setMessage(err.response?.data?.detail || "Cập nhật thất bại.");
+        setMessage(err.response?.data?.detail || "❌ Cập nhật thất bại.");
       });
   };
 
@@ -88,28 +92,33 @@ export const useChuyenBay = () => {
       .delete(`http://localhost:8080/chuyenbay/${ma}`)
       .then(() => {
         fetchData();
-        setMessage("Xóa thành công.");
+        setMessage("🗑️ Xóa thành công.");
       })
       .catch((err) => {
-        setMessage(err.response?.data?.detail || "Xóa thất bại.");
+        setMessage(err.response?.data?.detail || "❌ Xóa thất bại.");
       });
   };
 
   const handleCancel = () => {
-    setShowForm(false);
-    setIsEdit(false);
-    setEditingId(null);
-    setFormData(initialFormData);
-    setMessage("");
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowForm(false);
+      setIsEdit(false);
+      setEditingId(null);
+      setFormData(initialFormData);
+      setIsClosing(false);
+      setMessage("");
+    }, 300);
   };
 
   return {
     data,
     showForm,
     isEdit,
-    editingId,
     message,
     formData,
+    isOpening,
+    isClosing,
     handleChange,
     openAddForm,
     handleEdit,

@@ -24,7 +24,7 @@ const XuLyHoanVe = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/notifications/refund-requests"
+        "http://localhost:8000/notifications/refund-requests"
       );
       setRefundRequests(response.data.requests || []);
     } catch (error) {
@@ -41,7 +41,7 @@ const XuLyHoanVe = () => {
     setProcessing((prev) => ({ ...prev, [maDatVe]: true }));
     try {
       await axios.patch(
-        `http://localhost:8000/api/dat-ve/${maDatVe}/approve-refund?approved=true`
+        `http://localhost:8080/datve/${maDatVe}/approve-refund?approved=true`
       );
       alert("✅ Đã duyệt hoàn vé thành công!");
       fetchRefundRequests();
@@ -60,7 +60,7 @@ const XuLyHoanVe = () => {
     setProcessing((prev) => ({ ...prev, [maDatVe]: true }));
     try {
       await axios.patch(
-        `http://localhost:8000/api/dat-ve/${maDatVe}/approve-refund?approved=false`
+        `http://localhost:8080/datve/${maDatVe}/approve-refund?approved=false`
       );
       alert("❌ Đã từ chối hoàn vé!");
       fetchRefundRequests();

@@ -8,6 +8,8 @@ function KhachHang() {
     khachHangs,
     searchId,
     setSearchId,
+    isClosing,
+    isOpening,
     searchResult,
     message,
     showSearch,
@@ -40,72 +42,102 @@ function KhachHang() {
           </div>
         )}
 
-        {/* Form tìm kiếm popup */}
+        {/* Drawer tìm kiếm khách hàng */}
         {showSearch && (
           <>
+            {/* Overlay */}
             <div
-              className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm z-40"
+              className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300
+                  ${isClosing ? "opacity-0" : "opacity-100"}`}
               onClick={handleCancel}
-            />
+            ></div>
+
+            {/* Drawer trượt từ phải */}
             <div
-              className="fixed z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
-              bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md"
+              className={`fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-50
+                  transform transition-all duration-300 ease-out
+                  ${
+                    isClosing
+                      ? "translate-x-full opacity-0 scale-95"
+                      : isOpening
+                      ? "translate-x-0 opacity-0 scale-95"
+                      : "translate-x-0 opacity-100 scale-100"
+                  }`}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-blue-600">
+              {/* Header */}
+              <div className="flex justify-between items-center p-6 border-b">
+                <h3 className="text-2xl font-bold text-blue-600">
                   Tìm khách hàng
                 </h3>
                 <button
                   onClick={handleCancel}
                   className="p-2 rounded-full hover:bg-gray-100 transition"
                 >
-                  <FaTimes className="text-xl text-blue-400" />
+                  <FaTimes className="text-2xl text-gray-600" />
                 </button>
               </div>
 
-              <form onSubmit={handleSearch} className="space-y-4">
-                <input
-                  name="searchId"
-                  placeholder="Nhập mã khách hàng (VD: KH_1693548392)"
-                  value={searchId}
-                  onChange={(e) => setSearchId(e.target.value)}
-                  className="w-full p-3 border rounded-xl bg-gray-50"
-                />
-                <button
-                  type="submit"
-                  className="w-full py-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-bold shadow-md"
-                >
-                  Tìm kiếm
-                </button>
-              </form>
+              {/* Body */}
+              <div className="p-6 overflow-y-auto max-h-[calc(100vh-150px)]">
+                <form onSubmit={handleSearch} className="space-y-4">
+                  <input
+                    name="searchId"
+                    placeholder="Nhập mã khách hàng (VD: KH_1693548392)"
+                    value={searchId}
+                    onChange={(e) => setSearchId(e.target.value)}
+                    className="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-400 transition"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full py-3 rounded-full bg-blue-500 hover:bg-blue-600 text-white font-bold shadow-md transition"
+                  >
+                    Tìm kiếm
+                  </button>
+                </form>
 
-              {searchResult && (
-                <div className="mt-6 border-t pt-4 text-sm text-gray-700 space-y-2">
-                  <p>
-                    <strong>Mã KH:</strong> {searchResult.ma_khach_hang}
-                  </p>
-                  <p>
-                    <strong>Tên:</strong> {searchResult.ten_khach_hang}
-                  </p>
-                  <p>
-                    <strong>Email:</strong> {searchResult.email}
-                  </p>
-                  <p>
-                    <strong>SĐT:</strong> {searchResult.so_dien_thoai}
-                  </p>
-                  <p>
-                    <strong>Ngày tạo:</strong>{" "}
-                    {new Date(searchResult.created_at).toLocaleString()}
-                  </p>
-                </div>
-              )}
+                {/* Kết quả tìm kiếm */}
+                {searchResult && (
+                  <div className="mt-6 border-t pt-4 text-sm text-gray-700 space-y-2">
+                    <p>
+                      <strong>Mã KH:</strong> {searchResult.ma_khach_hang}
+                    </p>
+                    <p>
+                      <strong>Tên:</strong> {searchResult.ten_khach_hang}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {searchResult.email}
+                    </p>
+                    <p>
+                      <strong>SĐT:</strong> {searchResult.so_dien_thoai}
+                    </p>
+                    <p>
+                      <strong>Ngày tạo:</strong>{" "}
+                      {new Date(searchResult.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t flex gap-3">
+                <button
+                  onClick={handleCancel}
+                  className="w-full py-3 rounded-full font-bold shadow-md border border-gray-300 bg-white text-gray-600 hover:bg-gray-200 transition"
+                >
+                  Đóng
+                </button>
+              </div>
             </div>
           </>
         )}
 
         {/* Table danh sách */}
-        <div className={showSearch ? "pointer-events-none blur-[2px] select-none" : ""}>
+        <div
+          className={
+            showSearch ? "pointer-events-none select-none" : ""
+          }
+        >
           <div className="overflow-x-auto">
             <table className="min-w-full bg-white shadow-xl rounded-2xl overflow-hidden">
               <thead className="bg-gradient-to-r from-blue-100 to-cyan-100">

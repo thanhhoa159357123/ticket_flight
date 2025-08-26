@@ -1,4 +1,3 @@
-// hooks/useKhachHang.js
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -11,6 +10,10 @@ export const useKhachHang = () => {
   const [message, setMessage] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
+  // 🔹 Thêm state animation
+  const [isClosing, setIsClosing] = useState(false);
+  const [isOpening, setIsOpening] = useState(false);
+
   useEffect(() => {
     fetchKhachHangs();
   }, []);
@@ -19,8 +22,7 @@ export const useKhachHang = () => {
     try {
       const res = await axios.get(API_URL);
       setKhachHangs(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setMessage("Không thể lấy dữ liệu khách hàng.");
     }
   };
@@ -32,8 +34,7 @@ export const useKhachHang = () => {
     try {
       const res = await axios.get(`${API_URL}/${searchId}`);
       setSearchResult(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setMessage("Không tìm thấy khách hàng với mã đã nhập.");
     }
   };
@@ -43,10 +44,9 @@ export const useKhachHang = () => {
     try {
       await axios.delete(`${API_URL}/${ma_khach_hang}`);
       fetchKhachHangs();
-      setMessage("Xóa thành công.");
-    } catch (err) {
-      console.error(err);
-      setMessage("Xóa thất bại.");
+      setMessage("✅ Xóa thành công.");
+    } catch {
+      setMessage("❌ Xóa thất bại.");
     }
   };
 
@@ -55,13 +55,19 @@ export const useKhachHang = () => {
     setSearchId("");
     setSearchResult(null);
     setMessage("");
+    setIsOpening(true);
+    setTimeout(() => setIsOpening(false), 300);
   };
 
   const handleCancel = () => {
-    setShowSearch(false);
-    setSearchId("");
-    setSearchResult(null);
-    setMessage("");
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowSearch(false);
+      setSearchId("");
+      setSearchResult(null);
+      setIsClosing(false);
+      setMessage("");
+    }, 300);
   };
 
   return {
@@ -71,10 +77,13 @@ export const useKhachHang = () => {
     searchResult,
     message,
     showSearch,
+    isClosing,
+    isOpening,
     handleSearch,
     handleDelete,
     toggleSearchForm,
     handleCancel,
   };
 };
+
 export default useKhachHang;

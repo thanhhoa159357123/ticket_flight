@@ -20,6 +20,8 @@ export const useHangVe = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [message, setMessage] = useState("");
+  const [isClosing, setIsClosing] = useState(false);
+  const [isOpening, setIsOpening] = useState(false);
 
   const fetchData = () => {
     axios
@@ -45,6 +47,8 @@ export const useHangVe = () => {
     setEditingId(null);
     setShowForm(true);
     setMessage("");
+    setIsOpening(true); // 🔹 Bật animation mở
+    setTimeout(() => setIsOpening(false), 200); // 🔹 Tắt animation sau 300ms
   };
 
   const handleEdit = (hangVe) => {
@@ -56,11 +60,15 @@ export const useHangVe = () => {
   };
 
   const handleCancel = () => {
-    setFormData(initialForm);
-    setIsEdit(false);
-    setEditingId(null);
-    setShowForm(false);
-    setMessage("");
+    setIsClosing(true);
+    setTimeout(() => {
+      setFormData(initialForm);
+      setIsEdit(false);
+      setEditingId(null);
+      setShowForm(false);
+      setIsClosing(false);
+      setMessage("");
+    }, 250); // Thời gian khớp với duration-300 bên Tailwind
   };
 
   const handleAdd = () => {
@@ -109,6 +117,8 @@ export const useHangVe = () => {
     formData,
     showForm,
     isEdit,
+    isOpening,
+    isClosing,
     message,
     handleChange,
     openAddForm,

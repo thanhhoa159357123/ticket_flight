@@ -14,27 +14,31 @@ hoa_don_collection = db["hoadon"]
 
 @router.post("/thanh-toan", tags=["hoa_don"])
 def thanh_toan(hoa_don: HoaDon):
-    # Cập nhật trạng thái đặt vé
     update_result = dat_ve_collection.update_one(
-        {"ma_dat_ve": hoa_don.ma_dat_ve}, {"$set": {"trang_thai": "Đã thanh toán"}}
+        {"ma_dat_ve": hoa_don.ma_dat_ve}, 
+        {"$set": {"trang_thai": "Đã thanh toán"}}
     )
 
     if update_result.modified_count == 0:
-        raise HTTPException(
-            status_code=404, detail="Không tìm thấy mã đặt vé để cập nhật"
-        )
+        raise HTTPException(status_code=404, detail="Không tìm thấy mã đặt vé để cập nhật")
 
     # Thêm hóa đơn
     hoa_don_data = hoa_don.dict()
     hoa_don_data["ma_hoa_don"] = str(uuid4())
 
-    # Chuyển ngay_thanh_toan về string (hỗ trợ cả date và datetime)
     if isinstance(hoa_don_data["ngay_thanh_toan"], (datetime, date)):
         hoa_don_data["ngay_thanh_toan"] = hoa_don_data["ngay_thanh_toan"].strftime("%Y-%m-%d")
     else:
         hoa_don_data["ngay_thanh_toan"] = str(hoa_don_data["ngay_thanh_toan"])
 
     hoa_don_collection.insert_one(hoa_don_data)
+
+    # 🆕 Làm mới cache Spark cho bảng datve
+    from utils.spark_views import cached_views, load_and_register
+    if "datve" in cached_views:
+        cached_views.pop("datve")
+    load_and_register("datve")
+
     invalidate_cache("hoadon")
 
     return {

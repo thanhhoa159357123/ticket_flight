@@ -9,6 +9,8 @@ const Gia_Ve = () => {
     isEdit,
     formData,
     message,
+    isClosing,
+    isOpening,
     setMessage,
     handleChange,
     openAddForm,
@@ -52,48 +54,64 @@ const Gia_Ve = () => {
         {showForm && (
           <>
             <div
-              className="fixed inset-0 bg-white bg-opacity-40 backdrop-blur-[8px] z-40"
+              className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300
+                  ${isClosing ? "opacity-0" : "opacity-100"}`}
               onClick={handleCancel}
-            />
-            <div className="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-blue-200">
-              <div className="flex justify-between mb-6">
+            ></div>
+            <div
+              className={`fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-50
+                  transform transition-all duration-300 ease-out
+                  ${
+                    isClosing
+                      ? "translate-x-full opacity-0 scale-95"
+                      : isOpening
+                      ? "translate-x-0 opacity-0 scale-95"
+                      : "translate-x-0 opacity-100 scale-100"
+                  }`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center p-6 border-b">
                 <h3 className="text-xl font-bold text-blue-600">
                   {isEdit ? "Chỉnh sửa" : "Thêm"} giá vé
                 </h3>
                 <button
                   onClick={handleCancel}
-                  className="text-blue-500 hover:text-blue-700"
+                  className="p-2 rounded-full hover:bg-gray-100 transition"
                 >
-                  <FaTimes />
+                  <FaTimes className="text-2xl text-gray-600" />
                 </button>
               </div>
-              <div className="grid gap-4">
-                {[
-                  "ma_ve",
-                  "gia_ve",
-                  "ma_hang_ve",
-                  "ma_chuyen_bay",
-                  "ma_hang_ban_ve",
-                ].map((field) => (
-                  <input
-                    key={field}
-                    name={field}
-                    value={formData[field]}
-                    onChange={handleChange}
-                    placeholder={field.replaceAll("_", " ").toUpperCase()}
-                    className="p-3 border border-blue-300 rounded-xl"
-                    disabled={field === "ma_ve" && isEdit}
-                  />
-                ))}
+              <div className="p-6 overflow-y-auto max-h-[calc(100vh-150px)]">
+                <div className="grid grid-cols-1 gap-5">
+                  {[
+                    "ma_ve",
+                    "gia_ve",
+                    "ma_hang_ve",
+                    "ma_chuyen_bay",
+                    "ma_hang_ban_ve",
+                  ].map((field) => (
+                    <input
+                      key={field}
+                      name={field}
+                      value={formData[field]}
+                      onChange={handleChange}
+                      placeholder={field.replaceAll("_", " ").toUpperCase()}
+                      className="p-3 border border-gray-200 rounded-xl bg-gray-50
+                         focus:ring-2 focus:ring-blue-400 focus:bg-white transition"
+                      disabled={field === "ma_ve" && isEdit}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="mt-6 flex gap-2">
+              <div className="p-6 border-t flex gap-3">
                 <button
                   onClick={isEdit ? handleUpdate : handleAdd}
-                  className={`w-full py-3 rounded-full text-white font-bold ${
-                    isEdit
-                      ? "bg-yellow-500 hover:bg-yellow-600"
-                      : "bg-green-500 hover:bg-green-600"
-                  }`}
+                  className={`w-full py-3 rounded-full text-white font-bold shadow-md transition 
+                      ${
+                        isEdit
+                          ? "bg-yellow-500 hover:bg-yellow-600"
+                          : "bg-green-500 hover:bg-green-600"
+                      }`}
                 >
                   {isEdit ? "Cập nhật" : "Xác nhận thêm"}
                 </button>
@@ -109,7 +127,7 @@ const Gia_Ve = () => {
         )}
 
         {/* Bảng danh sách */}
-        <div className={showForm ? "pointer-events-none blur-[2px]" : ""}>
+        <div className={showForm ? "pointer-events-none" : ""}>
           <div className="overflow-x-auto rounded-xl shadow">
             <table className="min-w-full bg-white rounded-xl">
               <thead className="bg-blue-100 text-blue-700">

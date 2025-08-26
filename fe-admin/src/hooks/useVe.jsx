@@ -7,6 +7,8 @@ const useGiaVe = () => {
   const [isEdit, setIsEdit] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [message, setMessage] = useState("");
+  const [isClosing, setIsClosing] = useState(false);
+  const [isOpening, setIsOpening] = useState(false);
   const [formData, setFormData] = useState({
     ma_ve: "",
     gia_ve: "",
@@ -38,6 +40,7 @@ const useGiaVe = () => {
   };
 
   const openAddForm = () => {
+    setIsClosing(false); // 🔹 Reset trạng thái đóng khi mở
     setFormData({
       ma_ve: "",
       gia_ve: "",
@@ -49,6 +52,8 @@ const useGiaVe = () => {
     setEditingId(null);
     setShowForm(true);
     setMessage("");
+    setIsOpening(true);
+    setTimeout(() => setIsOpening(false), 200);
   };
 
   const handleEdit = (item) => {
@@ -60,10 +65,14 @@ const useGiaVe = () => {
   };
 
   const handleCancel = () => {
-    setShowForm(false);
-    setIsEdit(false);
-    setEditingId(null);
-    setMessage("");
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowForm(false);
+      setIsEdit(false);
+      setEditingId(null);
+      setMessage("");
+      setIsClosing(false); // 🔹 RESET LẠI isClosing SAU KHI ĐÓNG
+    }, 200);
   };
 
   const handleAdd = () => {
@@ -113,6 +122,8 @@ const useGiaVe = () => {
     isEdit,
     formData,
     message,
+    isClosing,
+    isOpening,
     setMessage,
     handleChange,
     openAddForm,

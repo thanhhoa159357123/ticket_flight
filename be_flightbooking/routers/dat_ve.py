@@ -273,6 +273,8 @@ def get_all_dat_ve_by_user(ma_khach_hang: str = Query(...)):
             df_grouped_datve, on="ma_dat_ve", how="left"
         ).orderBy(F.col("ngay_dat").desc())
 
+        invalidate_cache("datve")
+        
         # 9️⃣ Trả dữ liệu JSON về FE
         return [json.loads(row) for row in final_df.toJSON().collect()]
 

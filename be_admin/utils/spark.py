@@ -8,7 +8,7 @@ os.environ["PYSPARK_SUBMIT_ARGS"] = (
 )
 
 from pyspark.sql import SparkSession
-from pyspark import SparkConf
+from pyspark import SparkConf, StorageLevel
 
 spark = None
 df_cache = {}  # Cache DataFrame theo tên collection
@@ -143,14 +143,27 @@ def refresh_cache(collection_name: str, lazy_reload: bool = True):
         return None
 
 def invalidate_cache(collection_name: str):
-    """Chỉ invalidate cache, không reload ngay"""
+    global df_cache
+
     if collection_name in df_cache:
-        try:
-            df_cache[collection_name].unpersist()
-        except Exception:
-            pass
+        print(f"♻️ [INVALIDATE] Xoá cache DataFrame: {collection_name}")
+        df_cache[collection_name].unpersist(blocking=True)
         del df_cache[collection_name]
-        print(f"❌ Cache invalidated: {collection_name}")
+
+    # Load lại DataFrame mới nhất từ Mongo
+    print(f"🔄 [REFRESH] Đang load lại dữ liệu cho: {collection_name}")
+    new_df = (
+        spark.read.format("com.mongodb.spark.sql.DefaultSource")
+        .option("uri", MONGO_URI)
+        .option("database", MONGO_DB)
+        .option("collection", collection_name)
+        .load()
+        .repartition(8)
+        .persist(StorageLevel.MEMORY_AND_DISK)
+    )
+    new_df.count()
+    df_cache[collection_name] = new_df
+    return new_df
 
 def clear_all_cache():
     """Clear all cached DataFrames"""

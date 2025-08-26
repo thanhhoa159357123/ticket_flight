@@ -14,13 +14,15 @@ export const useHangBay = () => {
     quoc_gia: "",
   });
 
+  // 🔹 Thêm state animation
+  const [isClosing, setIsClosing] = useState(false);
+  const [isOpening, setIsOpening] = useState(false);
+
   // Fetch data
   const fetchData = () => {
     axios
       .get("http://localhost:8080/hangbay")
-      .then((res) => {
-        setData(Array.isArray(res.data) ? res.data : []);
-      })
+      .then((res) => setData(Array.isArray(res.data) ? res.data : []))
       .catch(() => {
         setData([]);
         setMessage("Không lấy được dữ liệu hãng bay.");
@@ -47,6 +49,8 @@ export const useHangBay = () => {
     setEditingId(null);
     setShowForm(true);
     setMessage("");
+    setIsOpening(true);
+    setTimeout(() => setIsOpening(false), 300);
   };
 
   const handleEdit = (hangbay) => {
@@ -55,6 +59,8 @@ export const useHangBay = () => {
     setEditingId(hangbay.ma_hang_bay);
     setShowForm(true);
     setMessage("");
+    setIsOpening(true);
+    setTimeout(() => setIsOpening(false), 300);
   };
 
   const handleAdd = () => {
@@ -62,11 +68,11 @@ export const useHangBay = () => {
       .post("http://localhost:8080/hangbay", formData)
       .then(() => {
         fetchData();
-        setShowForm(false);
-        setMessage("Đã thêm hãng bay mới!");
+        handleCancel();
+        setMessage("✅ Đã thêm hãng bay mới!");
       })
       .catch((err) => {
-        setMessage(err.response?.data?.detail || "Thêm hãng bay thất bại!");
+        setMessage(err.response?.data?.detail || "❌ Thêm hãng bay thất bại!");
       });
   };
 
@@ -77,13 +83,11 @@ export const useHangBay = () => {
       })
       .then(() => {
         fetchData();
-        setShowForm(false);
-        setIsEdit(false);
-        setEditingId(null);
-        setMessage("Cập nhật hãng bay thành công!");
+        handleCancel();
+        setMessage("✅ Cập nhật hãng bay thành công!");
       })
       .catch((err) => {
-        setMessage(err.response?.data?.detail || "Chỉnh sửa thất bại. Vui lòng thử lại.");
+        setMessage(err.response?.data?.detail || "❌ Cập nhật thất bại!");
       });
   };
 
@@ -93,24 +97,28 @@ export const useHangBay = () => {
       .delete(`http://localhost:8080/hangbay/${ma_hang_bay}`)
       .then(() => {
         fetchData();
-        setMessage("Xóa thành công.");
+        setMessage("🗑️ Xóa thành công.");
       })
       .catch((err) => {
-        setMessage(err.response?.data?.detail || "Xóa thất bại. Vui lòng thử lại.");
+        setMessage(err.response?.data?.detail || "❌ Xóa thất bại!");
       });
   };
 
   const handleCancel = () => {
-    setShowForm(false);
-    setIsEdit(false);
-    setEditingId(null);
-    setFormData({
-      ma_hang_bay: "",
-      ten_hang_bay: "",
-      iata_code: "",
-      quoc_gia: "",
-    });
-    setMessage("");
+    setIsClosing(true);
+    setTimeout(() => {
+      setShowForm(false);
+      setIsEdit(false);
+      setEditingId(null);
+      setIsClosing(false);
+      setMessage("");
+      setFormData({
+        ma_hang_bay: "",
+        ten_hang_bay: "",
+        iata_code: "",
+        quoc_gia: "",
+      });
+    }, 300);
   };
 
   return {
@@ -119,6 +127,8 @@ export const useHangBay = () => {
     showForm,
     isEdit,
     formData,
+    isClosing,
+    isOpening,
     handleChange,
     openAddForm,
     handleEdit,
